@@ -1,0 +1,32 @@
+# Default ignored files
+/shelf/
+/.idea/workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+
+# Compiled class files
+*.class
+
+# Generated files
+out/
+target/
+build/
+
+# IntelliJ IDEA project files
+.idea/
+*.iml
+*.iws
+*.ipr
+*.xml
+!src/main/resources/log4j2.xml
+.logs/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
