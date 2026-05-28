@@ -33,3 +33,5 @@ Thumbs.db
 
 # project plan
 project_plan/
+
+*.md
