@@ -15,4 +15,8 @@ public class Enemy {
     private int col;
     private EnemyMode mode;
     private List<Position> patrolPath;
+
+    public List<Position> getPatrolRoute() {
+        return patrolPath;
+    }
 }
