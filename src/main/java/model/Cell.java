@@ -1,11 +1,14 @@
-package ua.mazegame.core.model;
+package model;
 
-import ua.mazegame.core.model.enums.CellType;
+import enums.CellType;
+import lombok.Setter;
 
 public class Cell {
 
+    @Setter
     private CellType type;
     private boolean revealed = false;
+    @Setter
     private boolean flagged = false;
 
     public Cell(CellType type) {
@@ -16,8 +19,6 @@ public class Cell {
     public boolean isRevealed() { return revealed; }
     public boolean isFlagged() { return flagged; }
 
-    public void setType(CellType type) { this.type = type; }
     public void reveal() { this.revealed = true; }
     public void hide() { this.revealed = false; }
-    public void setFlagged(boolean flag) { this.flagged = flag; }
 }

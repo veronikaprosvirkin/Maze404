@@ -1,4 +1,4 @@
-package ua.mazegame.core.logic;
+package logic;
 
 public class CollisionDetector {
 }

@@ -1,4 +1,8 @@
-package ua.mazegame.core.model;
+package model;
+
+import enums.CellType;
+import model.Cell;
+import model.Grid;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -26,14 +30,14 @@ public class MazeManager {
                 String line = lines.get(i);
                 for(int j = 0; j < cols; j++) {
                     char ch = line.charAt(j);
-                    Cell.Type type = switch (ch){
-                        case '#' -> Cell.Type.WALL;
-                        case 'T' -> Cell.Type.TRAP;
-                        case 'A' -> Cell.Type.ARTIFACT;
-                        case 'E' -> Cell.Type.EXIT;
-                        default -> Cell.Type.EMPTY;
+                    CellType type = switch (ch){
+                        case '#' -> CellType.WALL;
+                        case 'T' -> CellType.TRAP;
+                        case 'A' -> CellType.ARTIFACT;
+                        case 'E' -> CellType.EXIT;
+                        default -> CellType.EMPTY;
                     };
-                    grid.cells[i][j] = new Cell(type);
+                    grid.setCell(i, j, new Cell(type));
                 }
 
             }
