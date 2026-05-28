@@ -1,6 +1,6 @@
-package ua.mazegame.core.model;
+package model;
 
-import ua.mazegame.core.model.enums.CellType;
+import enums.CellType;
 
 public class Grid {
     private final int rows;
@@ -38,6 +38,10 @@ public class Grid {
         if (isInBounds(row, col)) {
             cells[row][col].setType(type);
         }
+    }
+
+    public void setCell(int row, int col, Cell cell) {
+        this.cells[row][col] = cell;
     }
 
 }

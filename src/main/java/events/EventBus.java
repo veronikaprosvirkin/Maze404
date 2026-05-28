@@ -1,4 +1,4 @@
-package ua.mazegame.core.events;
+package events;
 
 import java.util.EnumMap;
 import java.util.List;

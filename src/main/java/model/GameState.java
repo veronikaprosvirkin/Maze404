@@ -1,7 +1,9 @@
-package ua.mazegame.core.model;
+package model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+
 
 public class GameState {
 
@@ -40,4 +42,3 @@ public class GameState {
     public void setLevelComplete(boolean v){ levelComplete = v; }
 }
 
-}

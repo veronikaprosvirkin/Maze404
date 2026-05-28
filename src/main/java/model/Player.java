@@ -1,16 +1,27 @@
-package ua.mazegame.core.model;
+package model;
 
-import ua.mazegame.core.events.EventBus;
-import ua.mazegame.core.events.GameEvent;
+import lombok.Getter;
+import lombok.Setter;
+import events.EventBus;
+import events.GameEvent;
 
 public class Player {
     private static final int MAX_HEALTH = 3;
 
+    //  Геттери (контракт)
+    @Getter
+    @Setter
     private int row;
+    @Getter
+    @Setter
     private int col;
+    @Getter
     private int health = MAX_HEALTH;
+    @Getter
     private int crystals = 0;
+    @Getter
     private int radarCharges = 0;
+    @Getter
     private int beaconCount = 0;
     private boolean shieldActive = false;
 
@@ -19,17 +30,7 @@ public class Player {
         this.col = col;
     }
 
-    //  Геттери (контракт)
-    public int     getRow()          { return row; }
-    public int     getCol()          { return col; }
-    public int     getHealth()       { return health; }
-    public int     getCrystals()     { return crystals; }
-    public int     getRadarCharges() { return radarCharges; }
-    public int     getBeaconCount()  { return beaconCount; }
     public boolean hasShield()       { return shieldActive; }
-
-    public void setRow(int row) { this.row = row; }
-    public void setCol(int col) { this.col = col; }
 
     public void addCrystals(int amount)    { crystals += amount; }
     public void activateShield()           { shieldActive = true; }

@@ -1,6 +1,6 @@
-package ua.mazegame.core.events;
+package events;
 
-import ua.mazegame.core.model.Position;
+import model.Position;
 
 public class GameEvent {
 
