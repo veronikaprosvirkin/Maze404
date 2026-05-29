@@ -19,6 +19,8 @@ public class GuessTheNumber extends MiniGame {
     public GuessTheNumber(int targetNumber) {
         this.targetNumber = targetNumber;
         this.attempts = 0;
+        this.width = 400;
+        this.height = 420;
     }
 
     public static GuessTheNumber startNewGame() {
