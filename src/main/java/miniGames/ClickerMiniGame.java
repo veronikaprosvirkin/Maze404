@@ -33,6 +33,10 @@ public class ClickerMiniGame extends MiniGame {
         clickButton.setId("click-button");
         progressBar.setId("progress-bar");
 
+        progressBar.setMaxWidth(Double.MAX_VALUE);
+        clickButton.setMaxHeight(Double.MAX_VALUE);
+        clickButton.setMaxWidth(Double.MAX_VALUE);
+
         clickButton.setOnAction(e -> {
             if (result != MiniGameResult.PENDING) {
                 return;
