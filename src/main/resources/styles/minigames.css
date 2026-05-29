@@ -1,0 +1,62 @@
+#game-container {
+    -fx-background-color: #0d1117;
+    -fx-padding: 20px;
+    -fx-border-color: #30363d;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+}
+
+#click-button, #guess-button {
+    -fx-background-color: #1a1f2e;
+    -fx-border-color: #3fa36c;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-text-fill: white;
+}
+
+#click-button:hover, #guess-button:hover {
+    -fx-border-color: #55d68d;
+}
+
+#timer-label, #instruction-label, #result-label, #history-label {
+    -fx-text-fill: #e5e5e5;
+    -fx-font-family: monospace;
+}
+
+#progress-bar {
+    -fx-accent: #3fa36c;
+    -fx-control-inner-background: #1a1f2e;
+}
+#progress-bar .track {
+    -fx-background-color: #1a1f2e;
+    -fx-background-radius: 5px;
+}
+#progress-bar .bar {
+    -fx-background-color: #3fa36c;
+    -fx-background-radius: 5px;
+}
+
+#history-list {
+    -fx-background-color: #1a1f2e;
+    -fx-control-inner-background: #1a1f2e;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+#history-list .list-cell {
+    -fx-background-color: #1a1f2e;
+    -fx-text-fill: #e5e5e5;
+    -fx-font-family: monospace;
+}
+#history-list .list-cell:empty {
+    -fx-background-color: #1a1f2e;
+}
+
+#guess-field, #timer-label {
+    -fx-background-color: #0d1117;
+    -fx-text-fill: #3fa36c;
+    -fx-border-color: #3fa36c;
+    -fx-border-width: 1px;
+    -fx-font-family: monospace;
+    -fx-padding: 5px;
+}

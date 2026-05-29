@@ -9,6 +9,9 @@ public abstract class MiniGame {
     protected int height = 300;
     protected MiniGameResult result = MiniGameResult.PENDING;
     protected void setupWindow(Stage stage, Scene scene, String title){
+        scene.getStylesheets().add(
+            getClass().getResource("/styles/minigames.css").toExternalForm()
+        );
         stage.setTitle(title);
         stage.setWidth(width);
         stage.setHeight(height);
