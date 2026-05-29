@@ -42,6 +42,7 @@ public class GuessTheNumber extends MiniGame {
 
         Image imgUp = loadIcon("/styles/icons/up.png");
         Image imgDown = loadIcon("/styles/icons/down.png");
+        Image imgSuccess = loadIcon("/styles/icons/success.png");
 
         ImageView dirIcon = new ImageView();
         dirIcon.setFitWidth(16);
@@ -100,14 +101,22 @@ public class GuessTheNumber extends MiniGame {
 
                 if (guess < targetNumber) {
                     dirIcon.setImage(imgUp);
+                    dirIconBox.setStyle("-fx-effect: dropshadow(gaussian, #4ADE80, 15, 0.5, 0, 0);");
                 } else if (guess > targetNumber) {
                     dirIcon.setImage(imgDown);
+                    dirIconBox.setStyle("-fx-effect: dropshadow(gaussian, #E05252, 15, 0.5, 0, 0);");
                 } else {
-                    dirIcon.setImage(imgUp);
+                    dirIcon.setImage(imgSuccess);
+                    dirIconBox.setStyle("-fx-effect: dropshadow(gaussian, #4ADE80, 15, 0.5, 0, 0);");
                 }
 
                 historyList.getItems().add(0, guess + " → " + outcome);
                 guessField.clear();
+
+                if (result == MiniGameResult.SUCCESS) {
+                    inputPanel.setStyle("-fx-border-color: #4ADE80; -fx-border-width: 2px;");
+                    resultLabel.setStyle("-fx-text-fill: #4ADE80; -fx-font-weight: bold;");
+                }
 
                 if (result != MiniGameResult.PENDING) {
                     guessField.setDisable(true);
