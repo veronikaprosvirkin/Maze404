@@ -86,23 +86,27 @@ public class SpriteSheet {
     private Image createFallback(CellType type) {
         Color color;
         switch (type) {
-            case WALL -> color = Color.DARKGRAY;
-            case FLOOR -> color = Color.LIGHTGRAY;
-            case EXIT -> color = Color.LIMEGREEN;
-            case ARTIFACT -> color = Color.CYAN;
-            case TRAP -> color = Color.CRIMSON;
-            case EMPTY -> color = Color.TRANSPARENT;
+            case WALL -> color = Color.rgb(45, 45, 55);
+            case FLOOR -> color = Color.rgb(210, 200, 185);
+            case EXIT -> color = Color.rgb(50, 205, 50);
+            case ARTIFACT -> color = Color.rgb(255, 215, 0);
+            case TRAP -> color = Color.rgb(180, 30, 30);
+            case EMPTY -> color = Color.rgb(210, 200, 185);
             default -> color = Color.MAGENTA;
         }
 
         WritableImage image = new WritableImage(TILE_SIZE, TILE_SIZE);
         PixelWriter writer = image.getPixelWriter();
+        Color borderColor = type == CellType.WALL
+                ? new Color(color.getRed() * 0.85, color.getGreen() * 0.85, color.getBlue() * 0.85, color.getOpacity())
+                : color;
         for (int y = 0; y < TILE_SIZE; y++) {
             for (int x = 0; x < TILE_SIZE; x++) {
-                writer.setColor(x, y, color);
+                boolean isWallBorder = type == CellType.WALL
+                        && (x < 2 || y < 2 || x >= TILE_SIZE - 2 || y >= TILE_SIZE - 2);
+                writer.setColor(x, y, isWallBorder ? borderColor : color);
             }
         }
         return image;
     }
 }
-
