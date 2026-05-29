@@ -96,19 +96,20 @@ public class GuessTheNumber extends MiniGame {
 
     private String checkGuess(int guess) {
         this.attempts++;
+        int attemptsLeft = TRY_LIMIT - this.attempts;
 
         if (guess < this.targetNumber) {
             if (this.attempts >= TRY_LIMIT) {
                 this.result = MiniGameResult.FAILURE;
                 return "Game Over! The number was: " + this.targetNumber;
             }
-            return "Too low! Attempts: " + this.attempts;
+            return "Too low! Attempts left: " + attemptsLeft;
         } else if (guess > this.targetNumber) {
             if (this.attempts >= TRY_LIMIT) {
                 this.result = MiniGameResult.FAILURE;
                 return "Game Over! The number was: " + this.targetNumber;
             }
-            return "Too high! Attempts: " + this.attempts;
+            return "Too high! Attempts left: " + attemptsLeft;
         }
 
         this.result = MiniGameResult.SUCCESS;
