@@ -3,6 +3,7 @@ package ui.render;
 import enums.CellType;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import model.Cell;
 import model.Grid;
 
@@ -21,8 +22,13 @@ public class GridRenderer {
                 CellType type = cell.getType();
                 Image tile = spriteSheet.getSprite(type);
                 gc.drawImage(tile, col * TILE_SIZE, row * TILE_SIZE);
+
+                if (type != CellType.WALL) {
+                    gc.setStroke(Color.rgb(0, 0, 0, 0.2));
+                    gc.setLineWidth(0.5);
+                    gc.strokeRect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                }
             }
         }
     }
 }
-
