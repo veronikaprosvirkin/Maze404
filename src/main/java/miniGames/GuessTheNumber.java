@@ -10,16 +10,10 @@ import javafx.stage.Stage;
 import lombok.Setter;
 import java.util.Random;
 
-public class GuessTheNumber {
+public class GuessTheNumber extends MiniGame {
     private int targetNumber;
     private int attempts;
     private int tryLimit = 10;
-    private MiniGameResult result = MiniGameResult.PENDING;
-
-    @Setter
-    private static int height = 300;
-    @Setter
-    private static int width = 400;
 
     public GuessTheNumber(int targetNumber) {
         this.targetNumber = targetNumber;
@@ -36,9 +30,6 @@ public class GuessTheNumber {
 
     private void showWindow() {
         Stage stage = new Stage();
-        stage.setTitle("Guess The Number");
-        stage.setWidth(width);
-        stage.setHeight(height);
 
         Label instructionLabel = new Label("Guess a number between 1 and 100:");
         TextField guessField = new TextField();
@@ -70,8 +61,7 @@ public class GuessTheNumber {
         });
 
         Scene scene = new Scene(root, width, height);
-        stage.setScene(scene);
-        stage.show();
+        setupWindow(stage, scene, "Guess The Number");
     }
 
     private void checkGuess(int guess, Label resultLabel) {
@@ -90,9 +80,5 @@ public class GuessTheNumber {
             resultLabel.setText("Game Over! The number was: " + this.targetNumber);
             this.result = MiniGameResult.FAILURE;
         }
-    }
-
-    public MiniGameResult getResult() {
-        return this.result;
     }
 }
