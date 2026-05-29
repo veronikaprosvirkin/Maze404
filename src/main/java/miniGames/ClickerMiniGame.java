@@ -46,6 +46,7 @@ public class ClickerMiniGame extends MiniGame {
                 }
                 clickButton.setDisable(true);
                 timerLabel.setText("You Win!");
+                timerLabel.setStyle("-fx-text-fill: #4ADE80; -fx-effect: dropshadow(gaussian, #4ADE80, 10, 0.2, 0, 0);");
             }
         });
 
@@ -62,9 +63,14 @@ public class ClickerMiniGame extends MiniGame {
         setupWindow(stage, scene, "System Overload");
     }
     private void startTimer(Label timerLabel, Button clickButton) {
+        double initialTime = timeLeft;
         KeyFrame keyFrame = new KeyFrame(javafx.util.Duration.seconds(0.1), event -> {
             timeLeft -= 0.1;
             timerLabel.setText(String.format("Time Left: %.1fs", timeLeft));
+
+            if (timeLeft <= initialTime * 0.3 && result == MiniGameResult.PENDING) {
+                timerLabel.setStyle("-fx-text-fill: #E05252; -fx-effect: dropshadow(gaussian, #E05252, 10, 0.2, 0, 0);");
+            }
 
             if (timeLeft <= 0 && result == MiniGameResult.PENDING) {
                 result = MiniGameResult.FAILURE;
