@@ -24,13 +24,15 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         StackPane root = new StackPane();
-        root.setPrefSize(800, 600);
-        Scene scene = new Scene(root, 800, 600);
+        root.setPrefSize(900, 600);
+        Scene scene = new Scene(root, 900, 600);
 
         primaryStage.setTitle("Maze404");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
+        primaryStage.toFront();
         primaryStage.show();
+        primaryStage.requestFocus();
 
         START_LATCH.countDown();
     }
