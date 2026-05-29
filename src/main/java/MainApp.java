@@ -1,8 +1,9 @@
 import enums.CellType;
-import javafx.scene.Scene;
-import javafx.scene.layout.StackPane;
-import javafx.stage.Stage;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 import model.Grid;
 import ui.render.GamePanel;
 
@@ -26,9 +27,8 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        StackPane root = new StackPane();
-        root.setPrefSize(900, 600);
-        Scene scene = new Scene(root, 900, 600);
+        Pane root = new Pane();
+        Scene scene = new Scene(root, 800, 600);
 
         Grid grid = new Grid(15, 15);
         for (int row = 0; row < grid.getHeight(); row++) {
@@ -52,14 +52,12 @@ public class MainApp extends Application {
                 return;
             }
 
-            double scale = rootHeight / baseHeight;
+            double scale = Math.min(rootWidth / baseWidth, rootHeight / baseHeight);
             gamePanel.setScaleX(scale);
             gamePanel.setScaleY(scale);
 
-            double scaledWidth = baseWidth * scale;
-            double scaledHeight = baseHeight * scale;
-            gamePanel.setTranslateX((rootWidth - scaledWidth) / 2.0);
-            gamePanel.setTranslateY((rootHeight - scaledHeight) / 2.0);
+            gamePanel.setTranslateX((rootWidth  - baseWidth)  / 2.0);
+            gamePanel.setTranslateY((rootHeight - baseHeight) / 2.0);
         };
 
         root.widthProperty().addListener((obs, oldWidth, newWidth) -> updateScaleAndCenter.run());
@@ -67,10 +65,11 @@ public class MainApp extends Application {
 
         primaryStage.setTitle("Maze404");
         primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
+        primaryStage.setResizable(true);
         primaryStage.toFront();
         primaryStage.show();
         primaryStage.requestFocus();
+        Platform.runLater(updateScaleAndCenter);
 
         START_LATCH.countDown();
     }
