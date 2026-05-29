@@ -1,6 +1,4 @@
-import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.application.Application;
@@ -14,6 +12,7 @@ import java.util.concurrent.CountDownLatch;
 public class MainApp extends Application {
     private static final CountDownLatch START_LATCH = new CountDownLatch(1);
 
+    @SuppressWarnings("unused")
     public static void waitForStart() {
         try {
             START_LATCH.await();
@@ -24,26 +23,15 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        Label label = new Label("Maze404 — JavaFX started");
-        StackPane root = new StackPane(label);
-        Scene scene = new Scene(root, 640, 480);
+        StackPane root = new StackPane();
+        root.setPrefSize(800, 600);
+        Scene scene = new Scene(root, 800, 600);
 
         primaryStage.setTitle("Maze404");
         primaryStage.setScene(scene);
+        primaryStage.setResizable(false);
         primaryStage.show();
 
         START_LATCH.countDown();
     }
-
-    @Override
-    public void stop() throws Exception {
-        super.stop();
-
-    }
-
-    @Override
-    public void init() throws Exception {
-        super.init();
-    }
 }
-
