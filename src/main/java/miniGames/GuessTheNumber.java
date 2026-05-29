@@ -73,7 +73,7 @@ public class GuessTheNumber extends MiniGame {
                 int guess = Integer.parseInt(guessText);
                 String outcome = checkGuess(guess);
                 resultLabel.setText(outcome);
-                historyList.getItems().add(guess + " -> " + outcome);
+                historyList.getItems().add(0, guess + " -> " + outcome);
 
                 guessField.clear();
 
@@ -83,7 +83,7 @@ public class GuessTheNumber extends MiniGame {
                 }
             } catch (NumberFormatException ex) {
                 resultLabel.setText("Please enter a valid number.");
-                historyList.getItems().add(guessText + " -> Please enter a valid number.");
+                historyList.getItems().add(0, guessText + " -> Please enter a valid number.");
             }
         };
 
