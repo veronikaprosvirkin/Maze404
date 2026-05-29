@@ -4,16 +4,17 @@ import enums.MiniGameResult;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import lombok.Setter;
+
 import java.util.Random;
 
 public class GuessTheNumber extends MiniGame {
-    private int targetNumber;
+    private final int targetNumber;
     private int attempts;
-    private int tryLimit = 10;
+    private static final int TRY_LIMIT = 10;
 
     public GuessTheNumber(int targetNumber) {
         this.targetNumber = targetNumber;
@@ -35,50 +36,80 @@ public class GuessTheNumber extends MiniGame {
         TextField guessField = new TextField();
         Button guessButton = new Button("Guess");
         Label resultLabel = new Label();
+        Label historyLabel = new Label("History of moves:");
+        ListView<String> historyList = new ListView<>();
+        VBox inputPanel = new VBox(10, instructionLabel, guessField, guessButton, resultLabel);
+        VBox historyPanel = new VBox(10, historyLabel, historyList);
 
-        VBox root = new VBox(10, instructionLabel, guessField, guessButton, resultLabel);
+        historyList.setPrefHeight(120);
+
+        VBox root = new VBox(15, inputPanel, historyPanel);
         root.setId("game-container");
+        inputPanel.setId("input-panel");
+        historyPanel.setId("history-panel");
         instructionLabel.setId("instruction-label");
         guessField.setId("guess-field");
         guessButton.setId("guess-button");
         resultLabel.setId("result-label");
+        historyLabel.setId("history-label");
+        historyList.setId("history-list");
+        guessButton.setDefaultButton(true);
+        guessField.requestFocus();
 
-        guessButton.setOnAction(e -> {
+        Runnable submitGuess = () -> {
             if (result != MiniGameResult.PENDING) {
                 return;
             }
-            String guessText = guessField.getText();
+
+            String guessText = guessField.getText().trim();
+            if (guessText.isEmpty()) {
+                resultLabel.setText("Please enter a valid number.");
+                return;
+            }
+
             try {
                 int guess = Integer.parseInt(guessText);
-                checkGuess(guess, resultLabel);
+                String outcome = checkGuess(guess);
+                resultLabel.setText(outcome);
+                historyList.getItems().add(guess + " -> " + outcome);
+
+                guessField.clear();
+
                 if (result != MiniGameResult.PENDING) {
                     guessField.setDisable(true);
                     guessButton.setDisable(true);
                 }
             } catch (NumberFormatException ex) {
                 resultLabel.setText("Please enter a valid number.");
+                historyList.getItems().add(guessText + " -> Please enter a valid number.");
             }
-        });
+        };
+
+        guessButton.setOnAction(e -> submitGuess.run());
+        guessField.setOnAction(e -> submitGuess.run());
 
         Scene scene = new Scene(root, width, height);
         setupWindow(stage, scene, "Guess The Number");
     }
 
-    private void checkGuess(int guess, Label resultLabel) {
+    private String checkGuess(int guess) {
         this.attempts++;
 
         if (guess < this.targetNumber) {
-            resultLabel.setText("Too low! Attempts: " + this.attempts);
+            if (this.attempts >= TRY_LIMIT) {
+                this.result = MiniGameResult.FAILURE;
+                return "Game Over! The number was: " + this.targetNumber;
+            }
+            return "Too low! Attempts: " + this.attempts;
         } else if (guess > this.targetNumber) {
-            resultLabel.setText("Too high! Attempts: " + this.attempts);
-        } else {
-            resultLabel.setText("Correct! You guessed the number in " + this.attempts + " attempts.");
-            this.result = MiniGameResult.SUCCESS;
+            if (this.attempts >= TRY_LIMIT) {
+                this.result = MiniGameResult.FAILURE;
+                return "Game Over! The number was: " + this.targetNumber;
+            }
+            return "Too high! Attempts: " + this.attempts;
         }
 
-        if (this.attempts >= this.tryLimit && this.result != MiniGameResult.SUCCESS) {
-            resultLabel.setText("Game Over! The number was: " + this.targetNumber);
-            this.result = MiniGameResult.FAILURE;
-        }
+        this.result = MiniGameResult.SUCCESS;
+        return "Correct! You guessed the number in " + this.attempts + " attempts.";
     }
 }
