@@ -5,6 +5,8 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import model.Grid;
+import model.Player;
+import ui.input.InputHandler;
 import ui.render.GamePanel;
 
 import java.util.concurrent.CountDownLatch;
@@ -38,12 +40,37 @@ public class MainApp extends Application {
             }
         }
 
-        GamePanel gamePanel = new GamePanel(grid);
+        Player player = new Player(7, 7);
+
+        GamePanel gamePanel = new GamePanel(grid, player);
         double baseWidth = grid.getWidth() * 32.0;
         double baseHeight = grid.getHeight() * 32.0;
         gamePanel.setPrefSize(baseWidth, baseHeight);
-        gamePanel.redraw(grid);
         root.getChildren().add(gamePanel);
+
+        InputHandler inputHandler = new InputHandler(action -> {
+            int deltaRow = 0;
+            int deltaCol = 0;
+            switch (action) {
+                case MOVE_UP -> deltaRow = -1;
+                case MOVE_DOWN -> deltaRow = 1;
+                case MOVE_LEFT -> deltaCol = -1;
+                case MOVE_RIGHT -> deltaCol = 1;
+                default -> {
+                }
+            }
+
+            if (deltaRow != 0 || deltaCol != 0) {
+                int targetRow = player.getRow() + deltaRow;
+                int targetCol = player.getCol() + deltaCol;
+                if (grid.isInBounds(targetRow, targetCol)
+                        && grid.getCell(targetRow, targetCol).getType() != CellType.WALL) {
+                    player.setRow(targetRow);
+                    player.setCol(targetCol);
+                }
+            }
+        });
+        inputHandler.attachTo(scene);
 
         Runnable updateScaleAndCenter = () -> {
             double rootHeight = root.getHeight();
