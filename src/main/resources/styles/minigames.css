@@ -84,7 +84,7 @@
     -fx-pref-width: 332;
     -fx-max-width: 332;
     -fx-wrap-text: true;
-    -fx-effect: dropshadow(gaussian, rgba(201,168,76,0.35), 8, 0.4, 0, 0);
+    -fx-effect: dropshadow(gaussian, rgba(201, 168, 76, 0.35), 8, 0.4, 0, 0);
 }
 
 /* ----------------------------------------------------------
@@ -99,7 +99,7 @@
     -fx-pref-width: 360;
     -fx-max-width: 360;
     -fx-padding: 6 0 6 0;
-    -fx-effect: dropshadow(gaussian, rgba(167,139,250,0.5), 12, 0.5, 0, 0);
+    -fx-effect: dropshadow(gaussian, rgba(167, 139, 250, 0.5), 12, 0.5, 0, 0);
 }
 
 /* ----------------------------------------------------------
@@ -131,6 +131,11 @@
 /* ----------------------------------------------------------
    TEXT INPUT — guess field
    ---------------------------------------------------------- */
+#input-row {
+    -fx-pref-width: 332;
+    -fx-max-width: 332;
+}
+
 #guess-field {
     -fx-background-color: #161823;
     -fx-border-color: #2A2D45;
@@ -142,15 +147,38 @@
     -fx-font-family: "Consolas", "Courier New", monospace;
     -fx-font-size: 13px;
     -fx-padding: 6 10 6 10;
-    -fx-pref-width: 332;
-    -fx-max-width: 332;
     -fx-pref-height: 32;
+}
+
+#dir-icon-box {
+    -fx-background-color: #161823;
+    -fx-border-color: #2A2D45;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-pref-width: 32;
+    -fx-pref-height: 32;
+    -fx-min-width: 32;
+    -fx-min-height: 32;
+    -fx-max-width: 32;
+    -fx-max-height: 32;
+    -fx-alignment: CENTER;
+}
+
+#up-arrow {
+    -fx-text-fill: #4ADE80;
+    -fx-effect: dropshadow(gaussian, #4ADE80, 5, 0.6, 0, 0);
+}
+
+#down-arrow {
+    -fx-text-fill: #E05252;
+    -fx-effect: dropshadow(gaussian, #E05252, 12, 0.6, 0, 0);
 }
 
 #guess-field:focused {
     -fx-border-color: #7B5CF0;
     -fx-background-color: #1A1D2E;
-    -fx-effect: dropshadow(gaussian, rgba(123,92,240,0.4), 10, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, rgba(123, 92, 240, 0.4), 10, 0.3, 0, 0);
 }
 
 /* ----------------------------------------------------------
@@ -172,7 +200,7 @@
     -fx-pref-width: 332;
     -fx-max-width: 332;
     -fx-pref-height: 34;
-    -fx-effect: dropshadow(gaussian, rgba(91,75,214,0.35), 8, 0.3, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(91, 75, 214, 0.35), 8, 0.3, 0, 2);
 }
 
 #click-button:hover,
@@ -180,14 +208,14 @@
     -fx-background-color: linear-gradient(to bottom, #3D3370, #29226B);
     -fx-border-color: #A78BFA;
     -fx-text-fill: #FFFFFF;
-    -fx-effect: dropshadow(gaussian, rgba(167,139,250,0.55), 14, 0.45, 0, 0);
+    -fx-effect: dropshadow(gaussian, rgba(167, 139, 250, 0.55), 14, 0.45, 0, 0);
 }
 
 #click-button:pressed,
 #guess-button:pressed {
     -fx-background-color: linear-gradient(to bottom, #1A1435, #130F2C);
     -fx-border-color: #7B5CF0;
-    -fx-effect: dropshadow(gaussian, rgba(123,92,240,0.25), 4, 0.2, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(123, 92, 240, 0.25), 4, 0.2, 0, 1);
 }
 
 #click-button:disabled,
@@ -222,7 +250,7 @@
 #progress-bar .bar {
     -fx-background-color: linear-gradient(to right, #5B4BD6, #A78BFA);
     -fx-background-radius: 6;
-    -fx-effect: dropshadow(gaussian, rgba(167,139,250,0.6), 6, 0.4, 0, 0);
+    -fx-effect: dropshadow(gaussian, rgba(167, 139, 250, 0.6), 6, 0.4, 0, 0);
     /* Remove default insets */
     -fx-background-insets: 0;
     -fx-padding: 0;
@@ -253,6 +281,13 @@
     -fx-font-size: 10px;
     -fx-padding: 3 8 3 8;
     -fx-border-color: transparent;
+}
+
+/* Label inside the custom HBox cell */
+.history-text {
+    -fx-text-fill: #7A7D99;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 10px;
 }
 
 #history-list .list-cell:odd {

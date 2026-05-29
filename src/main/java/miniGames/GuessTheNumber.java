@@ -1,11 +1,17 @@
 package miniGames;
 
 import enums.MiniGameResult;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -34,13 +40,31 @@ public class GuessTheNumber extends MiniGame {
     private void showWindow() {
         Stage stage = new Stage();
 
+        Image imgUp = loadIcon("/styles/icons/up.png");
+        Image imgDown = loadIcon("/styles/icons/down.png");
+
+        ImageView dirIcon = new ImageView();
+        dirIcon.setFitWidth(16);
+        dirIcon.setFitHeight(16);
+        dirIcon.setPreserveRatio(true);
+        dirIcon.setSmooth(true);
+
+        StackPane dirIconBox = new StackPane(dirIcon);
+        dirIconBox.setId("dir-icon-box");
+
         Label instructionLabel = new Label("Guess a number between 1 and 100:");
         TextField guessField = new TextField();
         Button guessButton = new Button("Guess");
         Label resultLabel = new Label();
         Label historyLabel = new Label("History of moves:");
         ListView<String> historyList = new ListView<>();
-        VBox inputPanel = new VBox(10, instructionLabel, guessField, guessButton, resultLabel);
+
+        HBox inputRow = new HBox(8, guessField, dirIconBox);
+        inputRow.setAlignment(Pos.CENTER_LEFT);
+        inputRow.setId("input-row");
+        HBox.setHgrow(guessField, Priority.ALWAYS);
+
+        VBox inputPanel = new VBox(10, instructionLabel, inputRow, guessButton, resultLabel);
         VBox historyPanel = new VBox(10, historyLabel, historyList);
 
         historyList.setPrefHeight(120);
@@ -73,8 +97,16 @@ public class GuessTheNumber extends MiniGame {
                 int guess = Integer.parseInt(guessText);
                 String outcome = checkGuess(guess);
                 resultLabel.setText(outcome);
-                historyList.getItems().add(0, guess + " -> " + outcome);
 
+                if (guess < targetNumber) {
+                    dirIcon.setImage(imgUp);
+                } else if (guess > targetNumber) {
+                    dirIcon.setImage(imgDown);
+                } else {
+                    dirIcon.setImage(imgUp);
+                }
+
+                historyList.getItems().add(0, guess + " → " + outcome);
                 guessField.clear();
 
                 if (result != MiniGameResult.PENDING) {
@@ -83,7 +115,7 @@ public class GuessTheNumber extends MiniGame {
                 }
             } catch (NumberFormatException ex) {
                 resultLabel.setText("Please enter a valid number.");
-                historyList.getItems().add(0, guessText + " -> Please enter a valid number.");
+                historyList.getItems().add(0, guessText + " → invalid input");
             }
         };
 
@@ -92,6 +124,11 @@ public class GuessTheNumber extends MiniGame {
 
         Scene scene = new Scene(root, width, height);
         setupWindow(stage, scene, "Guess The Number");
+    }
+
+    private Image loadIcon(String resourcePath) {
+        var stream = getClass().getResourceAsStream(resourcePath);
+        return stream != null ? new Image(stream) : null;
     }
 
     private String checkGuess(int guess) {
