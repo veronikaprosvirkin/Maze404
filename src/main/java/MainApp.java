@@ -30,6 +30,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         Pane root = new Pane();
+        root.setStyle("-fx-background-color: #0B0D12;");
         Scene scene = new Scene(root, 800, 600);
 
         Grid grid = new Grid(15, 15);

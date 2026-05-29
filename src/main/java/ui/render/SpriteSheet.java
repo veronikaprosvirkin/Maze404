@@ -86,13 +86,13 @@ public class SpriteSheet {
     private Image createFallback(CellType type) {
         Color color;
         switch (type) {
-            case WALL -> color = Color.rgb(45, 45, 55);
-            case FLOOR -> color = Color.rgb(210, 200, 185);
-            case EXIT -> color = Color.rgb(50, 205, 50);
-            case ARTIFACT -> color = Color.rgb(255, 215, 0);
-            case TRAP -> color = Color.rgb(180, 30, 30);
-            case EMPTY -> color = Color.rgb(210, 200, 185);
-            default -> color = Color.MAGENTA;
+            case WALL -> color = Color.rgb(31, 33, 38);
+            case FLOOR -> color = Color.rgb(26, 31, 43);
+            case EXIT -> color = Color.rgb(63, 163, 108);
+            case ARTIFACT -> color = Color.rgb(194, 161, 89);
+            case TRAP -> color = Color.rgb(166, 44, 43);
+            case EMPTY -> color = Color.rgb(26, 31, 43);
+            default -> color = Color.rgb(106, 63, 163);
         }
 
         WritableImage image = new WritableImage(TILE_SIZE, TILE_SIZE);
