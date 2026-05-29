@@ -197,8 +197,8 @@
     -fx-font-weight: bold;
     -fx-cursor: hand;
     -fx-padding: 8 0 8 0;
-    -fx-pref-width: 332;
-    -fx-max-width: 332;
+    -fx-pref-width: 360;
+    -fx-max-width: 360;
     -fx-pref-height: 34;
     -fx-effect: dropshadow(gaussian, rgba(91, 75, 214, 0.35), 8, 0.3, 0, 2);
 }

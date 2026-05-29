@@ -53,6 +53,10 @@ public class ClickerMiniGame extends MiniGame {
         VBox root = new VBox(15, timerLabel, progressBar, clickButton);
         root.setId("game-container");
 
+        javafx.scene.layout.VBox.setVgrow(clickButton, javafx.scene.layout.Priority.ALWAYS);
+        clickButton.setMaxHeight(Double.MAX_VALUE);
+        clickButton.setMaxWidth(Double.MAX_VALUE);
+
         Scene scene = new Scene(root, width, height);
 
         setupWindow(stage, scene, "System Overload");
