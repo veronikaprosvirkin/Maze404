@@ -12,8 +12,8 @@ import javafx.stage.Stage;
 
 public class ClickerMiniGame extends MiniGame {
     int clicks = 0;
-    int clickLimit = 20;
-    double timeLeft = 10.0; // seconds
+    int clickLimit = 30;
+    double timeLeft = 7.5; // seconds
     private Timeline timer;
 
     public static ClickerMiniGame startNewGame() {
@@ -25,17 +25,32 @@ public class ClickerMiniGame extends MiniGame {
     private void showWindow() {
         Stage stage = new Stage();
 
-        Label timerLabel = new Label("Time Left: " + timeLeft + "s");
+        Label timerLabel = new Label("Press Start to begin");
+        Button startButton = new Button("Start");
         Button clickButton = new Button("Click Me!");
         ProgressBar progressBar = new ProgressBar(0);
 
         timerLabel.setId("timer-label");
+        startButton.setId("start-button");
         clickButton.setId("click-button");
         progressBar.setId("progress-bar");
 
         progressBar.setMaxWidth(Double.MAX_VALUE);
         clickButton.setMaxHeight(Double.MAX_VALUE);
         clickButton.setMaxWidth(Double.MAX_VALUE);
+        clickButton.setDisable(true);
+
+        startButton.setOnAction(e -> {
+            if (timer != null || result != MiniGameResult.PENDING) {
+                return;
+            }
+
+            timerLabel.setText(String.format("Time Left: %.1fs", timeLeft));
+            clickButton.setDisable(false);
+            startButton.setVisible(false);
+            startButton.setManaged(false);
+            startTimer(timerLabel, clickButton);
+        });
 
         clickButton.setOnAction(e -> {
             if (result != MiniGameResult.PENDING) {
@@ -54,8 +69,7 @@ public class ClickerMiniGame extends MiniGame {
             }
         });
 
-        startTimer(timerLabel, clickButton);
-        VBox root = new VBox(15, timerLabel, progressBar, clickButton);
+        VBox root = new VBox(15, timerLabel, progressBar, startButton, clickButton);
         root.setId("game-container");
 
         javafx.scene.layout.VBox.setVgrow(clickButton, javafx.scene.layout.Priority.ALWAYS);
