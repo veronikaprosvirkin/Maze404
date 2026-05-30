@@ -19,7 +19,10 @@ public class TestMiniGames extends Application {
         Button memoryGameBtn = new Button("Test: Memory Game");
         memoryGameBtn.setOnAction(e -> MemoryGame.startNewGame());
 
-        VBox root = new VBox(20, guessGameBtn, clickerGameBtn, memoryGameBtn);
+        Button echoGameBtn = new Button("Test: Echo Game");
+        echoGameBtn.setOnAction(e -> EchoGame.startNewGame());
+
+        VBox root = new VBox(20, guessGameBtn, clickerGameBtn, memoryGameBtn, echoGameBtn);
         root.setStyle("-fx-padding: 50px; -fx-alignment: center;");
 
         Scene scene = new Scene(root, 300, 200);
