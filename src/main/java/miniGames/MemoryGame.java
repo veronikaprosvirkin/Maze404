@@ -31,7 +31,9 @@ public class MemoryGame extends MiniGame {
     private void showWindow() {
         Stage stage = new Stage();
 
-        Label instructionLabel = new Label("Memory Game: Find all pairs! Lives: " + "❤".repeat(mistakesLimit));
+        Label instructionLabel = new Label("Memory Game: Find all pairs! Lives: " + "❤".repeat(mistakesLimit) +
+                "\nClick 'Start' to reveal cards for 4 seconds");
+        instructionLabel.setWrapText(true);
         instructionLabel.setAlignment(javafx.geometry.Pos.CENTER);
         instructionLabel.setId("instruction-label");
 
