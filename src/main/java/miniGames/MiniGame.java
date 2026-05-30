@@ -5,8 +5,8 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public abstract class MiniGame {
-    protected int width = 400;
-    protected int height = 340;
+    protected int width = 450;
+    protected int height = 450;
     protected MiniGameResult result = MiniGameResult.PENDING;
     protected void setupWindow(Stage stage, Scene scene, String title){
         scene.getStylesheets().add(
