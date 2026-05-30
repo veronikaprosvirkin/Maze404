@@ -34,7 +34,7 @@ public class PowerGridGame extends MiniGame {
         Random random = new Random();
         targetPower = random.nextInt(90) + 30; // Target between 30V and 120V
 
-        Label instructionLabel = new Label("Power Grid: Calibrate voltage to " + targetPower + "V (±5V)!");
+        Label instructionLabel = new Label("Power Grid: Calibrate voltage to " + targetPower + "V (±V)3!");
         instructionLabel.setWrapText(true);
         instructionLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
         instructionLabel.setAlignment(Pos.CENTER);
@@ -117,7 +117,7 @@ public class PowerGridGame extends MiniGame {
     }
 
     private void checkWinCondition() {
-        if (currentPower >= targetPower - 5 && currentPower <= targetPower + 5) {
+        if (currentPower >= targetPower - 3 && currentPower <= targetPower + 3) {
             result = MiniGameResult.SUCCESS;
             resultLabel.setText("Perfect! You Win!");
         } else if (movesLeft <= 0) {
