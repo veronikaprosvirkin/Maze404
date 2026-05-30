@@ -22,10 +22,13 @@ public class TestMiniGames extends Application {
         Button echoGameBtn = new Button("Test: Echo Game");
         echoGameBtn.setOnAction(e -> EchoGame.startNewGame());
 
-        VBox root = new VBox(20, guessGameBtn, clickerGameBtn, memoryGameBtn, echoGameBtn);
+        Button powerGame = new Button("Test: Power Game");
+        powerGame.setOnAction(e -> PowerGridGame.startNewGame());
+
+        VBox root = new VBox(20, guessGameBtn, clickerGameBtn, memoryGameBtn, echoGameBtn, powerGame);
         root.setStyle("-fx-padding: 50px; -fx-alignment: center;");
 
-        Scene scene = new Scene(root, 300, 200);
+        Scene scene = new Scene(root, 400, 350);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Mini Games Test");
         primaryStage.show();
