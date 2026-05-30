@@ -30,7 +30,6 @@ public class PowerGridGame extends MiniGame {
     private void showWindow() {
         Stage stage = new Stage();
 
-
         Random random = new Random();
         targetPower = random.nextInt(90) + 30; // Target between 30V and 120V
 
