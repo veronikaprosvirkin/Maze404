@@ -1,0 +1,137 @@
+package miniGames;
+
+import enums.MiniGameResult;
+import javafx.animation.PauseTransition;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+public class MemoryGame extends MiniGame {
+    private Button firstSelected;
+    private Button secondSelected;
+    private int pairsFound = 0;
+    private int mistakes = 0;
+    private int mistakesLimit = 3;
+
+    public static MemoryGame startNewGame() {
+        MemoryGame game = new MemoryGame();
+        game.showWindow();
+        return game;
+    }
+
+    private void showWindow() {
+        Stage stage = new Stage();
+
+        Label instructionLabel = new Label("Memory Game: Find all pairs! Lives: " + "❤️".repeat(mistakesLimit));
+        instructionLabel.setId("instruction-label");
+
+        List<String> hiddenValues = Arrays.asList(
+                "🤖", "🤖", "💎", "💎", "🔋", "🔋", "🛡️", "🛡️", "💻", "💻"
+        );
+        Collections.shuffle(hiddenValues);
+
+        GridPane grid = new GridPane();
+        grid.setId("memory-grid");
+        grid.setHgap(10);
+        grid.setVgap(10);
+
+        int valueIndex = 0;
+        for (int row = 0; row < 2; row++) {
+            for (int col = 0; col < 5; col++) {
+
+                String secretValue = hiddenValues.get(valueIndex);
+
+                Button card = new Button(secretValue);
+                card.setDisable(true);
+                card.setId("memory-card");
+                card.setMinSize(60, 60);
+                card.setUserData(secretValue);
+                valueIndex++;
+
+                card.setOnAction(e -> {
+                    if (result != MiniGameResult.PENDING || card == firstSelected || secondSelected != null) {
+                        return;
+                    }
+
+                    card.setText(secretValue);
+
+                    if (firstSelected == null) {
+                        firstSelected = card;
+                    } else {
+                        secondSelected = card;
+
+                        if (firstSelected.getUserData().equals(secondSelected.getUserData())) {
+                            pairsFound++;
+                            firstSelected.setDisable(true);
+                            secondSelected.setDisable(true);
+                            firstSelected = null;
+                            secondSelected = null;
+
+                            if (pairsFound == hiddenValues.size() / 2) {
+                                result = MiniGameResult.SUCCESS;
+                                instructionLabel.setText("You Win! All pairs found!");
+                            }
+                        } else {
+                            mistakes++;
+                            int livesLeft = mistakesLimit - mistakes;
+                            instructionLabel.setText("Memory Game: Find all pairs! Lives: " + "❤️".repeat(livesLeft));
+
+                            if (mistakes >= mistakesLimit) {
+                                result = MiniGameResult.FAILURE;
+                                instructionLabel.setText("Game Over! System Locked. 💔");
+                                disableAllCards(grid);
+                            } else {
+                                PauseTransition pause = new PauseTransition(javafx.util.Duration.seconds(1));
+                                pause.setOnFinished(event -> {
+                                    firstSelected.setText("?");
+                                    secondSelected.setText("?");
+                                    firstSelected = null;
+                                    secondSelected = null;
+                                });
+                                pause.play();
+                            }
+                        }
+                    }
+                });
+
+                grid.add(card, col, row);
+            }
+        }
+
+        Scene scene = getScene(grid, instructionLabel);
+        setupWindow(stage, scene, "Memory Game");
+    }
+
+    private Scene getScene(GridPane grid, Label instructionLabel) {
+        PauseTransition initialPause = new PauseTransition(javafx.util.Duration.seconds(3));
+        initialPause.setOnFinished(event -> {
+            grid.getChildren().forEach(node -> {
+                if (node instanceof Button) {
+                    ((Button) node).setText("?");
+                    ((Button) node).setDisable(false);
+                }
+            });
+        });
+        initialPause.play();
+
+        VBox root = new VBox(20, instructionLabel, grid);
+        root.setId("game-container");
+
+        return new Scene(root, width, height);
+    }
+
+    private void disableAllCards(GridPane grid) {
+        grid.getChildren().forEach(node -> {
+            if (node instanceof Button) {
+                ((Button) node).setDisable(true);
+            }
+        });
+    }
+}
