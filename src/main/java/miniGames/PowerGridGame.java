@@ -32,17 +32,16 @@ public class PowerGridGame extends MiniGame {
 
 
         Random random = new Random();
-        targetPower = random.nextInt(41) + 60;
+        targetPower = random.nextInt(90) + 30; // Target between 30V and 120V
 
-        Label instructionLabel = new Label("Power Grid: Calibrate voltage to exactly " + targetPower + "V!");
+        Label instructionLabel = new Label("Power Grid: Calibrate voltage to " + targetPower + "V (±5V)!");
         instructionLabel.setWrapText(true);
         instructionLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
         instructionLabel.setAlignment(Pos.CENTER);
         instructionLabel.setId("instruction-label");
 
-        statusLabel = new Label("Current Voltage: " + currentPower + "V\nTarget: " + targetPower + "V");
+        statusLabel = new Label("Current Voltage: " + currentPower + "V");
         statusLabel.setAlignment(Pos.CENTER);
-        statusLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
         statusLabel.setId("timer-label");
 
         movesLabel = new Label("Moves left: " + movesLeft);
@@ -113,12 +112,12 @@ public class PowerGridGame extends MiniGame {
     }
 
     private void updateLabels() {
-        statusLabel.setText("Current Voltage: " + currentPower + "V\nTarget: " + targetPower + "V");
+        statusLabel.setText("Current Voltage: " + currentPower + "V");
         movesLabel.setText("Moves left: " + movesLeft);
     }
 
     private void checkWinCondition() {
-        if (currentPower == targetPower) {
+        if (currentPower >= targetPower - 5 && currentPower <= targetPower + 5) {
             result = MiniGameResult.SUCCESS;
             resultLabel.setText("Perfect! You Win!");
         } else if (movesLeft <= 0) {
