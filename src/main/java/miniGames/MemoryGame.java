@@ -2,12 +2,14 @@ package miniGames;
 
 import enums.MiniGameResult;
 import javafx.animation.PauseTransition;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,11 +31,12 @@ public class MemoryGame extends MiniGame {
     private void showWindow() {
         Stage stage = new Stage();
 
-        Label instructionLabel = new Label("Memory Game: Find all pairs! Lives: " + "❤️".repeat(mistakesLimit));
+        Label instructionLabel = new Label("Memory Game: Find all pairs! Lives: " + "❤".repeat(mistakesLimit));
+        instructionLabel.setAlignment(javafx.geometry.Pos.CENTER);
         instructionLabel.setId("instruction-label");
 
         List<String> hiddenValues = Arrays.asList(
-                "🤖", "🤖", "💎", "💎", "🔋", "🔋", "🛡️", "🛡️", "💻", "💻"
+                "🤖", "🤖", "💎", "💎", "🔋", "🔋", "🔥", "🔥", "💻", "💻", "⚡", "⚡"
         );
         Collections.shuffle(hiddenValues);
 
@@ -41,14 +44,15 @@ public class MemoryGame extends MiniGame {
         grid.setId("memory-grid");
         grid.setHgap(10);
         grid.setVgap(10);
+        grid.setAlignment(javafx.geometry.Pos.CENTER);
 
         int valueIndex = 0;
-        for (int row = 0; row < 2; row++) {
-            for (int col = 0; col < 5; col++) {
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 4; col++) {
 
                 String secretValue = hiddenValues.get(valueIndex);
 
-                Button card = new Button(secretValue);
+                Button card = new Button("?");
                 card.setDisable(true);
                 card.setId("memory-card");
                 card.setMinSize(60, 60);
@@ -81,11 +85,11 @@ public class MemoryGame extends MiniGame {
                         } else {
                             mistakes++;
                             int livesLeft = mistakesLimit - mistakes;
-                            instructionLabel.setText("Memory Game: Find all pairs! Lives: " + "❤️".repeat(livesLeft));
+                            instructionLabel.setText("Memory Game: Find all pairs! Lives: " + "❤".repeat(livesLeft));
 
                             if (mistakes >= mistakesLimit) {
                                 result = MiniGameResult.FAILURE;
-                                instructionLabel.setText("Game Over! System Locked. 💔");
+                                instructionLabel.setText("Game Over! You lost");
                                 disableAllCards(grid);
                             } else {
                                 PauseTransition pause = new PauseTransition(javafx.util.Duration.seconds(1));
@@ -110,7 +114,10 @@ public class MemoryGame extends MiniGame {
     }
 
     private Scene getScene(GridPane grid, Label instructionLabel) {
-        PauseTransition initialPause = new PauseTransition(javafx.util.Duration.seconds(3));
+        Button startButton = new Button("Start");
+        startButton.setId("start-button");
+
+        PauseTransition initialPause = new PauseTransition(Duration.seconds(4));
         initialPause.setOnFinished(event -> {
             grid.getChildren().forEach(node -> {
                 if (node instanceof Button) {
@@ -119,9 +126,22 @@ public class MemoryGame extends MiniGame {
                 }
             });
         });
-        initialPause.play();
 
-        VBox root = new VBox(20, instructionLabel, grid);
+        startButton.setOnAction(e -> {
+            startButton.setVisible(false);
+            startButton.setManaged(false);
+
+            grid.getChildren().forEach(node -> {
+                if (node instanceof Button) {
+                    ((Button) node).setText((String) ((Button) node).getUserData());
+                }
+            });
+
+            initialPause.play();
+        });
+
+        VBox root = new VBox(20, instructionLabel, startButton, grid);
+        root.setAlignment(Pos.CENTER);
         root.setId("game-container");
 
         return new Scene(root, width, height);
