@@ -10,6 +10,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -27,6 +28,7 @@ public class EchoGame extends MiniGame {
     private int maxRounds = 8;
     private Label timerLabel;
     private Label resultLabel;
+    private StackPane wrapper;
 
     public static EchoGame startNewGame() {
         EchoGame game = new EchoGame();
@@ -67,7 +69,8 @@ public class EchoGame extends MiniGame {
         root.setAlignment(Pos.CENTER);
         root.setId("game-container");
 
-        Scene scene = new Scene(root, width, height);
+        wrapper = new StackPane(root);
+        Scene scene = new Scene(wrapper, width, height);
         setupWindow(stage, scene, "Echo Game");
     }
 
@@ -145,6 +148,7 @@ public class EchoGame extends MiniGame {
                     timerLabel.setText("Success! All rounds completed.");
                     resultLabel.setText("YOU WIN!");
                     colorButtons.forEach(btn -> btn.setDisable(true));
+                    showEndOverlay(wrapper, true);
                 } else {
                     colorButtons.forEach(btn -> btn.setDisable(true));
                     PauseTransition roundPause = new PauseTransition(Duration.seconds(1));
@@ -156,6 +160,7 @@ public class EchoGame extends MiniGame {
             result = MiniGameResult.FAILURE;
             resultLabel.setText("WRONG! GAME OVER.");
             colorButtons.forEach(btn -> btn.setDisable(true));
+            showEndOverlay(wrapper, false);
         }
     }
 }

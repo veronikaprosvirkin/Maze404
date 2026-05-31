@@ -25,7 +25,7 @@
 		<javafx.platform>win</javafx.platform>
 
 		<!-- Lombok -->
-		<lombok.version>1.18.28</lombok.version>
+		<lombok.version>1.18.46</lombok.version>
 	</properties>
 
 	<dependencies>

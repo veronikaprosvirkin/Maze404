@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -20,6 +21,7 @@ public class PowerGridGame extends MiniGame {
     private Label statusLabel;
     private Label movesLabel;
     private Label resultLabel;
+    private StackPane wrapper;
 
     public static PowerGridGame startNewGame() {
         PowerGridGame game = new PowerGridGame();
@@ -57,7 +59,8 @@ public class PowerGridGame extends MiniGame {
         root.setAlignment(Pos.CENTER);
         root.setId("game-container");
 
-        Scene scene = new Scene(root, width, height);
+        wrapper = new StackPane(root);
+        Scene scene = new Scene(wrapper, width, height);
         setupWindow(stage, scene, "Power Grid Game");
     }
 
@@ -118,12 +121,15 @@ public class PowerGridGame extends MiniGame {
         if (currentPower >= targetPower - 3 && currentPower <= targetPower + 3) {
             result = MiniGameResult.SUCCESS;
             resultLabel.setText("Perfect! You Win!");
+            showEndOverlay(wrapper, true);
         } else if (movesLeft <= 0) {
             result = MiniGameResult.FAILURE;
             resultLabel.setText("No moves left! Game Over!");
+            showEndOverlay(wrapper, false);
         } else if (currentPower > targetPower * 2 || currentPower < -50) {
             result = MiniGameResult.FAILURE;
             resultLabel.setText("Too much!");
+            showEndOverlay(wrapper, false);
         }
     }
 }
