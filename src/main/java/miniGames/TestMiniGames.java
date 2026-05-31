@@ -25,7 +25,10 @@ public class TestMiniGames extends Application {
         Button powerGame = new Button("Test: Power Game");
         powerGame.setOnAction(e -> PowerGridGame.startNewGame());
 
-        VBox root = new VBox(20, guessGameBtn, clickerGameBtn, memoryGameBtn, echoGameBtn, powerGame);
+        Button numberleGame = new Button("Test: Numberle Game");
+        numberleGame.setOnAction(e -> Numberle.startNewGame());
+
+        VBox root = new VBox(20, guessGameBtn, clickerGameBtn, memoryGameBtn, echoGameBtn, powerGame, numberleGame);
         root.setStyle("-fx-padding: 50px; -fx-alignment: center;");
 
         Scene scene = new Scene(root, 400, 350);
