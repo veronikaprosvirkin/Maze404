@@ -1,5 +1,6 @@
 package miniGames;
 
+import enums.Difficulty;
 import enums.MiniGameResult;
 import javafx.animation.FadeTransition;
 import javafx.geometry.Pos;
@@ -16,9 +17,13 @@ public abstract class MiniGame {
     protected MiniGameResult result = MiniGameResult.PENDING;
 
     protected void setupWindow(Stage stage, Scene scene, String title) {
+        String cssFile = switch (TestLauncher.difficulty) {
+            case MEDIUM -> "/styles/minigames-stone.css";
+            case HARD -> "/styles/minigames-inferno.css";
+            default -> "/styles/minigames-cryo.css";
+        };
         scene.getStylesheets().add(
-            getClass().getResource("/styles/minigames.css").toExternalForm()
-        );
+                getClass().getResource(cssFile).toExternalForm());
         stage.setTitle(title);
         stage.setWidth(width);
         stage.setHeight(height);
@@ -31,31 +36,44 @@ public abstract class MiniGame {
      * Injects a full-screen animated overlay on top of the game.
      * Call whenever result changes from PENDING to SUCCESS or FAILURE.
      *
-     * @param wrapper  the StackPane that is the scene's root
-     * @param isWin    true → win overlay (cyan); false → lose overlay (magenta)
+     * @param wrapper the StackPane that is the scene's root
+     * @param isWin   true → win overlay; false → lose overlay
      */
     protected void showEndOverlay(StackPane wrapper, boolean isWin) {
-        String accentColor  = isWin ? "#9AB8C8" : "#B03878";
-        String glowColor    = isWin ? "rgba(154,184,200,0.6)" : "rgba(176,56,120,0.6)";
-        String icon         = isWin ? "✦" : "✖";
-        String titleText    = isWin ? "VICTORY" : "SYSTEM FAILURE";
+        String accentColor;
+        String glowColor;
+        switch (TestLauncher.difficulty) {
+            case MEDIUM:
+                accentColor = isWin ? "#5A8248" : "#C4442A";
+                glowColor = isWin ? "rgba(90,130,72,0.6)" : "rgba(196,68,42,0.6)";
+                break;
+            case HARD:
+                accentColor = isWin ? "#6A5028" : "#CC2020";
+                glowColor = isWin ? "rgba(106,80,40,0.6)" : "rgba(204,32,32,0.6)";
+                break;
+            default: // EASY
+                accentColor = isWin ? "#9AB8C8" : "#B03878";
+                glowColor = isWin ? "rgba(154,184,200,0.6)" : "rgba(176,56,120,0.6)";
+                break;
+        }
+
+        String icon = isWin ? "✦" : "✖";
+        String titleText = isWin ? "VICTORY" : "SYSTEM FAILURE";
         String subtitleText = isWin ? "Access granted.  Proceed." : "Connection lost.  Try again.";
 
         // ── icon ────────────────────────────────────────────────────
         Label iconLabel = new Label(icon);
         iconLabel.setId("end-icon-label");
         iconLabel.setStyle(
-            "-fx-text-fill: " + accentColor + ";" +
-            "-fx-effect: dropshadow(gaussian, " + accentColor + ", 28, 0.7, 0, 0);"
-        );
+                "-fx-text-fill: " + accentColor + ";" +
+                        "-fx-effect: dropshadow(gaussian, " + accentColor + ", 28, 0.7, 0, 0);");
 
         // ── title ───────────────────────────────────────────────────
         Label titleLabel = new Label(titleText);
         titleLabel.setId("end-title-label");
         titleLabel.setStyle(
-            "-fx-text-fill: " + accentColor + ";" +
-            "-fx-effect: dropshadow(gaussian, " + glowColor + ", 22, 0.6, 0, 0);"
-        );
+                "-fx-text-fill: " + accentColor + ";" +
+                        "-fx-effect: dropshadow(gaussian, " + glowColor + ", 22, 0.6, 0, 0);");
 
         // ── subtitle ────────────────────────────────────────────────
         Label subtitleLabel = new Label(subtitleText);
