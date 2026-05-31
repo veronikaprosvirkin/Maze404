@@ -48,7 +48,8 @@ public class TestMiniGames extends Application {
         Button numberleGame = new Button("Test: Numberle Game");
         numberleGame.setOnAction(e -> Numberle.startNewGame());
 
-        VBox root = new VBox(15, difficultyBtn, guessGameBtn, clickerGameBtn, memoryGameBtn, echoGameBtn, powerGame, numberleGame);
+        VBox root = new VBox(15, difficultyBtn, guessGameBtn, clickerGameBtn, memoryGameBtn, echoGameBtn, powerGame,
+                numberleGame);
         root.setStyle("-fx-padding: 30px; -fx-alignment: center;");
 
         Scene scene = new Scene(root, 400, 420);

@@ -1,4 +1,6 @@
 import enums.CellType;
+import enums.Difficulty;
+import miniGames.TestLauncher;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -12,7 +14,8 @@ import ui.render.GamePanel;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * Main JavaFX application. Signals when the UI is ready via a latch so background threads
+ * Main JavaFX application. Signals when the UI is ready via a latch so
+ * background threads
  * can wait for the toolkit to be up and the primary stage shown.
  */
 public class MainApp extends Application {
@@ -30,7 +33,16 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         Pane root = new Pane();
-        root.setStyle("-fx-background-color: #0B0D12;");
+
+        //! FOR NOW - this is a difficulty changer for labyrinth
+        Difficulty.current = Difficulty.EASY;
+
+        String bgColor = switch (Difficulty.current) {
+            case MEDIUM -> "#09080A";
+            case HARD -> "#080406";
+            default -> "#06080C";
+        };
+        root.setStyle("-fx-background-color: " + bgColor + ";");
         Scene scene = new Scene(root, 800, 600);
 
         Grid grid = new Grid(15, 15);
@@ -43,7 +55,7 @@ public class MainApp extends Application {
 
         Player player = new Player(7, 7);
 
-        GamePanel gamePanel = new GamePanel(grid, player);
+        GamePanel gamePanel = new GamePanel(grid, player, Difficulty.current);
         double baseWidth = grid.getWidth() * 32.0;
         double baseHeight = grid.getHeight() * 32.0;
         gamePanel.setPrefSize(baseWidth, baseHeight);
@@ -84,7 +96,7 @@ public class MainApp extends Application {
             gamePanel.setScaleX(scale);
             gamePanel.setScaleY(scale);
 
-            gamePanel.setTranslateX((rootWidth  - baseWidth)  / 2.0);
+            gamePanel.setTranslateX((rootWidth - baseWidth) / 2.0);
             gamePanel.setTranslateY((rootHeight - baseHeight) / 2.0);
         };
 

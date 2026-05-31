@@ -1,5 +1,6 @@
 package ui.render;
 
+import enums.Difficulty;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -13,10 +14,16 @@ public class GamePanel extends Pane {
     private final Canvas canvas;
     private final GridRenderer gridRenderer;
     private final PlayerRenderer playerRenderer;
+    private final Difficulty difficulty;
 
     public GamePanel(Grid grid, Player player) {
+        this(grid, player, Difficulty.current);
+    }
+
+    public GamePanel(Grid grid, Player player, Difficulty difficulty) {
+        this.difficulty = difficulty != null ? difficulty : Difficulty.current;
         this.canvas = new Canvas(grid.getWidth() * TILE_SIZE, grid.getHeight() * TILE_SIZE);
-        this.gridRenderer = new GridRenderer(new SpriteSheet());
+        this.gridRenderer = new GridRenderer(new SpriteSheet(this.difficulty));
         this.playerRenderer = new PlayerRenderer();
         getChildren().add(canvas);
 
@@ -33,7 +40,7 @@ public class GamePanel extends Pane {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         gridRenderer.draw(gc, grid);
-        playerRenderer.draw(gc, player, TILE_SIZE);
+        playerRenderer.draw(gc, player, TILE_SIZE, this.difficulty);
     }
 }
 
