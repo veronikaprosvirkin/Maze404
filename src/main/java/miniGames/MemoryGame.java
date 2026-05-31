@@ -32,7 +32,6 @@ public class MemoryGame extends MiniGame {
     private void showWindow() {
         Stage stage = new Stage();
 
-        // Create wrapper first so card lambdas below can capture it
         StackPane wrapper = new StackPane();
 
         Label instructionLabel = new Label("Memory Game: Find all pairs! Lives: " + "❤".repeat(mistakesLimit) +
@@ -42,8 +41,7 @@ public class MemoryGame extends MiniGame {
         instructionLabel.setId("instruction-label");
 
         List<String> hiddenValues = Arrays.asList(
-                "🤖", "🤖", "💎", "💎", "🔋", "🔋", "🔥", "🔥", "💻", "💻", "⚡", "⚡"
-        );
+                "🤖", "🤖", "💎", "💎", "🔋", "🔋", "🔥", "🔥", "💻", "💻", "⚡", "⚡");
         Collections.shuffle(hiddenValues);
 
         GridPane grid = new GridPane();

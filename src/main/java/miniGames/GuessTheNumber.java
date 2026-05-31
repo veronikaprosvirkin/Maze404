@@ -26,7 +26,6 @@ public class GuessTheNumber extends MiniGame {
         this.targetNumber = targetNumber;
     }
 
-
     public static GuessTheNumber startNewGame() {
         Random random = new Random();
         int targetNumber = random.nextInt(100) + 1;
@@ -81,7 +80,6 @@ public class GuessTheNumber extends MiniGame {
         guessButton.setDefaultButton(true);
         guessField.requestFocus();
 
-        // Declare wrapper here so the submitGuess lambda below can capture it
         StackPane wrapper = new StackPane(root);
 
         Runnable submitGuess = () -> {

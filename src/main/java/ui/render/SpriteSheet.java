@@ -1,6 +1,8 @@
 package ui.render;
 
 import enums.CellType;
+import enums.Difficulty;
+import miniGames.TestLauncher;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
@@ -13,9 +15,12 @@ import java.util.Map;
 
 /**
  * Loads and manages sprite tiles from a spritesheet image resource.
- * Provides tile extraction via pixel slicing and automatic fallback colored rectangles
- * when the spritesheet is missing or unavailable, ensuring robust development rendering.
- * Maps {@link enums.CellType} values to sprite grid positions for seamless game asset integration.
+ * Provides tile extraction via pixel slicing and automatic fallback colored
+ * rectangles
+ * when the spritesheet is missing or unavailable, ensuring robust development
+ * rendering.
+ * Maps {@link enums.CellType} values to sprite grid positions for seamless game
+ * asset integration.
  */
 public class SpriteSheet {
     private static final int TILE_SIZE = 32;
@@ -23,23 +28,29 @@ public class SpriteSheet {
 
     static {
         // Mapping uses (col, row) coordinates on the spritesheet grid.
-        SPRITE_POSITIONS.put(CellType.FLOOR, new int[]{0, 0});
-        SPRITE_POSITIONS.put(CellType.WALL, new int[]{1, 0});
-        SPRITE_POSITIONS.put(CellType.EXIT, new int[]{2, 0});
-        SPRITE_POSITIONS.put(CellType.TRAP, new int[]{3, 0});
-        SPRITE_POSITIONS.put(CellType.ARTIFACT, new int[]{0, 2});
-        SPRITE_POSITIONS.put(CellType.EMPTY, new int[]{0, 0});
+        SPRITE_POSITIONS.put(CellType.FLOOR, new int[] { 0, 0 });
+        SPRITE_POSITIONS.put(CellType.WALL, new int[] { 1, 0 });
+        SPRITE_POSITIONS.put(CellType.EXIT, new int[] { 2, 0 });
+        SPRITE_POSITIONS.put(CellType.TRAP, new int[] { 3, 0 });
+        SPRITE_POSITIONS.put(CellType.ARTIFACT, new int[] { 0, 2 });
+        SPRITE_POSITIONS.put(CellType.EMPTY, new int[] { 0, 0 });
     }
 
     private final Image sheet;
     private final boolean sheetAvailable;
-    private final Map<CellType, Image> fallbackCache = new EnumMap<>(CellType.class);
+    private final Map<Difficulty, Map<CellType, Image>> fallbackCache = new EnumMap<>(Difficulty.class);
+    private final Difficulty difficulty;
 
     public SpriteSheet() {
-        this("/sprites/spritesheet.png");
+        this(Difficulty.EASY);
     }
 
-    public SpriteSheet(String resourcePath) {
+    public SpriteSheet(Difficulty difficulty) {
+        this(difficulty, "/sprites/spritesheet.png");
+    }
+
+    public SpriteSheet(Difficulty difficulty, String resourcePath) {
+        this.difficulty = difficulty != null ? difficulty : Difficulty.EASY;
         InputStream stream = SpriteSheet.class.getResourceAsStream(resourcePath);
         if (stream == null) {
             this.sheet = null;
@@ -80,33 +91,259 @@ public class SpriteSheet {
     }
 
     private Image getFallback(CellType type) {
-        return fallbackCache.computeIfAbsent(type, this::createFallback);
+        return fallbackCache
+                .computeIfAbsent(this.difficulty, d -> new EnumMap<>(CellType.class))
+                .computeIfAbsent(type, t -> createFallback(t, this.difficulty));
     }
 
-    private Image createFallback(CellType type) {
+    private Image createFallback(CellType type, Difficulty diff) {
+        if (diff == null) {
+            diff = Difficulty.EASY;
+        }
         Color color;
-        switch (type) {
-            case WALL -> color = Color.rgb(31, 33, 38);
-            case FLOOR -> color = Color.rgb(26, 31, 43);
-            case EXIT -> color = Color.rgb(63, 163, 108);
-            case ARTIFACT -> color = Color.rgb(194, 161, 89);
-            case TRAP -> color = Color.rgb(166, 44, 43);
-            case EMPTY -> color = Color.rgb(26, 31, 43);
-            default -> color = Color.rgb(106, 63, 163);
+        Color altColor = null;
+        Color accentColor = null;
+
+        switch (diff) {
+            case MEDIUM -> {
+                switch (type) {
+                    case WALL -> {
+                        color = Color.web("#231D17");
+                        altColor = Color.web("#2E2620");
+                    }
+                    case FLOOR, EMPTY -> {
+                        color = Color.web("#161210");
+                        altColor = Color.web("#1A1512");
+                    }
+                    case EXIT -> {
+                        color = Color.web("#3C5A35");
+                        altColor = Color.web("#5A8248");
+                    }
+                    case ARTIFACT -> {
+                        color = Color.web("#161210");
+                        accentColor = Color.web("#5A8898");
+                    }
+                    case TRAP -> {
+                        color = Color.web("#120A0A");
+                        accentColor = Color.web("#6B2020");
+                    }
+                    default -> {
+                        color = Color.web("#3D3228");
+                    }
+                }
+            }
+            case HARD -> {
+                switch (type) {
+                    case WALL -> {
+                        color = Color.web("#281018");
+                        altColor = Color.web("#381520");
+                    }
+                    case FLOOR, EMPTY -> {
+                        color = Color.web("#150A0C");
+                        altColor = Color.web("#1C0A10");
+                    }
+                    case EXIT -> {
+                        color = Color.web("#382818");
+                        altColor = Color.web("#6A5028");
+                    }
+                    case ARTIFACT -> {
+                        color = Color.web("#150A0C");
+                        accentColor = Color.web("#E06080");
+                    }
+                    case TRAP -> {
+                        color = Color.web("#0E0404");
+                        accentColor = Color.web("#CC2020");
+                    }
+                    default -> {
+                        color = Color.web("#502030");
+                    }
+                }
+            }
+            default -> { // EASY
+                switch (type) {
+                    case WALL -> {
+                        color = Color.web("#1C2232");
+                        altColor = Color.web("#252D40");
+                    }
+                    case FLOOR, EMPTY -> {
+                        color = Color.web("#111520");
+                        altColor = Color.web("#141826");
+                    }
+                    case EXIT -> {
+                        color = Color.web("#2A4A50");
+                        altColor = Color.web("#3A6A72");
+                    }
+                    case ARTIFACT -> {
+                        color = Color.web("#111520"); // floor background
+                        accentColor = Color.web("#7AB4D0"); // crystal color
+                    }
+                    case TRAP -> {
+                        color = Color.web("#0D080E");
+                        accentColor = Color.web("#8A2860");
+                    }
+                    default -> {
+                        color = Color.web("#2E3A52");
+                    }
+                }
+            }
         }
 
         WritableImage image = new WritableImage(TILE_SIZE, TILE_SIZE);
         PixelWriter writer = image.getPixelWriter();
-        Color borderColor = type == CellType.WALL
-                ? new Color(color.getRed() * 0.85, color.getGreen() * 0.85, color.getBlue() * 0.85, color.getOpacity())
-                : color;
-        for (int y = 0; y < TILE_SIZE; y++) {
-            for (int x = 0; x < TILE_SIZE; x++) {
-                boolean isWallBorder = type == CellType.WALL
-                        && (x < 2 || y < 2 || x >= TILE_SIZE - 2 || y >= TILE_SIZE - 2);
-                writer.setColor(x, y, isWallBorder ? borderColor : color);
+
+        // 1. WALL: masonry brick texture
+        if (type == CellType.WALL) {
+            Color crackColor = switch (diff) {
+                case MEDIUM -> Color.rgb(80, 60, 30, 0.4);
+                case HARD -> Color.rgb(160, 20, 20, 0.5);
+                default -> Color.rgb(120, 180, 220, 0.45);
+            };
+            Color masonryLine = altColor != null ? altColor : color.brighter();
+
+            for (int y = 0; y < TILE_SIZE; y++) {
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    // Thin micro-bevel/brick borders
+                    boolean isMasonryLine = (y == 0 || y == TILE_SIZE / 2 || y == TILE_SIZE - 1)
+                            || (y < TILE_SIZE / 2 && (x == 0 || x == TILE_SIZE / 2 || x == TILE_SIZE - 1))
+                            || (y >= TILE_SIZE / 2
+                                    && (x == 0 || x == TILE_SIZE / 4 || x == 3 * TILE_SIZE / 4 || x == TILE_SIZE - 1));
+
+                    // Some cracks
+                    boolean isCrack = false;
+                    if (diff == Difficulty.HARD) {
+                        isCrack = (y == x - 4 && x > 8 && x < 24) || (y == TILE_SIZE - x + 2 && x > 12 && x < 20);
+                    } else if (diff == Difficulty.MEDIUM) {
+                        isCrack = (y == 2 * x - 10 && x > 5 && x < 15) || (y == 6 && x > 2 && x < 18);
+                    } else {
+                        isCrack = (y == TILE_SIZE - x - 4 && x > 10 && x < 26);
+                    }
+
+                    if (isCrack) {
+                        writer.setColor(x, y, crackColor);
+                    } else if (isMasonryLine) {
+                        writer.setColor(x, y, masonryLine);
+                    } else {
+                        double noise = (Math.sin(x * 0.5) * Math.cos(y * 0.5) + 1.0) * 0.05;
+                        writer.setColor(x, y, color.deriveColor(0, 1, 1 - noise, 1));
+                    }
+                }
             }
         }
+        // 2. FLOOR / EMPTY: tiles with corner shadows and slight noise
+        else if (type == CellType.FLOOR || type == CellType.EMPTY) {
+            Color tileBorder = altColor != null ? altColor : color.darker();
+            for (int y = 0; y < TILE_SIZE; y++) {
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    boolean isBorder = x == 0 || y == 0 || x == TILE_SIZE - 1 || y == TILE_SIZE - 1;
+                    if (isBorder) {
+                        writer.setColor(x, y, tileBorder);
+                    } else {
+                        double centerX = TILE_SIZE / 2.0;
+                        double centerY = TILE_SIZE / 2.0;
+                        double dist = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                        double maxDist = TILE_SIZE / 1.414;
+                        double vignette = Math.min(1.0, dist / maxDist);
+                        double factor = 1.0 - (vignette * 0.15);
+                        writer.setColor(x, y, color.deriveColor(0, 1.0, factor, 1.0));
+                    }
+                }
+            }
+        }
+        // 3. EXIT: double door shape
+        else if (type == CellType.EXIT) {
+            Color doorBorderColor = altColor != null ? altColor : color.brighter();
+            Color handleColor = switch (diff) {
+                case MEDIUM -> Color.web("#D9C9A8");
+                case HARD -> Color.web("#D4A8B0");
+                default -> Color.web("#D2DCE8");
+            };
+            for (int y = 0; y < TILE_SIZE; y++) {
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    boolean isFrame = x < 4 || x >= TILE_SIZE - 4 || y < 4;
+                    boolean isCenterLine = x == TILE_SIZE / 2 || x == TILE_SIZE / 2 - 1;
+                    boolean isPanelBorder = (x >= 6 && x <= 10 && (y == 8 || y == 24))
+                            || (x >= 21 && x <= 25 && (y == 8 || y == 24))
+                            || ((x == 6 || x == 10) && y >= 8 && y <= 24)
+                            || ((x == 21 || x == 25) && y >= 8 && y <= 24);
+
+                    boolean isHandle = (y >= 14 && y <= 17) && (x == TILE_SIZE / 2 - 3 || x == TILE_SIZE / 2 + 2);
+
+                    if (isHandle) {
+                        writer.setColor(x, y, handleColor);
+                    } else if (isCenterLine) {
+                        writer.setColor(x, y, color.darker().darker());
+                    } else if (isPanelBorder) {
+                        writer.setColor(x, y, doorBorderColor);
+                    } else if (isFrame) {
+                        writer.setColor(x, y, doorBorderColor.darker());
+                    } else {
+                        writer.setColor(x, y, color);
+                    }
+                }
+            }
+        }
+        // 4. ARTIFACT: Diamond crystal shape over floor background
+        else if (type == CellType.ARTIFACT) {
+            Color floorColor = color;
+            Color crystalColor = accentColor != null ? accentColor : Color.GOLD;
+            Color crystalGlow = crystalColor.deriveColor(0, 1.0, 1.2, 0.45);
+
+            for (int y = 0; y < TILE_SIZE; y++) {
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    int dx = Math.abs(x - TILE_SIZE / 2);
+                    int dy = Math.abs(y - TILE_SIZE / 2);
+                    int dist = dx + dy;
+
+                    if (dist <= 7) {
+                        if (dist == 7) {
+                            writer.setColor(x, y, crystalColor.brighter());
+                        } else {
+                            double shine = (x == y || x == y - 1) ? 1.3 : 1.0;
+                            writer.setColor(x, y, crystalColor.deriveColor(0, 1.0, shine, 1.0));
+                        }
+                    } else if (dist <= 11) {
+                        double factor = (11.0 - dist) / 4.0;
+                        Color mixed = floorColor.interpolate(crystalGlow, factor);
+                        writer.setColor(x, y, mixed);
+                    } else {
+                        boolean isBorder = x == 0 || y == 0 || x == TILE_SIZE - 1 || y == TILE_SIZE - 1;
+                        if (isBorder && altColor != null) {
+                            writer.setColor(x, y, altColor);
+                        } else {
+                            writer.setColor(x, y, floorColor);
+                        }
+                    }
+                }
+            }
+        }
+        // 5. TRAP: Dark warning-patterned cell
+        else if (type == CellType.TRAP) {
+            Color trapLineColor = accentColor != null ? accentColor : Color.RED;
+            for (int y = 0; y < TILE_SIZE; y++) {
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    int dx = Math.abs(x - TILE_SIZE / 2);
+                    int dy = Math.abs(y - TILE_SIZE / 2);
+                    boolean isSymbol = (dx == 0 && dy <= 6) || (dy == 0 && dx <= 6)
+                            || (dx == 1 && dy <= 4) || (dy == 1 && dx <= 4)
+                            || (dx == 2 && dy <= 2) || (dy == 2 && dx <= 2);
+
+                    if (isSymbol) {
+                        writer.setColor(x, y, trapLineColor);
+                    } else {
+                        writer.setColor(x, y, color);
+                    }
+                }
+            }
+        }
+        // DEFAULT fallbacks
+        else {
+            for (int y = 0; y < TILE_SIZE; y++) {
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    writer.setColor(x, y, color);
+                }
+            }
+        }
+
         return image;
     }
 }

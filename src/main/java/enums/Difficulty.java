@@ -3,5 +3,7 @@ package enums;
 public enum Difficulty {
     EASY,
     MEDIUM,
-    HARD
+    HARD;
+
+    public static Difficulty current = EASY;
 }
