@@ -25,6 +25,7 @@ public class TestMiniGames extends Application {
                     TestLauncher.difficulty = Difficulty.EASY;
                     break;
             }
+            Difficulty.current = TestLauncher.difficulty;
             difficultyBtn.setText("Difficulty: " + TestLauncher.difficulty);
         });
         // Highlight the difficulty button visually
