@@ -4,6 +4,7 @@ import enums.MiniGameResult;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -16,6 +17,7 @@ public class Numberle extends MiniGame {
     private static final int MAX_ATTEMPTS = 6;
     Label[][] gridLabels;
     Label statusLabel;
+    private StackPane wrapper;
 
     public static Numberle startNewGame() {
         Numberle game = new Numberle();
@@ -42,7 +44,8 @@ public class Numberle extends MiniGame {
         root.setAlignment(javafx.geometry.Pos.CENTER);
         root.setId("game-container");
 
-        Scene scene = new Scene(root, width, height);
+        wrapper = new StackPane(root);
+        Scene scene = new Scene(wrapper, width, height);
         scene.setOnKeyPressed(e -> {
             if (result != MiniGameResult.PENDING) return;
 
@@ -145,11 +148,13 @@ public class Numberle extends MiniGame {
         if (correctCount == 5) {
             result = MiniGameResult.SUCCESS;
             statusLabel.setText("Congratulations! You've guessed the number!");
+            showEndOverlay(wrapper, true);
         } else {
             currentRow++;
             if (currentRow >= MAX_ATTEMPTS) {
                 result = MiniGameResult.FAILURE;
                 statusLabel.setText("Game Over! The number was: " + targetPassword);
+                showEndOverlay(wrapper, false);
             } else {
                 statusLabel.setText("Attempt " + (currentRow + 1) + " of " + MAX_ATTEMPTS);
                 currentGuess = "";

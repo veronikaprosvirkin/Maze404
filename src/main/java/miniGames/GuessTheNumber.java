@@ -81,6 +81,9 @@ public class GuessTheNumber extends MiniGame {
         guessButton.setDefaultButton(true);
         guessField.requestFocus();
 
+        // Declare wrapper here so the submitGuess lambda below can capture it
+        StackPane wrapper = new StackPane(root);
+
         Runnable submitGuess = () -> {
             if (result != MiniGameResult.PENDING) {
                 return;
@@ -114,11 +117,15 @@ public class GuessTheNumber extends MiniGame {
                 if (result == MiniGameResult.SUCCESS) {
                     inputPanel.getStyleClass().add("success");
                     resultLabel.getStyleClass().add("success");
+                    showEndOverlay(wrapper, true);
                 }
 
                 if (result != MiniGameResult.PENDING) {
                     guessField.setDisable(true);
                     guessButton.setDisable(true);
+                    if (result == MiniGameResult.FAILURE) {
+                        showEndOverlay(wrapper, false);
+                    }
                 }
             } catch (NumberFormatException ex) {
                 resultLabel.setText("Please enter a valid number.");
@@ -129,7 +136,7 @@ public class GuessTheNumber extends MiniGame {
         guessButton.setOnAction(e -> submitGuess.run());
         guessField.setOnAction(e -> submitGuess.run());
 
-        Scene scene = new Scene(root, width, height);
+        Scene scene = new Scene(wrapper, width, height);
         setupWindow(stage, scene, "Guess The Number");
     }
 

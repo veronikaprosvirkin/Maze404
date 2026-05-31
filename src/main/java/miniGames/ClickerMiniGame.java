@@ -7,14 +7,16 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class ClickerMiniGame extends MiniGame {
     int clicks = 0;
     int clickLimit = 30;
-    double timeLeft = 7.5; // seconds
+    double timeLeft = 7.5;
     private Timeline timer;
+    private StackPane wrapper;
 
     public static ClickerMiniGame startNewGame() {
         ClickerMiniGame game = new ClickerMiniGame();
@@ -49,7 +51,7 @@ public class ClickerMiniGame extends MiniGame {
             clickButton.setDisable(false);
             startButton.setVisible(false);
             startButton.setManaged(false);
-            startTimer(timerLabel, clickButton);
+            startTimer(timerLabel, clickButton, wrapper);
         });
 
         clickButton.setOnAction(e -> {
@@ -67,6 +69,7 @@ public class ClickerMiniGame extends MiniGame {
                 timerLabel.setText("You Win!");
                 timerLabel.getStyleClass().removeAll("danger");
                 timerLabel.getStyleClass().add("success");
+                showEndOverlay(wrapper, true);
             }
         });
 
@@ -78,11 +81,13 @@ public class ClickerMiniGame extends MiniGame {
         clickButton.setMaxHeight(Double.MAX_VALUE);
         clickButton.setMaxWidth(Double.MAX_VALUE);
 
-        Scene scene = new Scene(root, width, height);
+        wrapper = new StackPane(root);
+        Scene scene = new Scene(wrapper, width, height);
 
         setupWindow(stage, scene, "System Overload");
     }
-    private void startTimer(Label timerLabel, Button clickButton) {
+
+    private void startTimer(Label timerLabel, Button clickButton, StackPane wrapper) {
         double initialTime = timeLeft;
         KeyFrame keyFrame = new KeyFrame(javafx.util.Duration.seconds(0.1), event -> {
             timeLeft -= 0.1;
@@ -99,6 +104,7 @@ public class ClickerMiniGame extends MiniGame {
                 timer.stop();
                 clickButton.setDisable(true);
                 timerLabel.setText("System Locked! Time is up.");
+                showEndOverlay(wrapper, false);
             }
         });
 

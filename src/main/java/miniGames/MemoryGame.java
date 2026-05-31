@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -30,6 +31,9 @@ public class MemoryGame extends MiniGame {
 
     private void showWindow() {
         Stage stage = new Stage();
+
+        // Create wrapper first so card lambdas below can capture it
+        StackPane wrapper = new StackPane();
 
         Label instructionLabel = new Label("Memory Game: Find all pairs! Lives: " + "❤".repeat(mistakesLimit) +
                 "\nClick 'Start' to reveal cards for 4 seconds");
@@ -83,6 +87,7 @@ public class MemoryGame extends MiniGame {
                             if (pairsFound == hiddenValues.size() / 2) {
                                 result = MiniGameResult.SUCCESS;
                                 instructionLabel.setText("You Win! All pairs found!");
+                                showEndOverlay(wrapper, true);
                             }
                         } else {
                             mistakes++;
@@ -93,6 +98,7 @@ public class MemoryGame extends MiniGame {
                                 result = MiniGameResult.FAILURE;
                                 instructionLabel.setText("Game Over! You lost");
                                 disableAllCards(grid);
+                                showEndOverlay(wrapper, false);
                             } else {
                                 PauseTransition pause = new PauseTransition(javafx.util.Duration.seconds(1));
                                 pause.setOnFinished(event -> {
@@ -111,11 +117,11 @@ public class MemoryGame extends MiniGame {
             }
         }
 
-        Scene scene = getScene(grid, instructionLabel);
+        Scene scene = getScene(wrapper, grid, instructionLabel);
         setupWindow(stage, scene, "Memory Game");
     }
 
-    private Scene getScene(GridPane grid, Label instructionLabel) {
+    private Scene getScene(StackPane wrapper, GridPane grid, Label instructionLabel) {
         Button startButton = new Button("Start");
         startButton.setId("start-button");
 
@@ -146,7 +152,8 @@ public class MemoryGame extends MiniGame {
         root.setAlignment(Pos.CENTER);
         root.setId("game-container");
 
-        return new Scene(root, width, height);
+        wrapper.getChildren().add(root);
+        return new Scene(wrapper, width, height);
     }
 
     private void disableAllCards(GridPane grid) {
