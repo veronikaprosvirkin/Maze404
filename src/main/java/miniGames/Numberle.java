@@ -82,7 +82,7 @@ public class Numberle extends MiniGame {
     private void handleInput(String input) {
         if (input.equals("Ent")) {
             if (currentGuess.length() == 5) {
-                //TODO: перевірити вгадування і оновити кольори клітинок
+                checkGuess();
             }
         } else if (input.equals("Del")) {
             if (!currentGuess.isEmpty()) {
@@ -103,6 +103,56 @@ public class Numberle extends MiniGame {
                 gridLabels[currentRow][col].setText(String.valueOf(currentGuess.charAt(col)));
             } else {
                 gridLabels[currentRow][col].setText("");
+            }
+        }
+    }
+
+    private void checkGuess() {
+        boolean[] targetUsed = new boolean[5];
+        boolean[] guessUsed = new boolean[5];
+        int correctCount = 0;
+
+        for (int i = 0; i < 5; i++) {
+            if (currentGuess.charAt(i) == targetPassword.charAt(i)) {
+                gridLabels[currentRow][i].getStyleClass().add("wordle-green");
+                targetUsed[i] = true;
+                guessUsed[i] = true;
+                correctCount++;
+            }
+        }
+
+        for (int i = 0; i < 5; i++) {
+            if (guessUsed[i]) continue;
+            boolean isYellow = false;
+
+            for (int j = 0; j < 5; j++) {
+                if (targetUsed[j]) continue;
+
+                if (currentGuess.charAt(i) == targetPassword.charAt(j)) {
+                    gridLabels[currentRow][i].getStyleClass().add("wordle-yellow");
+                    targetUsed[j] = true;
+                    isYellow = true;
+                    break;
+                }
+            }
+
+            if (!isYellow) {
+                gridLabels[currentRow][i].getStyleClass().add("wordle-gray");
+            }
+        }
+
+
+        if (correctCount == 5) {
+            result = MiniGameResult.SUCCESS;
+            statusLabel.setText("Congratulations! You've guessed the number!");
+        } else {
+            currentRow++;
+            if (currentRow >= MAX_ATTEMPTS) {
+                result = MiniGameResult.FAILURE;
+                statusLabel.setText("Game Over! The number was: " + targetPassword);
+            } else {
+                statusLabel.setText("Attempt " + (currentRow + 1) + " of " + MAX_ATTEMPTS);
+                currentGuess = "";
             }
         }
     }
