@@ -498,6 +498,16 @@
     -fx-effect: dropshadow(gaussian, rgba(194, 180, 154, 0.25), 6, 0.3, 0, 0);
 }
 
+.memory-heart-active {
+    -fx-text-fill: #C4442A;
+    -fx-effect: dropshadow(gaussian, rgba(196, 68, 42, 0.65), 10, 0.5, 0, 0);
+}
+
+.memory-heart-lost {
+    -fx-text-fill: #2E2620;
+    -fx-opacity: 0.3;
+}
+
 /* ----------------------------------------------------------
    NUMBERLE GAME — wordle-style grid cells
    ---------------------------------------------------------- */
