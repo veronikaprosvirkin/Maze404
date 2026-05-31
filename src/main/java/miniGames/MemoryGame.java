@@ -125,6 +125,7 @@ public class MemoryGame extends MiniGame {
     private Scene getScene(StackPane wrapper, GridPane grid, Label instructionLabel) {
         Button startButton = new Button("Start");
         startButton.setId("start-button");
+        startButton.setStyle("-fx-pref-width: 290px; -fx-max-width: 290px;");
 
         PauseTransition initialPause = new PauseTransition(Duration.seconds(4));
         initialPause.setOnFinished(event -> {
@@ -166,7 +167,8 @@ public class MemoryGame extends MiniGame {
     }
 
     private void updateLivesUI() {
-        if (livesContainer == null) return;
+        if (livesContainer == null)
+            return;
         livesContainer.getChildren().clear();
         int livesLeft = mistakesLimit - mistakes;
         for (int i = 0; i < mistakesLimit; i++) {
