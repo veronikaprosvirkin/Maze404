@@ -24,6 +24,7 @@ import java.util.Map;
  */
 public class SpriteSheet {
     private static final int TILE_SIZE = 32;
+    private static final int WALL_VARIANT_COUNT = 4;
     private static final Map<CellType, int[]> SPRITE_POSITIONS = new EnumMap<>(CellType.class);
 
     static {
@@ -39,6 +40,7 @@ public class SpriteSheet {
     private final Image sheet;
     private final boolean sheetAvailable;
     private final Map<Difficulty, Map<CellType, Image>> fallbackCache = new EnumMap<>(Difficulty.class);
+    private final Map<Difficulty, Image[]> wallVariantCache = new EnumMap<>(Difficulty.class);
     private final Difficulty difficulty;
 
     public SpriteSheet() {
@@ -90,13 +92,50 @@ public class SpriteSheet {
         return getSprite(position[0], position[1]);
     }
 
+    public Image getSprite(CellType type, int row, int col) {
+        int[] position = SPRITE_POSITIONS.getOrDefault(type, SPRITE_POSITIONS.get(CellType.EMPTY));
+        if (!sheetAvailable) {
+            return getFallback(type, row, col);
+        }
+        return getSprite(position[0], position[1]);
+    }
+
     private Image getFallback(CellType type) {
         return fallbackCache
                 .computeIfAbsent(this.difficulty, d -> new EnumMap<>(CellType.class))
                 .computeIfAbsent(type, t -> createFallback(t, this.difficulty));
     }
 
+    private Image getFallback(CellType type, int row, int col) {
+        if (type == CellType.WALL) {
+            Image[] variants = wallVariantCache.computeIfAbsent(this.difficulty, this::createWallVariants);
+            int variantIndex = variantIndexForCell(row, col);
+            return variants[variantIndex];
+        }
+        return getFallback(type);
+    }
+
+    private Image[] createWallVariants(Difficulty diff) {
+        Image[] variants = new Image[WALL_VARIANT_COUNT];
+        for (int i = 0; i < WALL_VARIANT_COUNT; i++) {
+            variants[i] = createFallback(CellType.WALL, diff, i);
+        }
+        return variants;
+    }
+
+    private int variantIndexForCell(int row, int col) {
+        if (row < 0 || col < 0) {
+            return 0;
+        }
+        int seed = (row * 73856093) ^ (col * 19349663);
+        return Math.floorMod(seed, WALL_VARIANT_COUNT);
+    }
+
     private Image createFallback(CellType type, Difficulty diff) {
+        return createFallback(type, diff, 0);
+    }
+
+    private Image createFallback(CellType type, Difficulty diff, int variantIndex) {
         if (diff == null) {
             diff = Difficulty.EASY;
         }
@@ -211,11 +250,17 @@ public class SpriteSheet {
                     // Some cracks
                     boolean isCrack = false;
                     if (diff == Difficulty.HARD) {
-                        isCrack = (y == x - 4 && x > 8 && x < 24) || (y == TILE_SIZE - x + 2 && x > 12 && x < 20);
+                        isCrack = (variantIndex == 0 && y == x - 4 && x > 8 && x < 24)
+                                || (variantIndex == 1 && y == TILE_SIZE - x + 2 && x > 12 && x < 20)
+                                || (variantIndex == 2 && y == x + 6 && x > 6 && x < 22);
                     } else if (diff == Difficulty.MEDIUM) {
-                        isCrack = (y == 2 * x - 10 && x > 5 && x < 15) || (y == 6 && x > 2 && x < 18);
+                        isCrack = (variantIndex == 0 && y == 2 * x - 10 && x > 5 && x < 15)
+                                || (variantIndex == 1 && y == 6 && x > 2 && x < 18)
+                                || (variantIndex == 2 && y == TILE_SIZE - x - 6 && x > 8 && x < 24);
                     } else {
-                        isCrack = (y == TILE_SIZE - x - 4 && x > 10 && x < 26);
+                        isCrack = (variantIndex == 0 && y == TILE_SIZE - x - 14 && x > 10 && x < 26)
+                                || (variantIndex == 1 && y == x - 8 && x > 12 && x < 28)
+                                || (variantIndex == 2 && y == TILE_SIZE - x + 4 && x > 6 && x < 22);
                     }
 
                     if (isCrack) {
@@ -223,7 +268,7 @@ public class SpriteSheet {
                     } else if (isMasonryLine) {
                         writer.setColor(x, y, masonryLine);
                     } else {
-                        double noise = (Math.sin(x * 0.5) * Math.cos(y * 0.5) + 1.0) * 0.05;
+                        double noise = (Math.sin(x * 0.5) * Math.cos(y * 0.5) + 1.0) * 0.2;
                         writer.setColor(x, y, color.deriveColor(0, 1, 1 - noise, 1));
                     }
                 }
