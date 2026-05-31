@@ -20,7 +20,7 @@ public class GridRenderer {
             for (int col = 0; col < grid.getWidth(); col++) {
                 Cell cell = grid.getCell(row, col);
                 CellType type = cell.getType();
-                Image tile = spriteSheet.getSprite(type);
+                Image tile = spriteSheet.getSprite(type, row, col);
                 gc.drawImage(tile, col * TILE_SIZE, row * TILE_SIZE);
 
                 if (type != CellType.WALL) {
