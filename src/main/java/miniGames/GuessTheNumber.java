@@ -99,21 +99,21 @@ public class GuessTheNumber extends MiniGame {
 
                 if (guess < targetNumber) {
                     dirIcon.setImage(imgUp);
-                    dirIconBox.setStyle("-fx-effect: dropshadow(gaussian, #4ADE80, 15, 0.5, 0, 0);");
+                    dirIconBox.setStyle("-fx-effect: dropshadow(gaussian, #9AB8C8, 15, 0.5, 0, 0);");
                 } else if (guess > targetNumber) {
                     dirIcon.setImage(imgDown);
-                    dirIconBox.setStyle("-fx-effect: dropshadow(gaussian, #E05252, 15, 0.5, 0, 0);");
+                    dirIconBox.setStyle("-fx-effect: dropshadow(gaussian, #B03878, 15, 0.5, 0, 0);");
                 } else {
                     dirIcon.setImage(imgSuccess);
-                    dirIconBox.setStyle("-fx-effect: dropshadow(gaussian, #4ADE80, 15, 0.5, 0, 0);");
+                    dirIconBox.setStyle("-fx-effect: dropshadow(gaussian, #9AB8C8, 15, 0.5, 0, 0);");
                 }
 
                 historyList.getItems().add(0, guess + " → " + outcome);
                 guessField.clear();
 
                 if (result == MiniGameResult.SUCCESS) {
-                    inputPanel.setStyle("-fx-border-color: #4ADE80; -fx-border-width: 2px;");
-                    resultLabel.setStyle("-fx-text-fill: #4ADE80; -fx-font-weight: bold;");
+                    inputPanel.getStyleClass().add("success");
+                    resultLabel.getStyleClass().add("success");
                 }
 
                 if (result != MiniGameResult.PENDING) {

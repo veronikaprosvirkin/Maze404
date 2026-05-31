@@ -65,12 +65,14 @@ public class ClickerMiniGame extends MiniGame {
                 }
                 clickButton.setDisable(true);
                 timerLabel.setText("You Win!");
-                timerLabel.setStyle("-fx-text-fill: #4ADE80; -fx-effect: dropshadow(gaussian, #4ADE80, 10, 0.2, 0, 0);");
+                timerLabel.getStyleClass().removeAll("danger");
+                timerLabel.getStyleClass().add("success");
             }
         });
 
         VBox root = new VBox(15, timerLabel, progressBar, startButton, clickButton);
         root.setId("game-container");
+        root.setAlignment(javafx.geometry.Pos.CENTER);
 
         javafx.scene.layout.VBox.setVgrow(clickButton, javafx.scene.layout.Priority.ALWAYS);
         clickButton.setMaxHeight(Double.MAX_VALUE);
@@ -87,7 +89,9 @@ public class ClickerMiniGame extends MiniGame {
             timerLabel.setText(String.format("Time Left: %.1fs", timeLeft));
 
             if (timeLeft <= initialTime * 0.3 && result == MiniGameResult.PENDING) {
-                timerLabel.setStyle("-fx-text-fill: #E05252; -fx-effect: dropshadow(gaussian, #E05252, 10, 0.2, 0, 0);");
+                if (!timerLabel.getStyleClass().contains("danger")) {
+                    timerLabel.getStyleClass().add("danger");
+                }
             }
 
             if (timeLeft <= 0 && result == MiniGameResult.PENDING) {
