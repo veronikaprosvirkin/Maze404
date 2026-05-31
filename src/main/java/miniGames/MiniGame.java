@@ -17,7 +17,7 @@ public abstract class MiniGame {
     protected MiniGameResult result = MiniGameResult.PENDING;
 
     protected void setupWindow(Stage stage, Scene scene, String title) {
-        String cssFile = switch (TestLauncher.difficulty) {
+        String cssFile = switch (Difficulty.current) {
             case MEDIUM -> "/styles/minigames-stone.css";
             case HARD -> "/styles/minigames-inferno.css";
             default -> "/styles/minigames-cryo.css";
@@ -42,7 +42,7 @@ public abstract class MiniGame {
     protected void showEndOverlay(StackPane wrapper, boolean isWin) {
         String accentColor;
         String glowColor;
-        switch (TestLauncher.difficulty) {
+        switch (Difficulty.current) {
             case MEDIUM:
                 accentColor = isWin ? "#5A8248" : "#C4442A";
                 glowColor = isWin ? "rgba(90,130,72,0.6)" : "rgba(196,68,42,0.6)";
