@@ -517,10 +517,10 @@
     -fx-font-size: 16px;
     -fx-font-weight: bold;
     -fx-alignment: CENTER;
-    -fx-min-width: 44;
-    -fx-min-height: 44;
-    -fx-pref-width: 48;
-    -fx-pref-height: 48;
+    -fx-min-width: 34;
+    -fx-min-height: 34;
+    -fx-pref-width: 36;
+    -fx-pref-height: 36;
 }
 
 /* Correct position — moss-green accent */
@@ -545,6 +545,23 @@
     -fx-border-color: #231D17;
     -fx-text-fill: #5A4E3C;
     -fx-effect: none;
+}
+
+.numberle-key {
+    -fx-background-color: #1A1512;
+    -fx-border-color: #2E2620;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-text-fill: #C2B49A;
+}
+.numberle-key:hover {
+    -fx-background-color: #231D17;
+    -fx-border-color: #5A4E3C;
+    -fx-text-fill: #D9C9A8;
+}
+.numberle-key:pressed {
+    -fx-background-color: #110F0C;
 }
 
 /* ----------------------------------------------------------

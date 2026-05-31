@@ -2,6 +2,7 @@ package miniGames;
 
 import enums.MiniGameResult;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
@@ -18,6 +19,13 @@ public class Numberle extends MiniGame {
     Label[][] gridLabels;
     Label statusLabel;
     private StackPane wrapper;
+    private final int[] digitStates = new int[10];
+    private Button[] digitButtons;
+
+    public Numberle() {
+        this.width = 450;
+        this.height = 540;
+    }
 
     public static Numberle startNewGame() {
         Numberle game = new Numberle();
@@ -27,7 +35,8 @@ public class Numberle extends MiniGame {
 
     private void showWindow() {
         Stage stage = new Stage();
-        Label instructionLabel = new Label("Numberle: Guess the 5-digit number! You have " + MAX_ATTEMPTS + " attempts.");
+        Label instructionLabel = new Label(
+                "Numberle: Guess the 5-digit number! You have " + MAX_ATTEMPTS + " attempts.");
         instructionLabel.setWrapText(true);
         instructionLabel.setAlignment(javafx.geometry.Pos.CENTER);
         instructionLabel.setId("instruction-label");
@@ -39,15 +48,81 @@ public class Numberle extends MiniGame {
         Random random = new Random();
         targetPassword = String.format("%05d", random.nextInt(100000));
 
+        for (int i = 0; i < 10; i++) {
+            digitStates[i] = 0;
+        }
+
         GridPane grid = createGrid();
-        VBox root = new VBox(20, instructionLabel, statusLabel, grid);
+
+        // ── Legend Panel ──
+        javafx.scene.layout.HBox legendBox = new javafx.scene.layout.HBox(8);
+        legendBox.setAlignment(javafx.geometry.Pos.CENTER);
+
+        Label itemGreen = new Label("  Correct Spot  ");
+        itemGreen.getStyleClass().addAll("wordle-green");
+        itemGreen.setStyle(
+                "-fx-font-family: 'IBM Plex Mono'; -fx-font-size: 9px; -fx-padding: 3 6 3 6; -fx-background-radius: 4; -fx-border-radius: 4;");
+
+        Label itemYellow = new Label("  Wrong Spot  ");
+        itemYellow.getStyleClass().addAll("wordle-yellow");
+        itemYellow.setStyle(
+                "-fx-font-family: 'IBM Plex Mono'; -fx-font-size: 9px; -fx-padding: 3 6 3 6; -fx-background-radius: 4; -fx-border-radius: 4;");
+
+        Label itemGray = new Label("  Incorrect  ");
+        itemGray.getStyleClass().addAll("wordle-gray");
+        itemGray.setStyle(
+                "-fx-font-family: 'IBM Plex Mono'; -fx-font-size: 9px; -fx-padding: 3 6 3 6; -fx-background-radius: 4; -fx-border-radius: 4;");
+
+        legendBox.getChildren().addAll(itemGreen, itemYellow, itemGray);
+
+        // ── Keypad Panel ──
+        GridPane keypad = new GridPane();
+        keypad.setHgap(4);
+        keypad.setVgap(4);
+        keypad.setAlignment(javafx.geometry.Pos.CENTER);
+
+        digitButtons = new Button[10];
+        for (int i = 0; i < 10; i++) {
+            final int num = i;
+            Button btn = new Button(String.valueOf(i));
+            btn.setMinSize(28, 30);
+            btn.setStyle(
+                    "-fx-font-family: 'IBM Plex Mono'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 4; -fx-border-radius: 4;");
+            btn.getStyleClass().add("numberle-key");
+            btn.setOnAction(e -> handleInput(String.valueOf(num)));
+            digitButtons[i] = btn;
+            keypad.add(btn, i, 0);
+        }
+
+        Button delBtn = new Button("DELETE");
+        delBtn.setMinSize(70, 30);
+        delBtn.setStyle(
+                "-fx-font-family: 'IBM Plex Mono'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 4; -fx-border-radius: 4;");
+        delBtn.getStyleClass().add("numberle-key");
+        delBtn.setOnAction(e -> handleInput("Del"));
+
+        Button entBtn = new Button("ENTER");
+        entBtn.setMinSize(70, 30);
+        entBtn.setStyle(
+                "-fx-font-family: 'IBM Plex Mono'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 4; -fx-border-radius: 4;");
+        entBtn.getStyleClass().add("numberle-key");
+        entBtn.setOnAction(e -> handleInput("Ent"));
+
+        javafx.scene.layout.HBox actionKeys = new javafx.scene.layout.HBox(8, delBtn, entBtn);
+        actionKeys.setAlignment(javafx.geometry.Pos.CENTER);
+
+        VBox keypadContainer = new VBox(6, keypad, actionKeys);
+        keypadContainer.setAlignment(javafx.geometry.Pos.CENTER);
+
+        VBox root = new VBox(10, instructionLabel, statusLabel, grid, legendBox, keypadContainer);
         root.setAlignment(javafx.geometry.Pos.CENTER);
         root.setId("game-container");
 
         wrapper = new StackPane(root);
         Scene scene = new Scene(wrapper, width, height);
         scene.setOnKeyPressed(e -> {
-            if (result != MiniGameResult.PENDING) return;
+            if (result != MiniGameResult.PENDING)
+                return;
 
             if (e.getCode() == javafx.scene.input.KeyCode.BACK_SPACE) {
                 handleInput("Del");
@@ -61,18 +136,18 @@ public class Numberle extends MiniGame {
         setupWindow(stage, scene, "Numberle");
     }
 
-    private GridPane createGrid(){
+    private GridPane createGrid() {
         GridPane grid = new GridPane();
         grid.setId("numberle-grid");
-        grid.setHgap(10);
-        grid.setVgap(10);
+        grid.setHgap(6);
+        grid.setVgap(6);
         grid.setAlignment(javafx.geometry.Pos.CENTER);
 
         gridLabels = new Label[MAX_ATTEMPTS][5];
         for (int row = 0; row < MAX_ATTEMPTS; row++) {
             for (int col = 0; col < 5; col++) {
                 Label cell = new Label("");
-                cell.setMinSize(40, 40);
+                cell.setMinSize(34, 34);
                 cell.setAlignment(javafx.geometry.Pos.CENTER);
                 cell.setId("numberle-cell");
                 gridLabels[row][col] = cell;
@@ -116,34 +191,48 @@ public class Numberle extends MiniGame {
         int correctCount = 0;
 
         for (int i = 0; i < 5; i++) {
+            char gChar = currentGuess.charAt(i);
+            int digit = gChar - '0';
             if (currentGuess.charAt(i) == targetPassword.charAt(i)) {
                 gridLabels[currentRow][i].getStyleClass().add("wordle-green");
                 targetUsed[i] = true;
                 guessUsed[i] = true;
                 correctCount++;
+                digitStates[digit] = 3;
             }
         }
 
         for (int i = 0; i < 5; i++) {
-            if (guessUsed[i]) continue;
+            if (guessUsed[i])
+                continue;
+            char gChar = currentGuess.charAt(i);
+            int digit = gChar - '0';
             boolean isYellow = false;
 
             for (int j = 0; j < 5; j++) {
-                if (targetUsed[j]) continue;
+                if (targetUsed[j])
+                    continue;
 
                 if (currentGuess.charAt(i) == targetPassword.charAt(j)) {
                     gridLabels[currentRow][i].getStyleClass().add("wordle-yellow");
                     targetUsed[j] = true;
                     isYellow = true;
+                    if (digitStates[digit] < 3) {
+                        digitStates[digit] = 2;
+                    }
                     break;
                 }
             }
 
             if (!isYellow) {
                 gridLabels[currentRow][i].getStyleClass().add("wordle-gray");
+                if (digitStates[digit] < 2) {
+                    digitStates[digit] = 1;
+                }
             }
         }
 
+        updateKeypadStyles();
 
         if (correctCount == 5) {
             result = MiniGameResult.SUCCESS;
@@ -162,4 +251,18 @@ public class Numberle extends MiniGame {
         }
     }
 
+    private void updateKeypadStyles() {
+        for (int i = 0; i < 10; i++) {
+            int state = digitStates[i];
+            Button btn = digitButtons[i];
+            btn.getStyleClass().removeAll("wordle-green", "wordle-yellow", "wordle-gray");
+            if (state == 3) {
+                btn.getStyleClass().add("wordle-green");
+            } else if (state == 2) {
+                btn.getStyleClass().add("wordle-yellow");
+            } else if (state == 1) {
+                btn.getStyleClass().add("wordle-gray");
+            }
+        }
+    }
 }

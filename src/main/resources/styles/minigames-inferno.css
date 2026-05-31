@@ -524,10 +524,10 @@
     -fx-font-size: 16px;
     -fx-font-weight: bold;
     -fx-alignment: CENTER;
-    -fx-min-width: 44;
-    -fx-min-height: 44;
-    -fx-pref-width: 48;
-    -fx-pref-height: 48;
+    -fx-min-width: 34;
+    -fx-min-height: 34;
+    -fx-pref-width: 36;
+    -fx-pref-height: 36;
 }
 
 /* Correct position — gold accent (exit safe) */
@@ -552,6 +552,23 @@
     -fx-border-color: #281018;
     -fx-text-fill: #6A3040;
     -fx-effect: none;
+}
+
+.numberle-key {
+    -fx-background-color: #1C0A10;
+    -fx-border-color: #381520;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-text-fill: #B07A88;
+}
+.numberle-key:hover {
+    -fx-background-color: #281018;
+    -fx-border-color: #6A3040;
+    -fx-text-fill: #D4A8B0;
+}
+.numberle-key:pressed {
+    -fx-background-color: #0E0608;
 }
 
 /* ----------------------------------------------------------
