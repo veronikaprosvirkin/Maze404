@@ -1,0 +1,661 @@
+/* ============================================================
+   Maze404 — Minigames Inferno Theme (Level III — HARD)
+   Target window: 450 × 450 px (MiniGame base)
+   JavaFX 21 CSS
+   ============================================================ */
+
+/* ----------------------------------------------------------
+   DESIGN TOKENS
+   ---------------------------------------------------------- */
+/* Palette (Level III — Inferno)
+   --void       : #080406   (app background)
+   --deep       : #0E0608   (panel background)
+   --floor      : #150A0C   (raised surface)
+   --wall       : #281018   (primary border)
+   --wall2      : #381520   (secondary border)
+   --mortar     : #1C0A10   (dividers, pressed state)
+   --stone      : #502030   (tertiary text)
+   --flint      : #6A3040   (secondary text)
+   --slate      : #8A4A58   (primary HUD text)
+   --mist       : #B07A88   (active text)
+   --frost      : #D4A8B0   (headers)
+   --hit        : #CC2020   (danger)
+   --hit2       : #FF3A2A   (danger bright)
+   --trap       : #8A1010   (trap)
+   --enemy      : #9A1828   (enemy base)
+   --enemy2     : #C82030   (enemy glow)
+   --crystal    : #7A2840   (crystal base)
+   --crystal2   : #C04060   (crystal medium)
+   --crystal3   : #E06080   (crystal bright)
+   --exit       : #382818   (safe — dull gold)
+   --exit-hl    : #6A5028   (safe highlight — gold)
+   --shield     : #5A1820   (shield dark)
+   --shield2    : #8A2A38   (shield light)
+   --scan       : #C89080   (scan effect)
+   --ember      : #C84010   (lava torch)
+   --ember2     : #E86020   (medium flame)
+   --ember3     : #F09040   (flame tip)
+*/
+
+/* ----------------------------------------------------------
+   ROOT CONTAINER — fills the entire stage
+   ---------------------------------------------------------- */
+#game-container {
+    -fx-background-color:
+        linear-gradient(from 0% 0% to 100% 100%, rgba(106, 48, 64, 0.08), transparent),
+        #080406;
+    -fx-padding: 18 20 18 20;
+    -fx-spacing: 14;
+    -fx-alignment: CENTER;
+    -fx-pref-width: 450;
+    -fx-min-width: 450;
+}
+
+/* ----------------------------------------------------------
+   SUB-PANELS (input-panel, history-panel)
+   ---------------------------------------------------------- */
+#input-panel {
+    -fx-background-color: #0E0608;
+    -fx-background-radius: 6;
+    -fx-border-color: #381520;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-padding: 12 14 12 14;
+    -fx-spacing: 8;
+    -fx-alignment: CENTER_LEFT;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
+}
+
+#input-panel.success {
+    -fx-border-color: #6A5028;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(106, 80, 40, 0.35), 12, 0.4, 0, 0);
+}
+
+#history-panel {
+    -fx-background-color: #0E0608;
+    -fx-background-radius: 6;
+    -fx-border-color: #381520;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-padding: 10 14 10 14;
+    -fx-spacing: 6;
+    -fx-alignment: TOP_LEFT;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
+}
+
+/* ----------------------------------------------------------
+   LABELS — INSTRUCTION / HEADING
+   ---------------------------------------------------------- */
+#instruction-label {
+    -fx-text-fill: #D4A8B0;
+    -fx-font-family: "IM Fell English", serif;
+    -fx-font-size: 12px;
+    -fx-font-weight: normal;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
+    -fx-wrap-text: true;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-effect: dropshadow(gaussian, rgba(176, 122, 136, 0.25), 8, 0.4, 0, 0);
+}
+
+/* ----------------------------------------------------------
+   TIMER LABEL — large countdown / status display
+   ---------------------------------------------------------- */
+#timer-label {
+    -fx-text-fill: #B07A88;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 16px;
+    -fx-font-weight: normal;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
+    -fx-padding: 6 0 6 0;
+    -fx-effect: dropshadow(gaussian, rgba(176, 122, 136, 0.35), 12, 0.5, 0, 0);
+}
+
+#timer-label.danger {
+    -fx-text-fill: #FF3A2A;
+    -fx-effect: dropshadow(gaussian, #CC2020, 10, 0.2, 0, 0);
+}
+
+#timer-label.success {
+    -fx-text-fill: #6A5028;
+    -fx-effect: dropshadow(gaussian, #6A5028, 10, 0.2, 0, 0);
+}
+
+/* ----------------------------------------------------------
+   MOVES LABEL — secondary HUD stat (PowerGrid)
+   ---------------------------------------------------------- */
+#moves-label {
+    -fx-text-fill: #8A4A58;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 13px;
+    -fx-font-weight: normal;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
+    -fx-padding: 2 0 2 0;
+}
+
+/* ----------------------------------------------------------
+   RESULT LABEL — feedback after a guess
+   ---------------------------------------------------------- */
+#result-label {
+    -fx-text-fill: #6A3040;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 11px;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
+    -fx-wrap-text: true;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-padding: 2 0 0 0;
+}
+
+#result-label.success {
+    -fx-text-fill: #6A5028;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(106, 80, 40, 0.3), 6, 0.3, 0, 0);
+}
+
+#result-label.failure {
+    -fx-text-fill: #CC2020;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(204, 32, 32, 0.3), 6, 0.3, 0, 0);
+}
+
+/* ----------------------------------------------------------
+   HISTORY LABEL — section heading
+   ---------------------------------------------------------- */
+#history-label {
+    -fx-text-fill: #8A4A58;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 10px;
+    -fx-font-weight: normal;
+    -fx-pref-width: 332;
+    -fx-max-width: 332;
+    -fx-padding: 0 0 2 0;
+}
+
+/* ----------------------------------------------------------
+   TEXT INPUT — guess field
+   ---------------------------------------------------------- */
+#input-row {
+    -fx-pref-width: 342;
+    -fx-max-width: 342;
+}
+
+#guess-field {
+    -fx-background-color: #150A0C;
+    -fx-border-color: #381520;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #B07A88;
+    -fx-prompt-text-fill: #6A3040;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 13px;
+    -fx-padding: 6 10 6 10;
+    -fx-pref-height: 32;
+}
+
+#guess-field:focused {
+    -fx-border-color: #C82030;
+    -fx-background-color: #1C0A10;
+    -fx-effect: dropshadow(gaussian, rgba(200, 32, 48, 0.35), 10, 0.3, 0, 0);
+}
+
+#dir-icon-box {
+    -fx-background-color: #150A0C;
+    -fx-border-color: #381520;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-pref-width: 32;
+    -fx-pref-height: 32;
+    -fx-min-width: 32;
+    -fx-min-height: 32;
+    -fx-max-width: 32;
+    -fx-max-height: 32;
+    -fx-alignment: CENTER;
+}
+
+#up-arrow {
+    -fx-text-fill: #6A5028;
+    -fx-effect: dropshadow(gaussian, #6A5028, 5, 0.6, 0, 0);
+}
+
+#down-arrow {
+    -fx-text-fill: #CC2020;
+    -fx-effect: dropshadow(gaussian, #CC2020, 12, 0.6, 0, 0);
+}
+
+/* ----------------------------------------------------------
+   PRIMARY ACTION BUTTONS
+   ---------------------------------------------------------- */
+#click-button,
+#guess-button,
+#start-button {
+    -fx-background-color: #0E0608;
+    -fx-border-color: #281018;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #D4A8B0;
+    -fx-font-family: "IM Fell English", serif;
+    -fx-font-size: 12px;
+    -fx-font-weight: normal;
+    -fx-cursor: hand;
+    -fx-padding: 8 0 8 0;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
+    -fx-pref-height: 34;
+    -fx-effect: dropshadow(gaussian, rgba(106, 48, 64, 0.35), 8, 0.3, 0, 2);
+}
+
+#click-button:hover,
+#guess-button:hover,
+#start-button:hover {
+    -fx-background-color: #1C0A10;
+    -fx-border-color: #6A3040;
+    -fx-text-fill: #D4A8B0;
+    -fx-effect: dropshadow(gaussian, rgba(200, 32, 48, 0.45), 12, 0.45, 0, 0);
+}
+
+#click-button:pressed,
+#guess-button:pressed,
+#start-button:pressed {
+    -fx-background-color: #1C0A10;
+    -fx-border-color: #6A3040;
+    -fx-effect: dropshadow(gaussian, rgba(106, 48, 64, 0.35), 4, 0.2, 0, 1);
+}
+
+#click-button:disabled,
+#guess-button:disabled,
+#start-button:disabled {
+    -fx-background-color: #0E0608;
+    -fx-border-color: #381520;
+    -fx-text-fill: #502030;
+    -fx-effect: none;
+    -fx-cursor: default;
+}
+
+/* ----------------------------------------------------------
+   PROGRESS BAR — clicker mini-game
+   ---------------------------------------------------------- */
+#progress-bar {
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
+    -fx-pref-height: 12;
+    -fx-min-height: 12;
+    -fx-background-color: transparent;
+    -fx-accent: #C84010;
+}
+
+#progress-bar .track {
+    -fx-background-color: #1C0A10;
+    -fx-background-radius: 6;
+    -fx-border-color: #381520;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+}
+
+#progress-bar .bar {
+    -fx-background-color: linear-gradient(to right, #C84010, #F09040);
+    -fx-background-radius: 6;
+    -fx-effect: dropshadow(gaussian, rgba(200, 64, 16, 0.45), 6, 0.4, 0, 0);
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+/* ----------------------------------------------------------
+   HISTORY LIST — GuessTheNumber
+   ---------------------------------------------------------- */
+#history-list {
+    -fx-background-color: #0E0608;
+    -fx-control-inner-background: #0E0608;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+    -fx-border-color: #281018;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-pref-width: 342;
+    -fx-max-width: 342;
+    -fx-pref-height: 90;
+    -fx-min-height: 60;
+    -fx-padding: 2 0 2 0;
+}
+
+#history-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #6A3040;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 10px;
+    -fx-padding: 3 8 3 8;
+    -fx-border-color: transparent;
+}
+
+.history-text {
+    -fx-text-fill: #6A3040;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 10px;
+}
+
+#history-list .list-cell:odd {
+    -fx-background-color: rgba(21, 10, 12, 0.6);
+}
+
+#history-list .list-cell:filled:hover {
+    -fx-background-color: rgba(200, 32, 48, 0.15);
+    -fx-text-fill: #B07A88;
+}
+
+#history-list .list-cell:filled:selected {
+    -fx-background-color: rgba(200, 32, 48, 0.28);
+    -fx-text-fill: #D4A8B0;
+}
+
+#history-list .list-cell:empty {
+    -fx-background-color: transparent;
+}
+
+#history-list .scroll-bar:vertical {
+    -fx-background-color: #0E0608;
+    -fx-pref-width: 6;
+}
+
+#history-list .scroll-bar:vertical .thumb {
+    -fx-background-color: #381520;
+    -fx-background-radius: 3;
+}
+
+#history-list .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #C82030;
+}
+
+#history-list .scroll-bar:vertical .track,
+#history-list .scroll-bar:vertical .track-background {
+    -fx-background-color: transparent;
+}
+
+#history-list .scroll-bar .increment-button,
+#history-list .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-pref-height: 0;
+    -fx-min-height: 0;
+}
+
+/* ----------------------------------------------------------
+   ECHO GAME — 2×2 coloured flash buttons
+   ---------------------------------------------------------- */
+#echo-grid {
+    -fx-alignment: CENTER;
+    -fx-padding: 10 0 10 0;
+}
+
+.echo-button {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-width: 2;
+    -fx-cursor: hand;
+    -fx-min-width: 100;
+    -fx-min-height: 100;
+    -fx-pref-width: 100;
+    -fx-pref-height: 100;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 8, 0.3, 0, 2);
+}
+
+.echo-button:hover {
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.15), 12, 0.4, 0, 0);
+}
+
+.echo-button:disabled {
+    -fx-cursor: default;
+    -fx-effect: none;
+}
+
+/* Quadrant 0 — ember flame */
+.echo-button-0 {
+    -fx-background-color: #2E0808;
+    -fx-border-color: #C84010;
+}
+
+.echo-button-0:hover {
+    -fx-background-color: #3E1010;
+    -fx-border-color: #F09040;
+}
+
+/* Quadrant 1 — blood enemy */
+.echo-button-1 {
+    -fx-background-color: #280810;
+    -fx-border-color: #9A1828;
+}
+
+.echo-button-1:hover {
+    -fx-background-color: #381018;
+    -fx-border-color: #C82030;
+}
+
+/* Quadrant 2 — crimson crystal */
+.echo-button-2 {
+    -fx-background-color: #280818;
+    -fx-border-color: #7A2840;
+}
+
+.echo-button-2:hover {
+    -fx-background-color: #381020;
+    -fx-border-color: #C04060;
+}
+
+/* Quadrant 3 — gold exit */
+.echo-button-3 {
+    -fx-background-color: #1C1408;
+    -fx-border-color: #382818;
+}
+
+.echo-button-3:hover {
+    -fx-background-color: #2A2010;
+    -fx-border-color: #6A5028;
+}
+
+/* ----------------------------------------------------------
+   MEMORY GAME — card grid
+   ---------------------------------------------------------- */
+#memory-grid {
+    -fx-alignment: CENTER;
+    -fx-padding: 10 0 10 0;
+}
+
+#memory-card {
+    -fx-background-color: #150A0C;
+    -fx-border-color: #381520;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #B07A88;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 22px;
+    -fx-alignment: CENTER;
+    -fx-min-width: 60;
+    -fx-min-height: 60;
+    -fx-pref-width: 64;
+    -fx-pref-height: 64;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(56, 21, 32, 0.6), 6, 0.3, 0, 2);
+}
+
+#memory-card:hover {
+    -fx-background-color: #1C0A10;
+    -fx-border-color: #C82030;
+    -fx-effect: dropshadow(gaussian, rgba(200, 32, 48, 0.4), 10, 0.4, 0, 0);
+}
+
+#memory-card:disabled {
+    -fx-background-color: #0E0608;
+    -fx-border-color: #281018;
+    -fx-text-fill: #B07A88;
+    -fx-opacity: 0.75;
+    -fx-cursor: default;
+    -fx-effect: dropshadow(gaussian, rgba(176, 122, 136, 0.25), 6, 0.3, 0, 0);
+}
+
+/* ----------------------------------------------------------
+   NUMBERLE GAME — wordle-style grid cells
+   ---------------------------------------------------------- */
+#numberle-grid {
+    -fx-alignment: CENTER;
+    -fx-padding: 8 0 8 0;
+}
+
+#numberle-cell {
+    -fx-background-color: #150A0C;
+    -fx-border-color: #381520;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #B07A88;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER;
+    -fx-min-width: 44;
+    -fx-min-height: 44;
+    -fx-pref-width: 48;
+    -fx-pref-height: 48;
+}
+
+/* Correct position — gold accent (exit safe) */
+.wordle-green {
+    -fx-background-color: #1C1408;
+    -fx-border-color: #6A5028;
+    -fx-text-fill: #D4A8B0;
+    -fx-effect: dropshadow(gaussian, rgba(106, 80, 40, 0.5), 8, 0.4, 0, 0);
+}
+
+/* Right digit, wrong position — ember amber */
+.wordle-yellow {
+    -fx-background-color: #2E0808;
+    -fx-border-color: #C84010;
+    -fx-text-fill: #D4A8B0;
+    -fx-effect: dropshadow(gaussian, rgba(200, 64, 16, 0.5), 8, 0.4, 0, 0);
+}
+
+/* Wrong digit — muted crimson */
+.wordle-gray {
+    -fx-background-color: #1C0A10;
+    -fx-border-color: #281018;
+    -fx-text-fill: #6A3040;
+    -fx-effect: none;
+}
+
+/* ----------------------------------------------------------
+   POWER GRID GAME — operation buttons
+   ---------------------------------------------------------- */
+#power-grid {
+    -fx-alignment: CENTER;
+    -fx-padding: 10 0 10 0;
+}
+
+.power-button {
+    -fx-background-color: #0E0608;
+    -fx-border-color: #281018;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #B07A88;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-min-width: 110;
+    -fx-min-height: 110;
+    -fx-pref-width: 110;
+    -fx-pref-height: 110;
+    -fx-alignment: CENTER;
+    -fx-effect: dropshadow(gaussian, rgba(106, 48, 64, 0.5), 10, 0.3, 0, 2);
+}
+
+.power-button:hover {
+    -fx-background-color: #1C0A10;
+    -fx-border-color: #C82030;
+    -fx-text-fill: #D4A8B0;
+    -fx-effect: dropshadow(gaussian, rgba(200, 32, 48, 0.5), 14, 0.45, 0, 0);
+}
+
+.power-button:pressed {
+    -fx-background-color: #1C0A10;
+    -fx-border-color: #FF3A2A;
+    -fx-effect: dropshadow(gaussian, rgba(200, 32, 48, 0.3), 6, 0.2, 0, 1);
+}
+
+.power-button:disabled {
+    -fx-background-color: #0E0608;
+    -fx-border-color: #381520;
+    -fx-text-fill: #502030;
+    -fx-effect: none;
+    -fx-cursor: default;
+}
+
+/* ----------------------------------------------------------
+   END-GAME OVERLAY — win / lose full-screen announcement
+   ---------------------------------------------------------- */
+#end-overlay {
+    -fx-background-color:
+        linear-gradient(from 50% 0% to 50% 100%,
+            rgba(8, 4, 6, 0.92),
+            rgba(14, 6, 8, 0.96));
+    -fx-pref-width: 450;
+    -fx-pref-height: 450;
+}
+
+#end-overlay-box {
+    -fx-alignment: CENTER;
+    -fx-spacing: 14;
+    -fx-padding: 32 40 32 40;
+    -fx-background-color: rgba(21, 10, 12, 0.55);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(56, 21, 32, 0.7);
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 30, 0.5, 0, 0);
+}
+
+#end-icon-label {
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 52px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+}
+
+#end-title-label {
+    -fx-font-family: "IM Fell English", serif;
+    -fx-font-size: 32px;
+    -fx-font-weight: normal;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-letter-spacing: 0.12em;
+}
+
+#end-subtitle-label {
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 12px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #8A4A58;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-padding: 4 0 0 0;
+}
+
+#end-separator-label {
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 11px;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+}
