@@ -22,6 +22,7 @@ public class MemoryGame extends MiniGame {
     private int pairsFound = 0;
     private int mistakes = 0;
     private int mistakesLimit = 3;
+    private javafx.scene.layout.HBox livesContainer;
 
     public static MemoryGame startNewGame() {
         MemoryGame game = new MemoryGame();
@@ -34,8 +35,11 @@ public class MemoryGame extends MiniGame {
 
         StackPane wrapper = new StackPane();
 
-        Label instructionLabel = new Label("Memory Game: Find all pairs! Lives: " + "❤".repeat(mistakesLimit) +
-                "\nClick 'Start' to reveal cards for 4 seconds");
+        livesContainer = new javafx.scene.layout.HBox(8);
+        livesContainer.setAlignment(Pos.CENTER);
+        updateLivesUI();
+
+        Label instructionLabel = new Label("Memory Game: Find all pairs!\nClick 'Start' to reveal cards for 4 seconds");
         instructionLabel.setWrapText(true);
         instructionLabel.setAlignment(javafx.geometry.Pos.CENTER);
         instructionLabel.setId("instruction-label");
@@ -89,8 +93,7 @@ public class MemoryGame extends MiniGame {
                             }
                         } else {
                             mistakes++;
-                            int livesLeft = mistakesLimit - mistakes;
-                            instructionLabel.setText("Memory Game: Find all pairs! Lives: " + "❤".repeat(livesLeft));
+                            updateLivesUI();
 
                             if (mistakes >= mistakesLimit) {
                                 result = MiniGameResult.FAILURE;
@@ -146,7 +149,7 @@ public class MemoryGame extends MiniGame {
             initialPause.play();
         });
 
-        VBox root = new VBox(20, instructionLabel, startButton, grid);
+        VBox root = new VBox(12, livesContainer, instructionLabel, startButton, grid);
         root.setAlignment(Pos.CENTER);
         root.setId("game-container");
 
@@ -160,5 +163,21 @@ public class MemoryGame extends MiniGame {
                 ((Button) node).setDisable(true);
             }
         });
+    }
+
+    private void updateLivesUI() {
+        if (livesContainer == null) return;
+        livesContainer.getChildren().clear();
+        int livesLeft = mistakesLimit - mistakes;
+        for (int i = 0; i < mistakesLimit; i++) {
+            Label heart = new Label("❤");
+            heart.setStyle("-fx-font-size: 26px; -fx-font-weight: bold;");
+            if (i < livesLeft) {
+                heart.getStyleClass().add("memory-heart-active");
+            } else {
+                heart.getStyleClass().add("memory-heart-lost");
+            }
+            livesContainer.getChildren().add(heart);
+        }
     }
 }
