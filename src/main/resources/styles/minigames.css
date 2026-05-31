@@ -1,128 +1,174 @@
 /* ============================================================
-   Maze404 — Minigames Dark Fantasy Theme
-   Target window: 400 × 300 px (MiniGame base)
+   Maze404 — Minigames Cryo Dungeon Theme (Level I)
+   Target window: 450 × 450 px (MiniGame base)
    JavaFX 21 CSS
    ============================================================ */
 
 /* ----------------------------------------------------------
    DESIGN TOKENS
    ---------------------------------------------------------- */
-/* Palette
-   --bg-deepest   : #07080D   (void black)
-   --bg-surface   : #0E1018   (dark abyss)
-   --bg-raised    : #161823   (elevated panel)
-   --bg-card      : #1D2133   (card surface)
-   --accent-rune  : #7B5CF0   (mystic violet — primary accent)
-   --accent-glow  : #A78BFA   (violet glow)
-   --accent-gold  : #C9A84C   (ancient gold)
-   --accent-gold-g: #E8C96A   (gold highlight)
-   --danger       : #E05252   (dark crimson)
-   --success      : #4ADE80   (emerald victory)
-   --text-primary : #E8E6F0   (moonstone white)
-   --text-muted   : #7A7D99   (ash grey)
-   --border-dim   : #2A2D45   (faint rune border)
-   --border-accent: #5B4BD6   (glowing rune border)
+/* Palette (Level I — Cryo Dungeon)
+   --void       : #06080C   (app background)
+   --deep       : #0C0F14   (panel background)
+   --floor      : #111520   (raised surface)
+   --wall       : #1C2232   (primary border)
+   --wall2      : #252D40   (secondary border)
+   --mortar     : #141826   (dividers, pressed state)
+   --stone      : #2E3A52   (tertiary text)
+   --flint      : #445570   (secondary text)
+   --slate      : #6A7D9A   (primary HUD text)
+   --mist       : #A8B8CC   (active text)
+   --frost      : #D2DCE8   (headers)
+   --hit        : #8A2860   (danger)
+   --hit2       : #B03878   (danger bright)
+   --scan       : #9AB8C8   (accent)
+   --crystal2   : #4A88B0   (accent deep)
+   --crystal3   : #7AB4D0   (accent bright)
+   --exit       : #2A4A50   (safe)
+   --exit-hl    : #3A6A72   (safe highlight)
 */
 
 /* ----------------------------------------------------------
    ROOT CONTAINER — fills the entire stage
    ---------------------------------------------------------- */
 #game-container {
-    -fx-background-color: #07080D;
+    -fx-background-color:
+        linear-gradient(from 0% 0% to 100% 100%, rgba(58, 74, 96, 0.08), transparent),
+        #06080C;
     -fx-padding: 18 20 18 20;
     -fx-spacing: 14;
     -fx-alignment: CENTER;
-    -fx-pref-width: 400;
-    -fx-min-width: 400;
-    /* Height fills the stage automatically */
-
-    /* Subtle runic-grid texture via layered gradients */
-    -fx-background-color:
-        linear-gradient(from 0% 0% to 100% 100%, rgba(123, 92, 240, 0.04), transparent),
-        #07080D;
+    -fx-pref-width: 450;
+    -fx-min-width: 450;
 }
 
 /* ----------------------------------------------------------
    SUB-PANELS (input-panel, history-panel)
    ---------------------------------------------------------- */
 #input-panel {
-    -fx-background-color: #0E1018;
-    -fx-background-radius: 8;
-    -fx-border-color: #2A2D45;
+    -fx-background-color: #0C0F14;
+    -fx-background-radius: 6;
+    -fx-border-color: #252D40;
     -fx-border-width: 1;
-    -fx-border-radius: 8;
+    -fx-border-radius: 6;
     -fx-padding: 12 14 12 14;
     -fx-spacing: 8;
     -fx-alignment: CENTER_LEFT;
-    -fx-pref-width: 360;
-    -fx-max-width: 360;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
+}
+
+#input-panel.success {
+    -fx-border-color: #9AB8C8;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(154, 184, 200, 0.35), 12, 0.4, 0, 0);
 }
 
 #history-panel {
-    -fx-background-color: #0E1018;
-    -fx-background-radius: 8;
-    -fx-border-color: #2A2D45;
+    -fx-background-color: #0C0F14;
+    -fx-background-radius: 6;
+    -fx-border-color: #252D40;
     -fx-border-width: 1;
-    -fx-border-radius: 8;
+    -fx-border-radius: 6;
     -fx-padding: 10 14 10 14;
     -fx-spacing: 6;
     -fx-alignment: TOP_LEFT;
-    -fx-pref-width: 360;
-    -fx-max-width: 360;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
 }
 
 /* ----------------------------------------------------------
    LABELS — INSTRUCTION / HEADING
    ---------------------------------------------------------- */
 #instruction-label {
-    -fx-text-fill: #C9A84C;
-    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-text-fill: #D2DCE8;
+    -fx-font-family: "IM Fell English", serif;
     -fx-font-size: 12px;
-    -fx-font-weight: bold;
-    -fx-letter-spacing: 0.08em;
-    /* JavaFX 21 doesn't support letter-spacing; use label padding trick */
-    -fx-pref-width: 332;
-    -fx-max-width: 332;
+    -fx-font-weight: normal;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
     -fx-wrap-text: true;
-    -fx-effect: dropshadow(gaussian, rgba(201, 168, 76, 0.35), 8, 0.4, 0, 0);
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-effect: dropshadow(gaussian, rgba(154, 184, 200, 0.25), 8, 0.4, 0, 0);
 }
 
 /* ----------------------------------------------------------
    TIMER LABEL — large countdown / status display
    ---------------------------------------------------------- */
 #timer-label {
-    -fx-text-fill: #A78BFA;
-    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-text-fill: #A8B8CC;
+    -fx-font-family: "IBM Plex Mono", monospace;
     -fx-font-size: 16px;
-    -fx-font-weight: bold;
+    -fx-font-weight: normal;
     -fx-alignment: CENTER;
-    -fx-pref-width: 360;
-    -fx-max-width: 360;
+    -fx-text-alignment: CENTER;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
     -fx-padding: 6 0 6 0;
-    -fx-effect: dropshadow(gaussian, rgba(167, 139, 250, 0.5), 12, 0.5, 0, 0);
+    -fx-effect: dropshadow(gaussian, rgba(154, 184, 200, 0.35), 12, 0.5, 0, 0);
+}
+
+#timer-label.danger {
+    -fx-text-fill: #B03878;
+    -fx-effect: dropshadow(gaussian, #B03878, 10, 0.2, 0, 0);
+}
+
+#timer-label.success {
+    -fx-text-fill: #9AB8C8;
+    -fx-effect: dropshadow(gaussian, #9AB8C8, 10, 0.2, 0, 0);
+}
+
+/* ----------------------------------------------------------
+   MOVES LABEL — secondary HUD stat (PowerGrid)
+   ---------------------------------------------------------- */
+#moves-label {
+    -fx-text-fill: #6A7D9A;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 13px;
+    -fx-font-weight: normal;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
+    -fx-padding: 2 0 2 0;
 }
 
 /* ----------------------------------------------------------
    RESULT LABEL — feedback after a guess
    ---------------------------------------------------------- */
 #result-label {
-    -fx-text-fill: #7A7D99;
-    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-text-fill: #445570;
+    -fx-font-family: "IBM Plex Mono", monospace;
     -fx-font-size: 11px;
-    -fx-pref-width: 332;
-    -fx-max-width: 332;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
     -fx-wrap-text: true;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
     -fx-padding: 2 0 0 0;
+}
+
+#result-label.success {
+    -fx-text-fill: #9AB8C8;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(154, 184, 200, 0.3), 6, 0.3, 0, 0);
+}
+
+#result-label.failure {
+    -fx-text-fill: #B03878;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(176, 56, 120, 0.3), 6, 0.3, 0, 0);
 }
 
 /* ----------------------------------------------------------
    HISTORY LABEL — section heading
    ---------------------------------------------------------- */
 #history-label {
-    -fx-text-fill: #5B4BD6;
-    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-text-fill: #6A7D9A;
+    -fx-font-family: "IBM Plex Mono", monospace;
     -fx-font-size: 10px;
-    -fx-font-weight: bold;
+    -fx-font-weight: normal;
     -fx-pref-width: 332;
     -fx-max-width: 332;
     -fx-padding: 0 0 2 0;
@@ -132,27 +178,33 @@
    TEXT INPUT — guess field
    ---------------------------------------------------------- */
 #input-row {
-    -fx-pref-width: 332;
-    -fx-max-width: 332;
+    -fx-pref-width: 342;
+    -fx-max-width: 342;
 }
 
 #guess-field {
-    -fx-background-color: #161823;
-    -fx-border-color: #2A2D45;
+    -fx-background-color: #111520;
+    -fx-border-color: #252D40;
     -fx-border-width: 1.5;
     -fx-border-radius: 6;
     -fx-background-radius: 6;
-    -fx-text-fill: #E8E6F0;
-    -fx-prompt-text-fill: #3E4160;
-    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-text-fill: #A8B8CC;
+    -fx-prompt-text-fill: #445570;
+    -fx-font-family: "IBM Plex Mono", monospace;
     -fx-font-size: 13px;
     -fx-padding: 6 10 6 10;
     -fx-pref-height: 32;
 }
 
+#guess-field:focused {
+    -fx-border-color: #4A88B0;
+    -fx-background-color: #141826;
+    -fx-effect: dropshadow(gaussian, rgba(74, 136, 176, 0.35), 10, 0.3, 0, 0);
+}
+
 #dir-icon-box {
-    -fx-background-color: #161823;
-    -fx-border-color: #2A2D45;
+    -fx-background-color: #111520;
+    -fx-border-color: #252D40;
     -fx-border-width: 1.5;
     -fx-border-radius: 6;
     -fx-background-radius: 6;
@@ -166,63 +218,61 @@
 }
 
 #up-arrow {
-    -fx-text-fill: #4ADE80;
-    -fx-effect: dropshadow(gaussian, #4ADE80, 5, 0.6, 0, 0);
+    -fx-text-fill: #9AB8C8;
+    -fx-effect: dropshadow(gaussian, #9AB8C8, 5, 0.6, 0, 0);
 }
 
 #down-arrow {
-    -fx-text-fill: #E05252;
-    -fx-effect: dropshadow(gaussian, #E05252, 12, 0.6, 0, 0);
-}
-
-#guess-field:focused {
-    -fx-border-color: #7B5CF0;
-    -fx-background-color: #1A1D2E;
-    -fx-effect: dropshadow(gaussian, rgba(123, 92, 240, 0.4), 10, 0.3, 0, 0);
+    -fx-text-fill: #B03878;
+    -fx-effect: dropshadow(gaussian, #B03878, 12, 0.6, 0, 0);
 }
 
 /* ----------------------------------------------------------
    PRIMARY ACTION BUTTONS
    ---------------------------------------------------------- */
 #click-button,
-#guess-button {
-    -fx-background-color: linear-gradient(to bottom, #2D255A, #1E1940);
-    -fx-border-color: #5B4BD6;
+#guess-button,
+#start-button {
+    -fx-background-color: #0C0F14;
+    -fx-border-color: #1C2232;
     -fx-border-width: 1.5;
-    -fx-border-radius: 7;
-    -fx-background-radius: 7;
-    -fx-text-fill: #E8E6F0;
-    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #D2DCE8;
+    -fx-font-family: "IM Fell English", serif;
     -fx-font-size: 12px;
-    -fx-font-weight: bold;
+    -fx-font-weight: normal;
     -fx-cursor: hand;
     -fx-padding: 8 0 8 0;
-    -fx-pref-width: 360;
-    -fx-max-width: 360;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
     -fx-pref-height: 34;
-    -fx-effect: dropshadow(gaussian, rgba(91, 75, 214, 0.35), 8, 0.3, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(58, 74, 96, 0.35), 8, 0.3, 0, 2);
 }
 
 #click-button:hover,
-#guess-button:hover {
-    -fx-background-color: linear-gradient(to bottom, #3D3370, #29226B);
-    -fx-border-color: #A78BFA;
-    -fx-text-fill: #FFFFFF;
-    -fx-effect: dropshadow(gaussian, rgba(167, 139, 250, 0.55), 14, 0.45, 0, 0);
+#guess-button:hover,
+#start-button:hover {
+    -fx-background-color: #141826;
+    -fx-border-color: #445570;
+    -fx-text-fill: #D2DCE8;
+    -fx-effect: dropshadow(gaussian, rgba(74, 136, 176, 0.45), 12, 0.45, 0, 0);
 }
 
 #click-button:pressed,
-#guess-button:pressed {
-    -fx-background-color: linear-gradient(to bottom, #1A1435, #130F2C);
-    -fx-border-color: #7B5CF0;
-    -fx-effect: dropshadow(gaussian, rgba(123, 92, 240, 0.25), 4, 0.2, 0, 1);
+#guess-button:pressed,
+#start-button:pressed {
+    -fx-background-color: #141826;
+    -fx-border-color: #445570;
+    -fx-effect: dropshadow(gaussian, rgba(58, 74, 96, 0.35), 4, 0.2, 0, 1);
 }
 
 #click-button:disabled,
-#guess-button:disabled {
-    -fx-background-color: #12141E;
-    -fx-border-color: #252840;
-    -fx-text-fill: #3E4160;
+#guess-button:disabled,
+#start-button:disabled {
+    -fx-background-color: #0C0F14;
+    -fx-border-color: #252D40;
+    -fx-text-fill: #2E3A52;
     -fx-effect: none;
     -fx-cursor: default;
 }
@@ -231,44 +281,43 @@
    PROGRESS BAR — clicker mini-game
    ---------------------------------------------------------- */
 #progress-bar {
-    -fx-pref-width: 360;
-    -fx-max-width: 360;
+    -fx-pref-width: 370;
+    -fx-max-width: 370;
     -fx-pref-height: 12;
     -fx-min-height: 12;
     -fx-background-color: transparent;
-    -fx-accent: #7B5CF0;
+    -fx-accent: #4A88B0;
 }
 
 #progress-bar .track {
-    -fx-background-color: #161823;
+    -fx-background-color: #141826;
     -fx-background-radius: 6;
-    -fx-border-color: #2A2D45;
+    -fx-border-color: #252D40;
     -fx-border-width: 1;
     -fx-border-radius: 6;
 }
 
 #progress-bar .bar {
-    -fx-background-color: linear-gradient(to right, #5B4BD6, #A78BFA);
+    -fx-background-color: linear-gradient(to right, #2A5A80, #7AB4D0);
     -fx-background-radius: 6;
-    -fx-effect: dropshadow(gaussian, rgba(167, 139, 250, 0.6), 6, 0.4, 0, 0);
-    /* Remove default insets */
+    -fx-effect: dropshadow(gaussian, rgba(122, 180, 208, 0.45), 6, 0.4, 0, 0);
     -fx-background-insets: 0;
     -fx-padding: 0;
 }
 
 /* ----------------------------------------------------------
-   HISTORY LIST
+   HISTORY LIST — GuessTheNumber
    ---------------------------------------------------------- */
 #history-list {
-    -fx-background-color: #0A0B12;
-    -fx-control-inner-background: #0A0B12;
+    -fx-background-color: #0C0F14;
+    -fx-control-inner-background: #0C0F14;
     -fx-background-insets: 0;
     -fx-background-radius: 6;
-    -fx-border-color: #1E2038;
+    -fx-border-color: #1C2232;
     -fx-border-width: 1;
     -fx-border-radius: 6;
-    -fx-pref-width: 332;
-    -fx-max-width: 332;
+    -fx-pref-width: 342;
+    -fx-max-width: 342;
     -fx-pref-height: 90;
     -fx-min-height: 60;
     -fx-padding: 2 0 2 0;
@@ -276,51 +325,49 @@
 
 #history-list .list-cell {
     -fx-background-color: transparent;
-    -fx-text-fill: #7A7D99;
-    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-text-fill: #445570;
+    -fx-font-family: "IBM Plex Mono", monospace;
     -fx-font-size: 10px;
     -fx-padding: 3 8 3 8;
     -fx-border-color: transparent;
 }
 
-/* Label inside the custom HBox cell */
 .history-text {
-    -fx-text-fill: #7A7D99;
-    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-text-fill: #445570;
+    -fx-font-family: "IBM Plex Mono", monospace;
     -fx-font-size: 10px;
 }
 
 #history-list .list-cell:odd {
-    -fx-background-color: rgba(22, 24, 35, 0.5);
+    -fx-background-color: rgba(17, 21, 32, 0.6);
 }
 
 #history-list .list-cell:filled:hover {
-    -fx-background-color: rgba(91, 75, 214, 0.12);
-    -fx-text-fill: #B8B4D4;
+    -fx-background-color: rgba(74, 136, 176, 0.15);
+    -fx-text-fill: #A8B8CC;
 }
 
 #history-list .list-cell:filled:selected {
-    -fx-background-color: rgba(91, 75, 214, 0.25);
-    -fx-text-fill: #E8E6F0;
+    -fx-background-color: rgba(74, 136, 176, 0.28);
+    -fx-text-fill: #D2DCE8;
 }
 
 #history-list .list-cell:empty {
     -fx-background-color: transparent;
 }
 
-/* Scrollbar inside history list */
 #history-list .scroll-bar:vertical {
-    -fx-background-color: #0A0B12;
+    -fx-background-color: #0C0F14;
     -fx-pref-width: 6;
 }
 
 #history-list .scroll-bar:vertical .thumb {
-    -fx-background-color: #2A2D45;
+    -fx-background-color: #252D40;
     -fx-background-radius: 3;
 }
 
 #history-list .scroll-bar:vertical .thumb:hover {
-    -fx-background-color: #5B4BD6;
+    -fx-background-color: #3A6A9A;
 }
 
 #history-list .scroll-bar:vertical .track,
@@ -333,4 +380,215 @@
     -fx-background-color: transparent;
     -fx-pref-height: 0;
     -fx-min-height: 0;
+}
+
+/* ----------------------------------------------------------
+   ECHO GAME — 2×2 coloured flash buttons
+   ---------------------------------------------------------- */
+#echo-grid {
+    -fx-alignment: CENTER;
+    -fx-padding: 10 0 10 0;
+}
+
+.echo-button {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-width: 2;
+    -fx-cursor: hand;
+    -fx-min-width: 100;
+    -fx-min-height: 100;
+    -fx-pref-width: 100;
+    -fx-pref-height: 100;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 8, 0.3, 0, 2);
+}
+
+.echo-button:hover {
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 12, 0.4, 0, 0);
+}
+
+.echo-button:disabled {
+    -fx-cursor: default;
+    -fx-effect: none;
+}
+
+/* Quadrant 0 — cryo-cyan */
+.echo-button-0 {
+    -fx-background-color: #1A3A4A;
+    -fx-border-color: #4A88B0;
+}
+
+.echo-button-0:hover {
+    -fx-background-color: #1E4A5E;
+    -fx-border-color: #7AB4D0;
+}
+
+/* Quadrant 1 — magenta-hit */
+.echo-button-1 {
+    -fx-background-color: #3A1028;
+    -fx-border-color: #8A2860;
+}
+
+.echo-button-1:hover {
+    -fx-background-color: #4A1838;
+    -fx-border-color: #B03878;
+}
+
+/* Quadrant 2 — slate-teal (exit safe) */
+.echo-button-2 {
+    -fx-background-color: #0E2428;
+    -fx-border-color: #2A4A50;
+}
+
+.echo-button-2:hover {
+    -fx-background-color: #163040;
+    -fx-border-color: #3A6A72;
+}
+
+/* Quadrant 3 — muted-gold (floor accent) */
+.echo-button-3 {
+    -fx-background-color: #2A2418;
+    -fx-border-color: #6A5E32;
+}
+
+.echo-button-3:hover {
+    -fx-background-color: #3A3222;
+    -fx-border-color: #8A7E4A;
+}
+
+/* ----------------------------------------------------------
+   MEMORY GAME — card grid
+   ---------------------------------------------------------- */
+#memory-grid {
+    -fx-alignment: CENTER;
+    -fx-padding: 10 0 10 0;
+}
+
+#memory-card {
+    -fx-background-color: #111520;
+    -fx-border-color: #252D40;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #A8B8CC;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 22px;
+    -fx-alignment: CENTER;
+    -fx-min-width: 60;
+    -fx-min-height: 60;
+    -fx-pref-width: 64;
+    -fx-pref-height: 64;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(37, 45, 64, 0.6), 6, 0.3, 0, 2);
+}
+
+#memory-card:hover {
+    -fx-background-color: #141826;
+    -fx-border-color: #4A88B0;
+    -fx-effect: dropshadow(gaussian, rgba(74, 136, 176, 0.4), 10, 0.4, 0, 0);
+}
+
+#memory-card:disabled {
+    -fx-background-color: #0C0F14;
+    -fx-border-color: #1C2232;
+    -fx-text-fill: #9AB8C8;
+    -fx-opacity: 0.75;
+    -fx-cursor: default;
+    -fx-effect: dropshadow(gaussian, rgba(154, 184, 200, 0.25), 6, 0.3, 0, 0);
+}
+
+/* ----------------------------------------------------------
+   NUMBERLE GAME — wordle-style grid cells
+   ---------------------------------------------------------- */
+#numberle-grid {
+    -fx-alignment: CENTER;
+    -fx-padding: 8 0 8 0;
+}
+
+#numberle-cell {
+    -fx-background-color: #111520;
+    -fx-border-color: #252D40;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #A8B8CC;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER;
+    -fx-min-width: 44;
+    -fx-min-height: 44;
+    -fx-pref-width: 48;
+    -fx-pref-height: 48;
+}
+
+/* Correct position — cryo-cyan accent */
+.wordle-green {
+    -fx-background-color: #1A3A50;
+    -fx-border-color: #4A88B0;
+    -fx-text-fill: #D2DCE8;
+    -fx-effect: dropshadow(gaussian, rgba(74, 136, 176, 0.5), 8, 0.4, 0, 0);
+}
+
+/* Right digit, wrong position — amber warm */
+.wordle-yellow {
+    -fx-background-color: #3A2E10;
+    -fx-border-color: #8A7232;
+    -fx-text-fill: #D2DCE8;
+    -fx-effect: dropshadow(gaussian, rgba(138, 114, 50, 0.5), 8, 0.4, 0, 0);
+}
+
+/* Wrong digit — muted stone */
+.wordle-gray {
+    -fx-background-color: #141826;
+    -fx-border-color: #1C2232;
+    -fx-text-fill: #445570;
+    -fx-effect: none;
+}
+
+/* ----------------------------------------------------------
+   POWER GRID GAME — operation buttons
+   ---------------------------------------------------------- */
+#power-grid {
+    -fx-alignment: CENTER;
+    -fx-padding: 10 0 10 0;
+}
+
+.power-button {
+    -fx-background-color: #0C0F14;
+    -fx-border-color: #1C2232;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #9AB8C8;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-min-width: 110;
+    -fx-min-height: 110;
+    -fx-pref-width: 110;
+    -fx-pref-height: 110;
+    -fx-alignment: CENTER;
+    -fx-effect: dropshadow(gaussian, rgba(58, 74, 96, 0.5), 10, 0.3, 0, 2);
+}
+
+.power-button:hover {
+    -fx-background-color: #141826;
+    -fx-border-color: #4A88B0;
+    -fx-text-fill: #D2DCE8;
+    -fx-effect: dropshadow(gaussian, rgba(74, 136, 176, 0.5), 14, 0.45, 0, 0);
+}
+
+.power-button:pressed {
+    -fx-background-color: #141826;
+    -fx-border-color: #7AB4D0;
+    -fx-effect: dropshadow(gaussian, rgba(74, 136, 176, 0.3), 6, 0.2, 0, 1);
+}
+
+.power-button:disabled {
+    -fx-background-color: #0C0F14;
+    -fx-border-color: #252D40;
+    -fx-text-fill: #2E3A52;
+    -fx-effect: none;
+    -fx-cursor: default;
 }

@@ -45,7 +45,7 @@ public class PowerGridGame extends MiniGame {
 
         movesLabel = new Label("Moves left: " + movesLeft);
         movesLabel.setAlignment(Pos.CENTER);
-        movesLabel.setId("timer-label");
+        movesLabel.setId("moves-label");
 
         resultLabel = new Label("");
         resultLabel.setAlignment(Pos.CENTER);
@@ -90,9 +90,8 @@ public class PowerGridGame extends MiniGame {
 
     private Button createButton(String text) {
         Button btn = new Button(text);
-        btn.setMinSize(100, 100);
+        btn.setMinSize(110, 110);
         btn.getStyleClass().add("power-button");
-        btn.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
         return btn;
     }
 
