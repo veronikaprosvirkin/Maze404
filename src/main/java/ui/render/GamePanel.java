@@ -6,7 +6,6 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import lombok.Setter;
 import model.Grid;
 import model.Player;
 
@@ -15,8 +14,10 @@ public class GamePanel extends Pane {
     private static final int MIST_RADIUS_CELLS = 3;
     private static final int MIST_SAMPLE_STEP = 2;
     private static final double MIST_BASE_ALPHA = 0.88;
-    private static final double MIST_SWIRL_ALPHA = 0.14;
-    private static final double MIST_DRIFT_SPEED = 0.2;
+    private static final double MIST_SWIRL_ALPHA = 0.18;
+    private static final double MIST_DRIFT_SPEED = 0.78;
+    private static final double MIST_FLOW_SPEED_X = 28.0;
+    private static final double MIST_FLOW_SPEED_Y = 16.0;
     private static final double MIST_COLOR_R = 0.78;
     private static final double MIST_COLOR_G = 0.82;
     private static final double MIST_COLOR_B = 0.84;
@@ -25,8 +26,8 @@ public class GamePanel extends Pane {
     private final GridRenderer gridRenderer;
     private final PlayerRenderer playerRenderer;
     private final Difficulty difficulty;
-    @Setter
     private boolean mistEnabled = false;
+    private double mistAnimationTimeScale = 1.0;
     private long mistTimeNanos = 0L;
 
     public GamePanel(Grid grid, Player player) {
@@ -64,12 +65,24 @@ public class GamePanel extends Pane {
         return mistEnabled;
     }
 
+    public void setMistEnabled(boolean mistEnabled) {
+        this.mistEnabled = mistEnabled;
+    }
+
+    public double getMistAnimationTimeScale() {
+        return mistAnimationTimeScale;
+    }
+
+    public void setMistAnimationTimeScale(double mistAnimationTimeScale) {
+        this.mistAnimationTimeScale = mistAnimationTimeScale > 0.0 ? mistAnimationTimeScale : 1.0;
+    }
+
     private void drawMist(GraphicsContext gc, Grid grid, Player player) {
         double playerCenterX = (player.getCol() + 0.5) * TILE_SIZE;
         double playerCenterY = (player.getRow() + 0.5) * TILE_SIZE;
         double clearRadius = MIST_RADIUS_CELLS * TILE_SIZE;
         double fadeBand = TILE_SIZE * 2.2;
-        double timeSeconds = mistTimeNanos / 1_000_000_000.0;
+        double timeSeconds = (mistTimeNanos / 1_000_000_000.0) * mistAnimationTimeScale;
         double width = grid.getWidth() * TILE_SIZE;
         double height = grid.getHeight() * TILE_SIZE;
 
@@ -82,16 +95,23 @@ public class GamePanel extends Pane {
                 double dist = Math.sqrt(dx * dx + dy * dy);
 
                 double distanceOpacity = smoothStep(clearRadius - fadeBand, clearRadius + fadeBand, dist);
+                double pulse = 1.0 + Math.sin(timeSeconds * 0.85) * 0.06;
+
+                double flowX = sampleX + timeSeconds * MIST_FLOW_SPEED_X
+                        + Math.sin(timeSeconds * 0.35) * 22.0;
+                double flowY = sampleY + timeSeconds * MIST_FLOW_SPEED_Y
+                        + Math.cos(timeSeconds * 0.28) * 17.0;
 
                 // Layered low-frequency drift makes the fog feel natural and soft.
-                double drift1 = Math.sin(sampleX * 0.018 + timeSeconds * MIST_DRIFT_SPEED)
-                        * Math.cos(sampleY * 0.016 - timeSeconds * MIST_DRIFT_SPEED * 0.85);
-                double drift2 = Math.sin(sampleX * 0.011 - timeSeconds * MIST_DRIFT_SPEED * 0.52)
-                        * Math.sin(sampleY * 0.014 + timeSeconds * MIST_DRIFT_SPEED * 0.68);
-                double drift3 = Math.cos(sampleX * 0.007 + sampleY * 0.009 + timeSeconds * MIST_DRIFT_SPEED * 0.38);
-                double swirl = (drift1 * 0.45 + drift2 * 0.35 + drift3 * 0.20) * MIST_SWIRL_ALPHA;
+                double drift1 = Math.sin(flowX * 0.018 + timeSeconds * MIST_DRIFT_SPEED)
+                        * Math.cos(flowY * 0.016 - timeSeconds * MIST_DRIFT_SPEED * 0.85);
+                double drift2 = Math.sin(flowX * 0.011 - timeSeconds * MIST_DRIFT_SPEED * 0.52)
+                        * Math.sin(flowY * 0.014 + timeSeconds * MIST_DRIFT_SPEED * 0.68);
+                double drift3 = Math.cos(flowX * 0.007 + flowY * 0.009 + timeSeconds * MIST_DRIFT_SPEED * 0.38);
+                double drift4 = Math.sin((flowX + flowY) * 0.006 - timeSeconds * MIST_DRIFT_SPEED * 0.44);
+                double swirl = (drift1 * 0.35 + drift2 * 0.30 + drift3 * 0.20 + drift4 * 0.15) * MIST_SWIRL_ALPHA;
 
-                double alpha = clamp(distanceOpacity * (MIST_BASE_ALPHA + swirl), 0.0, 0.97);
+                double alpha = clamp(distanceOpacity * pulse * (MIST_BASE_ALPHA + swirl), 0.0, 0.97);
                 if (alpha > 0.01) {
                     gc.setFill(Color.color(MIST_COLOR_R, MIST_COLOR_G, MIST_COLOR_B, alpha));
                     gc.fillRect(x, y, MIST_SAMPLE_STEP, MIST_SAMPLE_STEP);
