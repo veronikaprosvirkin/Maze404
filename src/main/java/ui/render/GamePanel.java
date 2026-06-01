@@ -13,14 +13,7 @@ public class GamePanel extends Pane {
     private static final int TILE_SIZE = 32;
     private static final int MIST_RADIUS_CELLS = 3;
     private static final int MIST_SAMPLE_STEP = 2;
-    private static final double MIST_BASE_ALPHA = 0.88;
-    private static final double MIST_SWIRL_ALPHA = 0.18;
-    private static final double MIST_DRIFT_SPEED = 0.78;
-    private static final double MIST_FLOW_SPEED_X = 28.0;
-    private static final double MIST_FLOW_SPEED_Y = 16.0;
-    private static final double MIST_COLOR_R = 0.78;
-    private static final double MIST_COLOR_G = 0.82;
-    private static final double MIST_COLOR_B = 0.84;
+    private static final double MIST_ALPHA_CAP = 0.97;
 
     private final Canvas canvas;
     private final GridRenderer gridRenderer;
@@ -29,6 +22,24 @@ public class GamePanel extends Pane {
     private boolean mistEnabled = false;
     private double mistAnimationTimeScale = 1.0;
     private long mistTimeNanos = 0L;
+
+    private record MistProfile(
+            double colorR,
+            double colorG,
+            double colorB,
+            double baseAlpha,
+            double swirlAlpha,
+            double driftSpeed,
+            double flowSpeedX,
+            double flowSpeedY,
+            double pulseSpeed,
+            double pulseStrength,
+            double lateralSwing,
+            double verticalSwing,
+            double noiseScaleX,
+            double noiseScaleY
+    ) {
+    }
 
     public GamePanel(Grid grid, Player player) {
         this(grid, player, Difficulty.current);
@@ -78,6 +89,7 @@ public class GamePanel extends Pane {
     }
 
     private void drawMist(GraphicsContext gc, Grid grid, Player player) {
+        MistProfile profile = getMistProfile();
         double playerCenterX = (player.getCol() + 0.5) * TILE_SIZE;
         double playerCenterY = (player.getRow() + 0.5) * TILE_SIZE;
         double clearRadius = MIST_RADIUS_CELLS * TILE_SIZE;
@@ -95,29 +107,60 @@ public class GamePanel extends Pane {
                 double dist = Math.sqrt(dx * dx + dy * dy);
 
                 double distanceOpacity = smoothStep(clearRadius - fadeBand, clearRadius + fadeBand, dist);
-                double pulse = 1.0 + Math.sin(timeSeconds * 0.85) * 0.06;
+                double pulse = 1.0 + Math.sin(timeSeconds * profile.pulseSpeed()) * profile.pulseStrength();
 
-                double flowX = sampleX + timeSeconds * MIST_FLOW_SPEED_X
-                        + Math.sin(timeSeconds * 0.35) * 22.0;
-                double flowY = sampleY + timeSeconds * MIST_FLOW_SPEED_Y
-                        + Math.cos(timeSeconds * 0.28) * 17.0;
+                double flowX = sampleX + timeSeconds * profile.flowSpeedX()
+                        + Math.sin(timeSeconds * 0.35) * profile.lateralSwing();
+                double flowY = sampleY + timeSeconds * profile.flowSpeedY()
+                        + Math.cos(timeSeconds * 0.28) * profile.verticalSwing();
 
                 // Layered low-frequency drift makes the fog feel natural and soft.
-                double drift1 = Math.sin(flowX * 0.018 + timeSeconds * MIST_DRIFT_SPEED)
-                        * Math.cos(flowY * 0.016 - timeSeconds * MIST_DRIFT_SPEED * 0.85);
-                double drift2 = Math.sin(flowX * 0.011 - timeSeconds * MIST_DRIFT_SPEED * 0.52)
-                        * Math.sin(flowY * 0.014 + timeSeconds * MIST_DRIFT_SPEED * 0.68);
-                double drift3 = Math.cos(flowX * 0.007 + flowY * 0.009 + timeSeconds * MIST_DRIFT_SPEED * 0.38);
-                double drift4 = Math.sin((flowX + flowY) * 0.006 - timeSeconds * MIST_DRIFT_SPEED * 0.44);
-                double swirl = (drift1 * 0.35 + drift2 * 0.30 + drift3 * 0.20 + drift4 * 0.15) * MIST_SWIRL_ALPHA;
+                double drift1 = Math.sin(flowX * profile.noiseScaleX() + timeSeconds * profile.driftSpeed())
+                        * Math.cos(flowY * profile.noiseScaleY() - timeSeconds * profile.driftSpeed() * 0.85);
+                double drift2 = Math.sin(flowX * profile.noiseScaleX() * 0.62 - timeSeconds * profile.driftSpeed() * 0.52)
+                        * Math.sin(flowY * profile.noiseScaleY() * 0.88 + timeSeconds * profile.driftSpeed() * 0.68);
+                double drift3 = Math.cos(flowX * profile.noiseScaleX() * 0.38 + flowY * profile.noiseScaleY() * 0.56
+                        + timeSeconds * profile.driftSpeed() * 0.38);
+                double drift4 = Math.sin((flowX + flowY) * profile.noiseScaleX() * 0.32
+                        - timeSeconds * profile.driftSpeed() * 0.44);
+                double swirl = (drift1 * 0.35 + drift2 * 0.30 + drift3 * 0.20 + drift4 * 0.15) * profile.swirlAlpha();
 
-                double alpha = clamp(distanceOpacity * pulse * (MIST_BASE_ALPHA + swirl), 0.0, 0.97);
+                double alpha = clamp(distanceOpacity * pulse * (profile.baseAlpha() + swirl), 0.0, MIST_ALPHA_CAP);
                 if (alpha > 0.01) {
-                    gc.setFill(Color.color(MIST_COLOR_R, MIST_COLOR_G, MIST_COLOR_B, alpha));
+                    gc.setFill(Color.color(profile.colorR(), profile.colorG(), profile.colorB(), alpha));
                     gc.fillRect(x, y, MIST_SAMPLE_STEP, MIST_SAMPLE_STEP);
                 }
             }
         }
+    }
+
+    private MistProfile getMistProfile() {
+        return switch (difficulty) {
+            case HARD -> new MistProfile(
+                    0.69, 0.48, 0.53,   // purple-red flame storm from inferno mist/frost tones
+                    0.92, 0.22,
+                    1.10, 34.0, 20.0,
+                    1.20, 0.09,
+                    28.0, 18.0,
+                    0.021, 0.018
+            );
+            case MEDIUM -> new MistProfile(
+                    0.76, 0.64, 0.50,   // dusty parchment/bone tint for sanded stone storm
+                    0.89, 0.18,
+                    0.90, 30.0, 12.0,
+                    0.95, 0.07,
+                    24.0, 13.0,
+                    0.016, 0.013
+            );
+            case EASY -> new MistProfile(
+                    0.66, 0.72, 0.80,   // cryo mist blue-gray for blizzard feel
+                    0.87, 0.20,
+                    1.00, 36.0, 22.0,
+                    1.05, 0.08,
+                    30.0, 20.0,
+                    0.023, 0.019
+            );
+        };
     }
 
     private double smoothStep(double edge0, double edge1, double x) {
