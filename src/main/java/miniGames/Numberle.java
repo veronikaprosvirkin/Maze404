@@ -1,5 +1,6 @@
 package miniGames;
 
+import enums.Difficulty;
 import enums.MiniGameResult;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -15,7 +16,7 @@ public class Numberle extends MiniGame {
     String targetPassword;
     String currentGuess = "";
     int currentRow = 0;
-    private static final int MAX_ATTEMPTS = 6;
+    private int maxAttempts;
     Label[][] gridLabels;
     Label statusLabel;
     private StackPane wrapper;
@@ -27,21 +28,39 @@ public class Numberle extends MiniGame {
         this.height = 540;
     }
 
-    public static Numberle startNewGame() {
+    public static Numberle startNewGame(Difficulty difficulty) {
         Numberle game = new Numberle();
+        game.applyDifficulty(difficulty);
         game.showWindow();
         return game;
+    }
+
+    private void applyDifficulty(Difficulty difficulty) {
+        switch (difficulty) {
+            case EASY:
+                maxAttempts = 8;
+                break;
+            case MEDIUM:
+                maxAttempts = 6;
+                break;
+            case HARD:
+                maxAttempts = 4;
+                break;
+            default:
+                maxAttempts = 6;
+                break;
+        }
     }
 
     private void showWindow() {
         Stage stage = new Stage();
         Label instructionLabel = new Label(
-                "Numberle: Guess the 5-digit number! You have " + MAX_ATTEMPTS + " attempts.");
+                "Numberle: Guess the 5-digit number! You have " + maxAttempts + " attempts.");
         instructionLabel.setWrapText(true);
         instructionLabel.setAlignment(javafx.geometry.Pos.CENTER);
         instructionLabel.setId("instruction-label");
 
-        statusLabel = new Label("Attempt " + (currentRow + 1) + " of " + MAX_ATTEMPTS);
+        statusLabel = new Label("Attempt " + (currentRow + 1) + " of " + maxAttempts);
         statusLabel.setAlignment(javafx.geometry.Pos.CENTER);
         statusLabel.setId("timer-label");
 
@@ -143,8 +162,8 @@ public class Numberle extends MiniGame {
         grid.setVgap(6);
         grid.setAlignment(javafx.geometry.Pos.CENTER);
 
-        gridLabels = new Label[MAX_ATTEMPTS][5];
-        for (int row = 0; row < MAX_ATTEMPTS; row++) {
+        gridLabels = new Label[maxAttempts][5];
+        for (int row = 0; row < maxAttempts; row++) {
             for (int col = 0; col < 5; col++) {
                 Label cell = new Label("");
                 cell.setMinSize(34, 34);
@@ -240,12 +259,12 @@ public class Numberle extends MiniGame {
             showEndOverlay(wrapper, true);
         } else {
             currentRow++;
-            if (currentRow >= MAX_ATTEMPTS) {
+            if (currentRow >= maxAttempts) {
                 result = MiniGameResult.FAILURE;
                 statusLabel.setText("Game Over! The number was: " + targetPassword);
                 showEndOverlay(wrapper, false);
             } else {
-                statusLabel.setText("Attempt " + (currentRow + 1) + " of " + MAX_ATTEMPTS);
+                statusLabel.setText("Attempt " + (currentRow + 1) + " of " + maxAttempts);
                 currentGuess = "";
             }
         }
