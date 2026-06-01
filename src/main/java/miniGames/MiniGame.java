@@ -40,6 +40,10 @@ public abstract class MiniGame {
      * @param isWin   true → win overlay; false → lose overlay
      */
     protected void showEndOverlay(StackPane wrapper, boolean isWin) {
+        showEndOverlay(wrapper, isWin, null);
+    }
+
+    protected void showEndOverlay(StackPane wrapper, boolean isWin, String customSubtitle) {
         String accentColor;
         String glowColor;
         switch (Difficulty.current) {
@@ -59,7 +63,9 @@ public abstract class MiniGame {
 
         String icon = isWin ? "✦" : "✖";
         String titleText = isWin ? "VICTORY" : "SYSTEM FAILURE";
-        String subtitleText = isWin ? "Access granted.  Proceed." : "Connection lost.  Try again.";
+        String subtitleText = customSubtitle != null
+                ? customSubtitle
+                : (isWin ? "Access granted.  Proceed." : "Connection lost.  Try again.");
 
         // ── icon ────────────────────────────────────────────────────
         Label iconLabel = new Label(icon);

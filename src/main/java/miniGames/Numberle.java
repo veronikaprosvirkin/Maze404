@@ -250,14 +250,14 @@ public class Numberle extends MiniGame {
             result = MiniGameResult.SUCCESS;
             statusLabel.setText("Congratulations! You've guessed the number!");
             stopActiveCellPulse();
-            showEndOverlay(wrapper, true);
+            showEndOverlay(wrapper, true, "Code solved: " + targetPassword);
         } else {
             currentRow++;
             if (currentRow >= MAX_ATTEMPTS) {
                 result = MiniGameResult.FAILURE;
                 statusLabel.setText("Game Over! The number was: " + targetPassword);
                 stopActiveCellPulse();
-                showEndOverlay(wrapper, false);
+                showEndOverlay(wrapper, false, "Correct code: " + targetPassword);
             } else {
                 statusLabel.setText("Attempt " + (currentRow + 1) + " of " + MAX_ATTEMPTS);
                 currentGuess = "";
