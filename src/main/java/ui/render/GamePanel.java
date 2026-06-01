@@ -22,6 +22,7 @@ public class GamePanel extends Pane {
     private final Difficulty difficulty;
     private boolean mistEnabled = false;
     private double mistAnimationTimeScale = 1.0;
+    private double mistDensity = 1.0;
     private long mistTimeNanos = 0L;
     private long lastFrameNanos = 0L;
     private double frameDeltaSeconds = 1.0 / 60.0;
@@ -105,6 +106,14 @@ public class GamePanel extends Pane {
         this.mistAnimationTimeScale = mistAnimationTimeScale > 0.0 ? mistAnimationTimeScale : 1.0;
     }
 
+    public double getMistDensity() {
+        return mistDensity;
+    }
+
+    public void setMistDensity(double mistDensity) {
+        this.mistDensity = clamp(mistDensity, 0.0, 1.0);
+    }
+
     private void drawMist(GraphicsContext gc, Grid grid, Player player) {
         MistProfile profile = getMistProfile();
         updateMistFocus(player);
@@ -140,8 +149,12 @@ public class GamePanel extends Pane {
                 double drift4 = Math.sin((flowX + flowY) * profile.noiseScaleX() * 0.32
                         - timeSeconds * profile.driftSpeed() * 0.44);
                 double swirl = (drift1 * 0.35 + drift2 * 0.30 + drift3 * 0.20 + drift4 * 0.15) * profile.swirlAlpha();
+                double holeNoise = ((drift1 * 0.30) + (drift2 * 0.30) + (drift3 * 0.25) + (drift4 * 0.15) + 1.0) * 0.5;
+                double holeThreshold = lerp(0.72, 0.08, mistDensity);
+                double densityMask = smoothStep(holeThreshold - 0.12, holeThreshold + 0.12, holeNoise);
 
-                double alpha = clamp(distanceOpacity * pulse * (profile.baseAlpha() + swirl), 0.0, MIST_ALPHA_CAP);
+                double alpha = clamp(distanceOpacity * pulse * densityMask * (profile.baseAlpha() + swirl), 0.0,
+                        MIST_ALPHA_CAP);
                 if (alpha > 0.01) {
                     gc.setFill(Color.color(profile.colorR(), profile.colorG(), profile.colorB(), alpha));
                     gc.fillRect(x, y, MIST_SAMPLE_STEP, MIST_SAMPLE_STEP);
