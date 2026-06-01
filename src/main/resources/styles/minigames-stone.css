@@ -535,25 +535,25 @@
 
 /* Correct position — moss-green accent */
 .wordle-green {
-    -fx-background-color: #1A2E18;
-    -fx-border-color: #5A8248;
-    -fx-text-fill: #D9C9A8;
-    -fx-effect: dropshadow(gaussian, rgba(90, 130, 72, 0.5), 8, 0.4, 0, 0);
+    -fx-background-color: #4E7542;
+    -fx-border-color: #7EA969;
+    -fx-text-fill: #F6E8CF;
+    -fx-effect: dropshadow(gaussian, rgba(126, 169, 105, 0.6), 10, 0.45, 0, 0);
 }
 
 /* Right digit, wrong position — torch amber */
 .wordle-yellow {
-    -fx-background-color: #3A2A10;
-    -fx-border-color: #C87A1A;
-    -fx-text-fill: #D9C9A8;
-    -fx-effect: dropshadow(gaussian, rgba(200, 122, 26, 0.5), 8, 0.4, 0, 0);
+    -fx-background-color: #A96A18;
+    -fx-border-color: #D79330;
+    -fx-text-fill: #F9EED8;
+    -fx-effect: dropshadow(gaussian, rgba(215, 147, 48, 0.6), 10, 0.45, 0, 0);
 }
 
 /* Wrong digit — muted stone */
 .wordle-gray {
-    -fx-background-color: #1A1512;
-    -fx-border-color: #231D17;
-    -fx-text-fill: #5A4E3C;
+    -fx-background-color: #4C4438;
+    -fx-border-color: #71644E;
+    -fx-text-fill: #F2E6CF;
     -fx-effect: none;
 }
 

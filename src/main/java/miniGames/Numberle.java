@@ -1,13 +1,18 @@
 package miniGames;
 
+import enums.Difficulty;
 import enums.MiniGameResult;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.util.Random;
 
@@ -21,6 +26,10 @@ public class Numberle extends MiniGame {
     private StackPane wrapper;
     private final int[] digitStates = new int[10];
     private Button[] digitButtons;
+    private Timeline activeCellPulseTimeline;
+    private double activeCellPulsePhase = 0.0;
+    private static final double PULSE_FRAME_MS = 16.0;
+    private static final double PULSE_PERIOD_MS = 1400.0;
 
     public Numberle() {
         this.width = 450;
@@ -53,6 +62,8 @@ public class Numberle extends MiniGame {
         }
 
         GridPane grid = createGrid();
+        startActiveCellPulse();
+        refreshActiveTypingCell();
 
         // ── Legend Panel ──
         javafx.scene.layout.HBox legendBox = new javafx.scene.layout.HBox(8);
@@ -183,6 +194,7 @@ public class Numberle extends MiniGame {
                 gridLabels[currentRow][col].setText("");
             }
         }
+        refreshActiveTypingCell();
     }
 
     private void checkGuess() {
@@ -237,16 +249,19 @@ public class Numberle extends MiniGame {
         if (correctCount == 5) {
             result = MiniGameResult.SUCCESS;
             statusLabel.setText("Congratulations! You've guessed the number!");
+            stopActiveCellPulse();
             showEndOverlay(wrapper, true);
         } else {
             currentRow++;
             if (currentRow >= MAX_ATTEMPTS) {
                 result = MiniGameResult.FAILURE;
                 statusLabel.setText("Game Over! The number was: " + targetPassword);
+                stopActiveCellPulse();
                 showEndOverlay(wrapper, false);
             } else {
                 statusLabel.setText("Attempt " + (currentRow + 1) + " of " + MAX_ATTEMPTS);
                 currentGuess = "";
+                refreshActiveTypingCell();
             }
         }
     }
@@ -264,5 +279,77 @@ public class Numberle extends MiniGame {
                 btn.getStyleClass().add("wordle-gray");
             }
         }
+    }
+
+    private void startActiveCellPulse() {
+        activeCellPulseTimeline = new Timeline(new KeyFrame(Duration.millis(PULSE_FRAME_MS), e -> {
+            activeCellPulsePhase += (Math.PI * 2.0 * PULSE_FRAME_MS) / PULSE_PERIOD_MS;
+            if (activeCellPulsePhase > Math.PI * 2.0) {
+                activeCellPulsePhase -= Math.PI * 2.0;
+            }
+            refreshActiveTypingCell();
+        }));
+        activeCellPulseTimeline.setCycleCount(Timeline.INDEFINITE);
+        activeCellPulseTimeline.play();
+    }
+
+    private void stopActiveCellPulse() {
+        if (activeCellPulseTimeline != null) {
+            activeCellPulseTimeline.stop();
+        }
+        refreshActiveTypingCell();
+    }
+
+    private void refreshActiveTypingCell() {
+        for (int row = 0; row < MAX_ATTEMPTS; row++) {
+            for (int col = 0; col < 5; col++) {
+                gridLabels[row][col].setStyle(null);
+            }
+        }
+
+        if (result != MiniGameResult.PENDING || currentRow >= MAX_ATTEMPTS || currentGuess.length() >= 5) {
+            return;
+        }
+
+        // Smooth pulse in [0..1] that continuously brightens/dims the current typing cell background.
+        double pulse = 0.5 + 0.5 * Math.sin(activeCellPulsePhase);
+        Color baseBg;
+        Color peakBg;
+        Color baseBorder;
+        Color peakBorder;
+        switch (Difficulty.current) {
+            case MEDIUM -> {
+                baseBg = Color.web("#161210");
+                peakBg = Color.web("#2A2218");
+                baseBorder = Color.web("#2E2620");
+                peakBorder = Color.web("#5A4A2E");
+            }
+            case HARD -> {
+                baseBg = Color.web("#150A0C");
+                peakBg = Color.web("#2A1318");
+                baseBorder = Color.web("#381520");
+                peakBorder = Color.web("#6A3040");
+            }
+            default -> {
+                baseBg = Color.web("#111520");
+                peakBg = Color.web("#1B2435");
+                baseBorder = Color.web("#252D40");
+                peakBorder = Color.web("#3D4D68");
+            }
+        }
+
+        Color blendedBg = baseBg.interpolate(peakBg, pulse);
+        Color blendedBorder = baseBorder.interpolate(peakBorder, pulse);
+        Label activeCell = gridLabels[currentRow][currentGuess.length()];
+        activeCell.setStyle(
+                "-fx-background-color: " + toRgba(blendedBg) + ";" +
+                        "-fx-border-color: " + toRgba(blendedBorder) + ";");
+    }
+
+    private String toRgba(Color color) {
+        int r = (int) Math.round(color.getRed() * 255);
+        int g = (int) Math.round(color.getGreen() * 255);
+        int b = (int) Math.round(color.getBlue() * 255);
+        return "rgba(" + r + ", " + g + ", " + b + ", 1.0)";
     }
 }
