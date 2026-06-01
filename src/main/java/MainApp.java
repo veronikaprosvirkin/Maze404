@@ -56,6 +56,8 @@ public class MainApp extends Application {
         Player player = new Player(7, 7);
 
         GamePanel gamePanel = new GamePanel(grid, player, Difficulty.current);
+        boolean mistEnabled = true;
+        gamePanel.setMistEnabled(mistEnabled);
         double baseWidth = grid.getWidth() * 32.0;
         double baseHeight = grid.getHeight() * 32.0;
         gamePanel.setPrefSize(baseWidth, baseHeight);
