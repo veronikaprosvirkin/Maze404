@@ -1,5 +1,6 @@
 package miniGames;
 
+import enums.Difficulty;
 import enums.MiniGameResult;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -18,20 +19,39 @@ import javafx.stage.Stage;
 import java.util.Random;
 
 public class GuessTheNumber extends MiniGame {
-    private final int targetNumber;
-    private int attempts;
-    private static final int TRY_LIMIT = 10;
+    private int maxRange;
+    private int attempts = 0;
+    private int maxAttempts;
+    int targetNumber;
 
-    public GuessTheNumber(int targetNumber) {
-        this.targetNumber = targetNumber;
-    }
-
-    public static GuessTheNumber startNewGame() {
-        Random random = new Random();
-        int targetNumber = random.nextInt(100) + 1;
-        GuessTheNumber game = new GuessTheNumber(targetNumber);
+    public static GuessTheNumber startNewGame(Difficulty difficulty) {
+        GuessTheNumber game = new GuessTheNumber();
+        game.applyDifficulty(difficulty);
         game.showWindow();
         return game;
+    }
+
+    private void applyDifficulty(Difficulty difficulty) {
+        switch (difficulty) {
+            case EASY:
+                maxRange = 100;
+                maxAttempts = 10;
+                break;
+            case MEDIUM:
+                maxRange = 100;
+                maxAttempts = 7;
+                break;
+            case HARD:
+                maxRange = 200;
+                maxAttempts = 8;
+                break;
+            default:
+                maxRange = 100;
+                maxAttempts = 7;
+                break;
+        }
+
+        targetNumber = new Random().nextInt(maxRange) + 1;
     }
 
     private void showWindow() {
@@ -50,7 +70,7 @@ public class GuessTheNumber extends MiniGame {
         StackPane dirIconBox = new StackPane(dirIcon);
         dirIconBox.setId("dir-icon-box");
 
-        Label instructionLabel = new Label("Guess a number between 1 and 100:");
+        Label instructionLabel = new Label("Guess a number between 1 and " + maxRange + ":");
         TextField guessField = new TextField();
         Button guessButton = new Button("Guess");
         Label resultLabel = new Label();
@@ -145,16 +165,16 @@ public class GuessTheNumber extends MiniGame {
 
     private String checkGuess(int guess) {
         this.attempts++;
-        int attemptsLeft = TRY_LIMIT - this.attempts;
+        int attemptsLeft = this.maxAttempts - this.attempts;
 
         if (guess < this.targetNumber) {
-            if (this.attempts >= TRY_LIMIT) {
+            if (this.attempts >= this.maxAttempts) {
                 this.result = MiniGameResult.FAILURE;
                 return "Game Over! The number was: " + this.targetNumber;
             }
             return "Too low! Attempts left: " + attemptsLeft;
         } else if (guess > this.targetNumber) {
-            if (this.attempts >= TRY_LIMIT) {
+            if (this.attempts >= this.maxAttempts) {
                 this.result = MiniGameResult.FAILURE;
                 return "Game Over! The number was: " + this.targetNumber;
             }
