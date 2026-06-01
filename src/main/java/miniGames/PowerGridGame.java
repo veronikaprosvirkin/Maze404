@@ -1,5 +1,6 @@
 package miniGames;
 
+import enums.Difficulty;
 import enums.MiniGameResult;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -15,27 +16,55 @@ import java.util.Random;
 public class PowerGridGame extends MiniGame {
 
     private int targetPower;
-    private int currentPower = 0;
-    private int movesLeft = 7;
+    private int currentPower;
+    private int movesLeft;
+    private int tolerance;
 
     private Label statusLabel;
     private Label movesLabel;
     private Label resultLabel;
     private StackPane wrapper;
 
-    public static PowerGridGame startNewGame() {
+    public static PowerGridGame startNewGame(Difficulty difficulty) {
         PowerGridGame game = new PowerGridGame();
+        game.applyDifficulty(difficulty);
         game.showWindow();
         return game;
+    }
+
+    private void applyDifficulty(Difficulty difficulty) {
+        Random random = new Random();
+        switch (difficulty) {
+            case EASY:
+                movesLeft = 8;
+                tolerance = 5;
+                currentPower = random.nextInt(15);
+                break;
+            case MEDIUM:
+                movesLeft = 7;
+                tolerance = 3;
+                currentPower = random.nextInt(30) + 10;
+                break;
+            case HARD:
+                movesLeft = 5;
+                tolerance = 1;
+                currentPower = random.nextInt(40) + 20;
+                break;
+            default:
+                movesLeft = 7;
+                tolerance = 3;
+                currentPower = random.nextInt(20);
+                break;
+        }
     }
 
     private void showWindow() {
         Stage stage = new Stage();
 
         Random random = new Random();
-        targetPower = random.nextInt(90) + 30; // Target between 30V and 120V
+        targetPower = currentPower + random.nextInt(60) + 20;
 
-        Label instructionLabel = new Label("Power Grid: Calibrate voltage to " + targetPower + "V (±V)3!");
+        Label instructionLabel = new Label("Power Grid: Calibrate voltage to " + targetPower + "V (±" + tolerance + "V)!");
         instructionLabel.setWrapText(true);
         instructionLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
         instructionLabel.setAlignment(Pos.CENTER);
@@ -118,7 +147,7 @@ public class PowerGridGame extends MiniGame {
     }
 
     private void checkWinCondition() {
-        if (currentPower >= targetPower - 3 && currentPower <= targetPower + 3) {
+        if (currentPower >= targetPower - tolerance && currentPower <= targetPower + tolerance) {
             result = MiniGameResult.SUCCESS;
             resultLabel.setText("Perfect! You Win!");
             showEndOverlay(wrapper, true);
