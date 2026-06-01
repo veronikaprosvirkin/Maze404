@@ -1,5 +1,6 @@
 package miniGames;
 
+import enums.Difficulty;
 import enums.MiniGameResult;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
@@ -25,15 +26,33 @@ public class EchoGame extends MiniGame {
     private List<Button> sequence = new ArrayList<>();
     private int currentStep = 0;
     private int round = 1;
-    private int maxRounds = 8;
+    private int maxRounds;
     private Label timerLabel;
     private Label resultLabel;
     private StackPane wrapper;
 
-    public static EchoGame startNewGame() {
+    public static EchoGame startNewGame(Difficulty difficulty) {
         EchoGame game = new EchoGame();
+        game.applyDifficulty(difficulty);
         game.showWindow();
         return game;
+    }
+
+    private void applyDifficulty(Difficulty difficulty) {
+        switch (difficulty) {
+            case EASY:
+                maxRounds = 5;
+                break;
+            case MEDIUM:
+                maxRounds = 7;
+                break;
+            case HARD:
+                maxRounds = 10;
+                break;
+            default:
+                maxRounds = 7;
+                break;
+        }
     }
 
     private void showWindow() {
