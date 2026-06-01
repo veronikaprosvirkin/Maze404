@@ -573,6 +573,10 @@
 .numberle-key:pressed {
     -fx-background-color: #110F0C;
 }
+.numberle-key:disabled {
+    -fx-opacity: 0.45;
+    -fx-cursor: default;
+}
 
 /* ----------------------------------------------------------
    POWER GRID GAME — operation buttons

@@ -271,6 +271,7 @@ public class Numberle extends MiniGame {
             int state = digitStates[i];
             Button btn = digitButtons[i];
             btn.getStyleClass().removeAll("wordle-green", "wordle-yellow", "wordle-gray");
+            btn.setDisable(state == 1);
             if (state == 3) {
                 btn.getStyleClass().add("wordle-green");
             } else if (state == 2) {
