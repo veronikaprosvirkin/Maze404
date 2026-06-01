@@ -115,6 +115,10 @@ public class GuessTheNumber extends MiniGame {
 
             try {
                 int guess = Integer.parseInt(guessText);
+                if (guess < 0 || guess > maxRange) {
+                    resultLabel.setText("Please enter a valid number.");
+                    return;
+                }
                 String outcome = checkGuess(guess);
                 resultLabel.setText(outcome);
 
@@ -135,14 +139,14 @@ public class GuessTheNumber extends MiniGame {
                 if (result == MiniGameResult.SUCCESS) {
                     inputPanel.getStyleClass().add("success");
                     resultLabel.getStyleClass().add("success");
-                    showEndOverlay(wrapper, true);
+                    showEndOverlay(wrapper, true, "Correct number: " + targetNumber);
                 }
 
                 if (result != MiniGameResult.PENDING) {
                     guessField.setDisable(true);
                     guessButton.setDisable(true);
                     if (result == MiniGameResult.FAILURE) {
-                        showEndOverlay(wrapper, false);
+                        showEndOverlay(wrapper, false, "Correct number: " + targetNumber);
                     }
                 }
             } catch (NumberFormatException ex) {
