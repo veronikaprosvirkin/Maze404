@@ -32,7 +32,7 @@ public class TestMiniGames extends Application {
         difficultyBtn.setStyle("-fx-font-weight: bold; -fx-background-color: #4A90E2; -fx-text-fill: white;");
 
         Button guessGameBtn = new Button("Test: Guess The Number");
-        guessGameBtn.setOnAction(e -> GuessTheNumber.startNewGame());
+        guessGameBtn.setOnAction(e -> GuessTheNumber.startNewGame(TestLauncher.difficulty));
 
         Button clickerGameBtn = new Button("Test: Clicker Game");
         clickerGameBtn.setOnAction(e -> ClickerMiniGame.startNewGame(TestLauncher.difficulty));
