@@ -1,5 +1,6 @@
 package miniGames;
 
+import enums.Difficulty;
 import enums.MiniGameResult;
 import javafx.animation.PauseTransition;
 import javafx.geometry.Pos;
@@ -12,6 +13,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -21,13 +23,46 @@ public class MemoryGame extends MiniGame {
     private Button secondSelected;
     private int pairsFound = 0;
     private int mistakes = 0;
-    private int mistakesLimit = 3;
     private javafx.scene.layout.HBox livesContainer;
 
-    public static MemoryGame startNewGame() {
+    private int rows;
+    private int cols;
+    private double revealTime;
+    private int mistakesLimit;
+
+    public static MemoryGame startNewGame(Difficulty difficulty) {
         MemoryGame game = new MemoryGame();
+        game.applyDifficulty(difficulty);
         game.showWindow();
         return game;
+    }
+
+    private void applyDifficulty(Difficulty difficulty) {
+        switch (difficulty) {
+            case EASY:
+                rows = 3; cols = 4;
+                revealTime = 5.0;
+                mistakesLimit = 4;
+                this.height = 550;
+                break;
+            case MEDIUM:
+                rows = 4; cols = 4;
+                revealTime = 4.0;
+                mistakesLimit = 4;
+                this.height = 600;
+                break;
+            case HARD:
+                rows = 4; cols = 5;
+                revealTime = 6.0;
+                mistakesLimit = 5;
+                this.height = 650;
+                break;
+            default:
+                rows = 4; cols = 4;
+                revealTime = 4.0;
+                mistakesLimit = 4;
+                break;
+        }
     }
 
     private void showWindow() {
@@ -39,13 +74,20 @@ public class MemoryGame extends MiniGame {
         livesContainer.setAlignment(Pos.CENTER);
         updateLivesUI();
 
-        Label instructionLabel = new Label("Memory Game: Find all pairs!\nClick 'Start' to reveal cards for 4 seconds");
+        Label instructionLabel = new Label("Memory Game: Find all pairs!\nClick 'Start' to reveal cards for " + (int)revealTime + " seconds");
         instructionLabel.setWrapText(true);
         instructionLabel.setAlignment(javafx.geometry.Pos.CENTER);
         instructionLabel.setId("instruction-label");
 
-        List<String> hiddenValues = Arrays.asList(
-                "🤖", "🤖", "💎", "💎", "🔋", "🔋", "🔥", "🔥", "💻", "💻", "⚡", "⚡");
+
+        List<String> allIcons = Arrays.asList("🤖", "💎", "🔋", "🔥", "💻", "⚡", "🚀", "🛰️", "📡", "💾");
+        List<String> hiddenValues = new ArrayList<>();
+        int pairsNeeded = (rows * cols) / 2;
+
+        for (int i = 0; i < pairsNeeded; i++) {
+            hiddenValues.add(allIcons.get(i));
+            hiddenValues.add(allIcons.get(i));
+        }
         Collections.shuffle(hiddenValues);
 
         GridPane grid = new GridPane();
@@ -55,8 +97,8 @@ public class MemoryGame extends MiniGame {
         grid.setAlignment(javafx.geometry.Pos.CENTER);
 
         int valueIndex = 0;
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 4; col++) {
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
 
                 String secretValue = hiddenValues.get(valueIndex);
 
@@ -86,7 +128,7 @@ public class MemoryGame extends MiniGame {
                             firstSelected = null;
                             secondSelected = null;
 
-                            if (pairsFound == hiddenValues.size() / 2) {
+                            if (pairsFound == pairsNeeded) {
                                 result = MiniGameResult.SUCCESS;
                                 instructionLabel.setText("You Win! All pairs found!");
                                 showEndOverlay(wrapper, true);
@@ -127,7 +169,7 @@ public class MemoryGame extends MiniGame {
         startButton.setId("start-button");
         startButton.setStyle("-fx-pref-width: 290px; -fx-max-width: 290px;");
 
-        PauseTransition initialPause = new PauseTransition(Duration.seconds(4));
+        PauseTransition initialPause = new PauseTransition(Duration.seconds(revealTime));
         initialPause.setOnFinished(event -> {
             grid.getChildren().forEach(node -> {
                 if (node instanceof Button) {
