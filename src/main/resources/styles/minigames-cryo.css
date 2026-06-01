@@ -533,25 +533,25 @@
 
 /* Correct position — cryo-cyan accent */
 .wordle-green {
-    -fx-background-color: #1A3A50;
-    -fx-border-color: #4A88B0;
+    -fx-background-color: #2E6D8E;
+    -fx-border-color: #7AB4D0;
     -fx-text-fill: #D2DCE8;
-    -fx-effect: dropshadow(gaussian, rgba(74, 136, 176, 0.5), 8, 0.4, 0, 0);
+    -fx-effect: dropshadow(gaussian, rgba(122, 180, 208, 0.6), 10, 0.45, 0, 0);
 }
 
 /* Right digit, wrong position — amber warm */
 .wordle-yellow {
-    -fx-background-color: #3A2E10;
-    -fx-border-color: #8A7232;
-    -fx-text-fill: #D2DCE8;
-    -fx-effect: dropshadow(gaussian, rgba(138, 114, 50, 0.5), 8, 0.4, 0, 0);
+    -fx-background-color: #8A7232;
+    -fx-border-color: #C8AE62;
+    -fx-text-fill: #F2F6FC;
+    -fx-effect: dropshadow(gaussian, rgba(200, 174, 98, 0.6), 10, 0.45, 0, 0);
 }
 
 /* Wrong digit — muted stone */
 .wordle-gray {
-    -fx-background-color: #141826;
-    -fx-border-color: #1C2232;
-    -fx-text-fill: #445570;
+    -fx-background-color: #313B50;
+    -fx-border-color: #596885;
+    -fx-text-fill: #E5ECF6;
     -fx-effect: none;
 }
 
@@ -570,6 +570,10 @@
 }
 .numberle-key:pressed {
     -fx-background-color: #0C0F14;
+}
+.numberle-key:disabled {
+    -fx-opacity: 0.45;
+    -fx-cursor: default;
 }
 
 /* ----------------------------------------------------------
