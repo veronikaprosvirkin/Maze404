@@ -115,6 +115,10 @@ public class GuessTheNumber extends MiniGame {
 
             try {
                 int guess = Integer.parseInt(guessText);
+                if (guess < 0 || guess > 100) {
+                    resultLabel.setText("Please enter a valid number.");
+                    return;
+                }
                 String outcome = checkGuess(guess);
                 resultLabel.setText(outcome);
 
