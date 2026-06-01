@@ -44,7 +44,7 @@ public class TestMiniGames extends Application {
         echoGameBtn.setOnAction(e -> EchoGame.startNewGame(TestLauncher.difficulty));
 
         Button powerGame = new Button("Test: Power Game");
-        powerGame.setOnAction(e -> PowerGridGame.startNewGame());
+        powerGame.setOnAction(e -> PowerGridGame.startNewGame(TestLauncher.difficulty));
 
         Button numberleGame = new Button("Test: Numberle Game");
         numberleGame.setOnAction(e -> Numberle.startNewGame(TestLauncher.difficulty));
