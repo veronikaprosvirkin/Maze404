@@ -32,16 +32,16 @@ public class TestMiniGames extends Application {
         difficultyBtn.setStyle("-fx-font-weight: bold; -fx-background-color: #4A90E2; -fx-text-fill: white;");
 
         Button guessGameBtn = new Button("Test: Guess The Number");
-        guessGameBtn.setOnAction(e -> GuessTheNumber.startNewGame());
+        guessGameBtn.setOnAction(e -> GuessTheNumber.startNewGame(TestLauncher.difficulty));
 
         Button clickerGameBtn = new Button("Test: Clicker Game");
-        clickerGameBtn.setOnAction(e -> ClickerMiniGame.startNewGame());
+        clickerGameBtn.setOnAction(e -> ClickerMiniGame.startNewGame(TestLauncher.difficulty));
 
         Button memoryGameBtn = new Button("Test: Memory Game");
-        memoryGameBtn.setOnAction(e -> MemoryGame.startNewGame());
+        memoryGameBtn.setOnAction(e -> MemoryGame.startNewGame(TestLauncher.difficulty));
 
         Button echoGameBtn = new Button("Test: Echo Game");
-        echoGameBtn.setOnAction(e -> EchoGame.startNewGame());
+        echoGameBtn.setOnAction(e -> EchoGame.startNewGame(TestLauncher.difficulty));
 
         Button powerGame = new Button("Test: Power Game");
         powerGame.setOnAction(e -> PowerGridGame.startNewGame());
