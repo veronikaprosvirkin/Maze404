@@ -14,6 +14,7 @@ public class GamePanel extends Pane {
     private static final int MIST_RADIUS_CELLS = 3;
     private static final int MIST_SAMPLE_STEP = 2;
     private static final double MIST_ALPHA_CAP = 0.97;
+    private static final double MIST_FOCUS_TRANSITION_SECONDS = 0.3;
 
     private final Canvas canvas;
     private final GridRenderer gridRenderer;
@@ -22,6 +23,16 @@ public class GamePanel extends Pane {
     private boolean mistEnabled = false;
     private double mistAnimationTimeScale = 1.0;
     private long mistTimeNanos = 0L;
+    private long lastFrameNanos = 0L;
+    private double frameDeltaSeconds = 1.0 / 60.0;
+    private double mistFocusX;
+    private double mistFocusY;
+    private double mistFocusStartX;
+    private double mistFocusStartY;
+    private double mistFocusTargetX;
+    private double mistFocusTargetY;
+    private double mistFocusElapsedSeconds = MIST_FOCUS_TRANSITION_SECONDS;
+    private boolean mistFocusInitialized = false;
 
     private record MistProfile(
             double colorR,
@@ -55,6 +66,12 @@ public class GamePanel extends Pane {
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
+                if (lastFrameNanos == 0L) {
+                    frameDeltaSeconds = 1.0 / 60.0;
+                } else {
+                    frameDeltaSeconds = (now - lastFrameNanos) / 1_000_000_000.0;
+                }
+                lastFrameNanos = now;
                 mistTimeNanos = now;
                 redraw(grid, player);
             }
@@ -90,8 +107,7 @@ public class GamePanel extends Pane {
 
     private void drawMist(GraphicsContext gc, Grid grid, Player player) {
         MistProfile profile = getMistProfile();
-        double playerCenterX = (player.getCol() + 0.5) * TILE_SIZE;
-        double playerCenterY = (player.getRow() + 0.5) * TILE_SIZE;
+        updateMistFocus(player);
         double clearRadius = MIST_RADIUS_CELLS * TILE_SIZE;
         double fadeBand = TILE_SIZE * 2.2;
         double timeSeconds = (mistTimeNanos / 1_000_000_000.0) * mistAnimationTimeScale;
@@ -102,8 +118,8 @@ public class GamePanel extends Pane {
             for (int x = 0; x < width; x += MIST_SAMPLE_STEP) {
                 double sampleX = x + MIST_SAMPLE_STEP * 0.5;
                 double sampleY = y + MIST_SAMPLE_STEP * 0.5;
-                double dx = sampleX - playerCenterX;
-                double dy = sampleY - playerCenterY;
+                double dx = sampleX - mistFocusX;
+                double dy = sampleY - mistFocusY;
                 double dist = Math.sqrt(dx * dx + dy * dy);
 
                 double distanceOpacity = smoothStep(clearRadius - fadeBand, clearRadius + fadeBand, dist);
@@ -131,6 +147,45 @@ public class GamePanel extends Pane {
                     gc.fillRect(x, y, MIST_SAMPLE_STEP, MIST_SAMPLE_STEP);
                 }
             }
+        }
+    }
+
+    private void updateMistFocus(Player player) {
+        double playerCenterX = (player.getCol() + 0.5) * TILE_SIZE;
+        double playerCenterY = (player.getRow() + 0.5) * TILE_SIZE;
+
+        if (!mistFocusInitialized) {
+            mistFocusX = playerCenterX;
+            mistFocusY = playerCenterY;
+            mistFocusStartX = playerCenterX;
+            mistFocusStartY = playerCenterY;
+            mistFocusTargetX = playerCenterX;
+            mistFocusTargetY = playerCenterY;
+            mistFocusElapsedSeconds = MIST_FOCUS_TRANSITION_SECONDS;
+            mistFocusInitialized = true;
+            return;
+        }
+
+        if (mistFocusTargetX != playerCenterX || mistFocusTargetY != playerCenterY) {
+            mistFocusStartX = mistFocusX;
+            mistFocusStartY = mistFocusY;
+            mistFocusTargetX = playerCenterX;
+            mistFocusTargetY = playerCenterY;
+            mistFocusElapsedSeconds = 0.0;
+        }
+
+        if (mistFocusElapsedSeconds < MIST_FOCUS_TRANSITION_SECONDS) {
+            mistFocusElapsedSeconds = Math.min(
+                    mistFocusElapsedSeconds + frameDeltaSeconds,
+                    MIST_FOCUS_TRANSITION_SECONDS
+            );
+            double progress = mistFocusElapsedSeconds / MIST_FOCUS_TRANSITION_SECONDS;
+            double easedProgress = smoothStep(0.0, 1.0, progress);
+            mistFocusX = lerp(mistFocusStartX, mistFocusTargetX, easedProgress);
+            mistFocusY = lerp(mistFocusStartY, mistFocusTargetY, easedProgress);
+        } else {
+            mistFocusX = mistFocusTargetX;
+            mistFocusY = mistFocusTargetY;
         }
     }
 
@@ -174,5 +229,9 @@ public class GamePanel extends Pane {
 
     private double clamp(double value, double min, double max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    private double lerp(double start, double end, double progress) {
+        return start + (end - start) * progress;
     }
 }
