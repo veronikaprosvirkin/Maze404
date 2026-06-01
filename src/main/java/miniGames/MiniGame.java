@@ -3,12 +3,14 @@ package miniGames;
 import enums.Difficulty;
 import enums.MiniGameResult;
 import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.Duration;
 
 public abstract class MiniGame {
@@ -107,6 +109,16 @@ public abstract class MiniGame {
         fade.setFromValue(0);
         fade.setToValue(1);
         fade.play();
+
+        // Auto-close any minigame window shortly after end result is shown.
+        PauseTransition closeDelay = new PauseTransition(Duration.seconds(3));
+        closeDelay.setOnFinished(e -> {
+            Window window = wrapper.getScene() != null ? wrapper.getScene().getWindow() : null;
+            if (window instanceof Stage stage) {
+                stage.close();
+            }
+        });
+        closeDelay.play();
     }
 
     public MiniGameResult getResult() {
