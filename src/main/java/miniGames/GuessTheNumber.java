@@ -43,7 +43,7 @@ public class GuessTheNumber extends MiniGame {
                 break;
             case HARD:
                 maxRange = 200;
-                maxAttempts = 8;
+                maxAttempts = 7;
                 break;
             default:
                 maxRange = 100;
