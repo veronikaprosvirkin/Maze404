@@ -39,6 +39,9 @@ public class GamePanel extends Pane {
             double colorR,
             double colorG,
             double colorB,
+            double accentR,
+            double accentG,
+            double accentB,
             double baseAlpha,
             double swirlAlpha,
             double driftSpeed,
@@ -49,7 +52,8 @@ public class GamePanel extends Pane {
             double lateralSwing,
             double verticalSwing,
             double noiseScaleX,
-            double noiseScaleY
+            double noiseScaleY,
+            double accentStrength
     ) {
     }
 
@@ -152,11 +156,16 @@ public class GamePanel extends Pane {
                 double holeNoise = ((drift1 * 0.30) + (drift2 * 0.30) + (drift3 * 0.25) + (drift4 * 0.15) + 1.0) * 0.5;
                 double holeThreshold = lerp(0.72, 0.08, mistDensity);
                 double densityMask = smoothStep(holeThreshold - 0.12, holeThreshold + 0.12, holeNoise);
+                double accentMask = smoothStep(0.55, 0.95, ((drift2 * 0.55) + (drift4 * 0.45) + 1.0) * 0.5)
+                        * profile.accentStrength();
 
                 double alpha = clamp(distanceOpacity * pulse * densityMask * (profile.baseAlpha() + swirl), 0.0,
                         MIST_ALPHA_CAP);
                 if (alpha > 0.01) {
-                    gc.setFill(Color.color(profile.colorR(), profile.colorG(), profile.colorB(), alpha));
+                    double colorR = lerp(profile.colorR(), profile.accentR(), accentMask);
+                    double colorG = lerp(profile.colorG(), profile.accentG(), accentMask);
+                    double colorB = lerp(profile.colorB(), profile.accentB(), accentMask);
+                    gc.setFill(Color.color(colorR, colorG, colorB, alpha));
                     gc.fillRect(x, y, MIST_SAMPLE_STEP, MIST_SAMPLE_STEP);
                 }
             }
@@ -205,28 +214,34 @@ public class GamePanel extends Pane {
     private MistProfile getMistProfile() {
         return switch (difficulty) {
             case HARD -> new MistProfile(
-                    0.69, 0.48, 0.53,   // purple-red flame storm from inferno mist/frost tones
-                    0.92, 0.22,
-                    1.10, 34.0, 20.0,
-                    1.20, 0.09,
-                    28.0, 18.0,
-                    0.021, 0.018
+                    0.48, 0.22, 0.26,   // deep ember-red base
+                    0.93, 0.52, 0.20,   // hot flame highlight
+                    0.93, 0.28,
+                    1.35, 18.0, -34.0,  // strong upward flame pull
+                    1.65, 0.12,
+                    16.0, 36.0,
+                    0.027, 0.020,
+                    0.72
             );
             case MEDIUM -> new MistProfile(
-                    0.76, 0.64, 0.50,   // dusty parchment/bone tint for sanded stone storm
-                    0.89, 0.18,
-                    0.90, 30.0, 12.0,
-                    0.95, 0.07,
-                    24.0, 13.0,
-                    0.016, 0.013
+                    0.56, 0.44, 0.31,   // dry earth base
+                    0.79, 0.66, 0.48,   // lighter sand highlight
+                    0.88, 0.14,
+                    0.72, 38.0, 4.0,    // broad lateral drift for dust sweep
+                    0.78, 0.04,
+                    34.0, 9.0,
+                    0.012, 0.009,
+                    0.34
             );
             case EASY -> new MistProfile(
                     0.66, 0.72, 0.80,   // cryo mist blue-gray for blizzard feel
+                    0.82, 0.88, 0.94,   // icy white flecks
                     0.87, 0.20,
                     1.00, 36.0, 22.0,
                     1.05, 0.08,
                     30.0, 20.0,
-                    0.023, 0.019
+                    0.023, 0.019,
+                    0.18
             );
         };
     }
