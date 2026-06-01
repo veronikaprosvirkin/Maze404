@@ -2,6 +2,7 @@ package miniGames;
 
 import enums.Difficulty;
 import enums.MiniGameResult;
+import javafx.application.Platform;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.Scene;
@@ -47,6 +48,7 @@ public class Numberle extends MiniGame {
         switch (difficulty) {
             case EASY:
                 maxAttempts = 8;
+                this.height = 650;
                 break;
             case MEDIUM:
                 maxAttempts = 6;
@@ -118,6 +120,7 @@ public class Numberle extends MiniGame {
             btn.setStyle(
                     "-fx-font-family: 'IBM Plex Mono'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 4; -fx-border-radius: 4;");
             btn.getStyleClass().add("numberle-key");
+            btn.setFocusTraversable(false);
             btn.setOnAction(e -> handleInput(String.valueOf(num)));
             digitButtons[i] = btn;
             keypad.add(btn, i, 0);
@@ -128,6 +131,7 @@ public class Numberle extends MiniGame {
         delBtn.setStyle(
                 "-fx-font-family: 'IBM Plex Mono'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 4; -fx-border-radius: 4;");
         delBtn.getStyleClass().add("numberle-key");
+        delBtn.setFocusTraversable(false);
         delBtn.setOnAction(e -> handleInput("Del"));
 
         Button entBtn = new Button("ENTER");
@@ -135,6 +139,7 @@ public class Numberle extends MiniGame {
         entBtn.setStyle(
                 "-fx-font-family: 'IBM Plex Mono'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 4; -fx-border-radius: 4;");
         entBtn.getStyleClass().add("numberle-key");
+        entBtn.setFocusTraversable(false);
         entBtn.setOnAction(e -> handleInput("Ent"));
 
         javafx.scene.layout.HBox actionKeys = new javafx.scene.layout.HBox(8, delBtn, entBtn);
@@ -148,8 +153,9 @@ public class Numberle extends MiniGame {
         root.setId("game-container");
 
         wrapper = new StackPane(root);
+        wrapper.setFocusTraversable(true);
         Scene scene = new Scene(wrapper, width, height);
-        scene.setOnKeyPressed(e -> {
+        scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, e -> {
             if (result != MiniGameResult.PENDING)
                 return;
 
@@ -163,6 +169,7 @@ public class Numberle extends MiniGame {
         });
 
         setupWindow(stage, scene, "Numberle");
+        Platform.runLater(wrapper::requestFocus);
     }
 
     private GridPane createGrid() {
