@@ -542,18 +542,18 @@
 
 /* Correct position — gold accent (exit safe) */
 .wordle-green {
-    -fx-background-color: #6F531F;
-    -fx-border-color: #A27F3A;
-    -fx-text-fill: #F8D9DE;
-    -fx-effect: dropshadow(gaussian, rgba(162, 127, 58, 0.6), 10, 0.45, 0, 0);
-}
-
-/* Right digit, wrong position — ember amber */
-.wordle-yellow {
     -fx-background-color: #B13A14;
     -fx-border-color: #E06026;
     -fx-text-fill: #FFE0D1;
     -fx-effect: dropshadow(gaussian, rgba(224, 96, 38, 0.6), 10, 0.45, 0, 0);
+}
+
+/* Right digit, wrong position — ember amber */
+.wordle-yellow {
+    -fx-background-color: #6F531F;
+    -fx-border-color: #A27F3A;
+    -fx-text-fill: #F8D9DE;
+    -fx-effect: dropshadow(gaussian, rgba(162, 127, 58, 0.6), 10, 0.45, 0, 0);
 }
 
 /* Wrong digit — muted crimson */
