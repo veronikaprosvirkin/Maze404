@@ -1,5 +1,6 @@
 package miniGames;
 
+import enums.Difficulty;
 import enums.MiniGameResult;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -13,15 +14,37 @@ import javafx.stage.Stage;
 
 public class ClickerMiniGame extends MiniGame {
     int clicks = 0;
-    int clickLimit = 30;
-    double timeLeft = 7.5;
+    int clickLimit;
+    double timeLeft;
     private Timeline timer;
     private StackPane wrapper;
 
-    public static ClickerMiniGame startNewGame() {
+    public static ClickerMiniGame startNewGame(Difficulty difficulty) {
         ClickerMiniGame game = new ClickerMiniGame();
+        game.applyDifficulty(difficulty);
         game.showWindow();
         return game;
+    }
+
+    private void applyDifficulty(Difficulty difficulty) {
+        switch (difficulty) {
+            case EASY:
+                clickLimit = 20;
+                timeLeft = 8.0;
+                break;
+            case MEDIUM:
+                clickLimit = 30;
+                timeLeft = 7.5;
+                break;
+            case HARD:
+                clickLimit = 40;
+                timeLeft = 5.8;
+                break;
+            default:
+                clickLimit = 30;
+                timeLeft = 7.5;
+                break;
+        }
     }
 
     private void showWindow() {

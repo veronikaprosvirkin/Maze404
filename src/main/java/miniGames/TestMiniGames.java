@@ -35,7 +35,7 @@ public class TestMiniGames extends Application {
         guessGameBtn.setOnAction(e -> GuessTheNumber.startNewGame());
 
         Button clickerGameBtn = new Button("Test: Clicker Game");
-        clickerGameBtn.setOnAction(e -> ClickerMiniGame.startNewGame());
+        clickerGameBtn.setOnAction(e -> ClickerMiniGame.startNewGame(TestLauncher.difficulty));
 
         Button memoryGameBtn = new Button("Test: Memory Game");
         memoryGameBtn.setOnAction(e -> MemoryGame.startNewGame());
