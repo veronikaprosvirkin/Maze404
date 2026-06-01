@@ -38,9 +38,9 @@ public class MainApp extends Application {
         Difficulty.current = Difficulty.EASY;
 
         String bgColor = switch (Difficulty.current) {
-            case MEDIUM -> "#09080A";
-            case HARD -> "#080406";
-            default -> "#06080C";
+            case MEDIUM -> "#161210";
+            case HARD -> "#150A0C";
+            default -> "#111520";
         };
         root.setStyle("-fx-background-color: " + bgColor + ";");
         Scene scene = new Scene(root, 800, 600);
@@ -56,6 +56,12 @@ public class MainApp extends Application {
         Player player = new Player(7, 7);
 
         GamePanel gamePanel = new GamePanel(grid, player, Difficulty.current);
+        boolean mistEnabled = true;
+        double mistAnimationTime = 1.2;
+        double mistDensity = 1;
+        gamePanel.setMistEnabled(mistEnabled);
+        gamePanel.setMistAnimationTimeScale(mistAnimationTime);
+        gamePanel.setMistDensity(mistDensity);
         double baseWidth = grid.getWidth() * 32.0;
         double baseHeight = grid.getHeight() * 32.0;
         gamePanel.setPrefSize(baseWidth, baseHeight);
