@@ -320,13 +320,13 @@ public class Numberle extends MiniGame {
     }
 
     private void refreshActiveTypingCell() {
-        for (int row = 0; row < MAX_ATTEMPTS; row++) {
+        for (int row = 0; row < maxAttempts; row++) {
             for (int col = 0; col < 5; col++) {
                 gridLabels[row][col].setStyle(null);
             }
         }
 
-        if (result != MiniGameResult.PENDING || currentRow >= MAX_ATTEMPTS || currentGuess.length() >= 5) {
+        if (result != MiniGameResult.PENDING || currentRow >= maxAttempts || currentGuess.length() >= 5) {
             return;
         }
 
