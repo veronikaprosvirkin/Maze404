@@ -47,7 +47,7 @@ public class TestMiniGames extends Application {
         powerGame.setOnAction(e -> PowerGridGame.startNewGame());
 
         Button numberleGame = new Button("Test: Numberle Game");
-        numberleGame.setOnAction(e -> Numberle.startNewGame());
+        numberleGame.setOnAction(e -> Numberle.startNewGame(TestLauncher.difficulty));
 
         VBox root = new VBox(15, difficultyBtn, guessGameBtn, clickerGameBtn, memoryGameBtn, echoGameBtn, powerGame,
                 numberleGame);
