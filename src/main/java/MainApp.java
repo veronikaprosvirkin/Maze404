@@ -39,7 +39,7 @@ public class MainApp extends Application {
         Pane root = new Pane();
 
         // FOR NOW - this is a difficulty changer for labyrinth
-        Difficulty.current = Difficulty.EASY;
+        Difficulty.current = Difficulty.MEDIUM;
 
         String bgColor = "#111520";
         root.setStyle("-fx-background-color: " + bgColor + ";");

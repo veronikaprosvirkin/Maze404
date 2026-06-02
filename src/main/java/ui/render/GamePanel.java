@@ -94,10 +94,10 @@ public class GamePanel extends Pane {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         gridRenderer.draw(gc, grid);
+        drawArtifacts(gc);
         if (mistEnabled) {
             drawMist(gc, grid, player);
         }
-        drawArtifacts(gc);
         playerRenderer.draw(gc, player, TILE_SIZE, this.difficulty);
     }
 
