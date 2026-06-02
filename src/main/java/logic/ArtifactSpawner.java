@@ -46,14 +46,14 @@ public class ArtifactSpawner {
                 flashlightCount = 2;
             }
             case MEDIUM -> {
-                crystalCount = 8;  // На 2 гри (6 шт) + 2 в запас
+                crystalCount = 8;
                 miniGameCount = 2;
                 shieldCount = 2;
                 radarCount = 1;
                 flashlightCount = 1;
             }
             case HARD -> {
-                crystalCount = 12; // На 3 гри (9 шт) + 3 в запас
+                crystalCount = 12;
                 miniGameCount = 3;
                 shieldCount = 2;
                 radarCount = 1;
