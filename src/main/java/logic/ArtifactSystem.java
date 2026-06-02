@@ -39,6 +39,9 @@ public class ArtifactSystem {
                         player.addElixir(1);
                         EventBus.getInstance().publish(new GameEvent(GameEvent.Type.ARTIFACT_COLLECTED, playerPos));
                     }
+                    case MINI_GAME -> {
+                        EventBus.getInstance().publish(new GameEvent(GameEvent.Type.MINI_GAME_TRIGGERED, playerPos));
+                    }
                 }
             }
         }
