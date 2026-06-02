@@ -17,6 +17,7 @@ public abstract class MiniGame {
     protected int width = 450;
     protected int height = 450;
     protected MiniGameResult result = MiniGameResult.PENDING;
+    protected String rewardName = "";
 
     protected void setupWindow(Stage stage, Scene scene, String title) {
         String cssFile = switch (Difficulty.current) {
@@ -31,7 +32,7 @@ public abstract class MiniGame {
         stage.setHeight(height);
         stage.setResizable(false);
         stage.setScene(scene);
-        stage.show();
+        stage.showAndWait();
     }
 
     /**
@@ -68,6 +69,10 @@ public abstract class MiniGame {
         String subtitleText = customSubtitle != null
                 ? customSubtitle
                 : (isWin ? "Access granted.  Proceed." : "Connection lost.  Try again.");
+
+        if (isWin && rewardName != null && !rewardName.isEmpty()) {
+            subtitleText += "\nAcquired: " + rewardName;
+        }
 
         // ── icon ────────────────────────────────────────────────────
         Label iconLabel = new Label(icon);

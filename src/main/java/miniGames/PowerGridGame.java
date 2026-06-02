@@ -25,8 +25,9 @@ public class PowerGridGame extends MiniGame {
     private Label resultLabel;
     private StackPane wrapper;
 
-    public static PowerGridGame startNewGame(Difficulty difficulty) {
+    public static PowerGridGame startNewGame(Difficulty difficulty, String reward) {
         PowerGridGame game = new PowerGridGame();
+        game.rewardName = reward;
         game.applyDifficulty(difficulty);
         game.showWindow();
         return game;

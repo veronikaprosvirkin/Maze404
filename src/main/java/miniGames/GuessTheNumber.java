@@ -24,8 +24,9 @@ public class GuessTheNumber extends MiniGame {
     private int maxAttempts;
     int targetNumber;
 
-    public static GuessTheNumber startNewGame(Difficulty difficulty) {
+    public static GuessTheNumber startNewGame(Difficulty difficulty, String reward) {
         GuessTheNumber game = new GuessTheNumber();
+        game.rewardName = reward;
         game.applyDifficulty(difficulty);
         game.showWindow();
         return game;

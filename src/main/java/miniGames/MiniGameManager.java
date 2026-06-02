@@ -1,6 +1,7 @@
 package miniGames;
 
 import enums.Difficulty;
+import enums.MiniGameResult;
 import events.EventBus;
 import events.GameEvent;
 import model.Player;
@@ -63,17 +64,35 @@ public class MiniGameManager {
     }
 
     private void launchRandomMiniGame() {
-        int gameChoice = random.nextInt(6);
+        int rewardIndex = random.nextInt(4);
+        String rewardText = switch (rewardIndex) {
+            case 0 -> "Energy Shield";
+            case 1 -> "Radar Charge";
+            case 2 -> "Holo-Beacon";
+            case 3 -> "Cyber-Elixir";
+            default -> "Unknown Artifact";
+        };
 
+        int gameChoice = random.nextInt(6);
         Difficulty currentDiff = Difficulty.current;
 
-        switch (gameChoice) {
-            case 0 -> ClickerMiniGame.startNewGame(currentDiff);
-            case 1 -> EchoGame.startNewGame(currentDiff);
-            case 2 -> GuessTheNumber.startNewGame(currentDiff);
-            case 3 -> MemoryGame.startNewGame(currentDiff);
-            case 4 -> Numberle.startNewGame(currentDiff);
-            case 5 -> PowerGridGame.startNewGame(currentDiff);
+        MiniGame game = switch (gameChoice) {
+            case 0 -> ClickerMiniGame.startNewGame(currentDiff, rewardText);
+            case 1 -> EchoGame.startNewGame(currentDiff, rewardText);
+            case 2 -> GuessTheNumber.startNewGame(currentDiff, rewardText);
+            case 3 -> MemoryGame.startNewGame(currentDiff, rewardText);
+            case 4 -> Numberle.startNewGame(currentDiff, rewardText);
+            case 5 -> PowerGridGame.startNewGame(currentDiff, rewardText);
+            default -> throw new IllegalStateException();
+        };
+
+        if (game.getResult() == enums.MiniGameResult.SUCCESS) {
+            switch (rewardIndex) {
+                case 0 -> player.addShield(1);
+                case 1 -> player.addRadarCharge(1);
+                case 2 -> player.addBeacon(1);
+                case 3 -> player.addElixir(1);
+            }
         }
     }
 }
