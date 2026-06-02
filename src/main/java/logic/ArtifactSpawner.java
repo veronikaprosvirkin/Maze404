@@ -2,7 +2,6 @@ package logic;
 
 import Utilities.Util;
 import enums.ArtifactType;
-import enums.CellType;
 import enums.Difficulty;
 import model.Artifact;
 import model.Grid;
@@ -23,7 +22,8 @@ public class ArtifactSpawner {
         int miniGameCount = 0;
         int shieldCount = 0;
         int radarCount = 0;
-        int flashlightCount = 0;
+        int beaconCount = 0;
+        int elixirCount = 0;
 
         switch (difficulty) {
             case EASY -> {
@@ -31,21 +31,24 @@ public class ArtifactSpawner {
                 miniGameCount = 1;
                 shieldCount = 2;
                 radarCount = 1;
-                flashlightCount = 2;
+                beaconCount = 2;
+                elixirCount = 2;
             }
             case MEDIUM -> {
                 crystalCount = 8;
                 miniGameCount = 2;
                 shieldCount = 2;
                 radarCount = 1;
-                flashlightCount = 1;
+                beaconCount = 1;
+                elixirCount = 2;
             }
             case HARD -> {
                 crystalCount = 12;
                 miniGameCount = 3;
                 shieldCount = 2;
                 radarCount = 1;
-                flashlightCount = 2;
+                beaconCount = 2;
+                elixirCount = 1;
             }
         }
 
@@ -76,9 +79,15 @@ public class ArtifactSpawner {
             index++;
         }
 
-        // flashlights
-        for (int i = 0; i < flashlightCount && index < floorCells.size(); i++) {
-            artifacts.add(new Artifact(floorCells.get(index), ArtifactType.FLASHLIGHT));
+        // beacons
+        for (int i = 0; i < beaconCount && index < floorCells.size(); i++) {
+            artifacts.add(new Artifact(floorCells.get(index), ArtifactType.BEACON));
+            index++;
+        }
+
+        // elixirs
+        for (int i = 0; i < elixirCount && index < floorCells.size(); i++) {
+            artifacts.add(new Artifact(floorCells.get(index), ArtifactType.ELIXIR));
             index++;
         }
 

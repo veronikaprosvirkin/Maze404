@@ -4,6 +4,7 @@ public enum ArtifactType {
     CRYSTAL,
     SHIELD,
     RADAR,      //shows nearby traps for a short time
-    FLASHLIGHT,
+    BEACON,      
+    ELIXIR,
     MINI_GAME
 }

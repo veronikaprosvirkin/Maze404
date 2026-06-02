@@ -23,6 +23,10 @@ public class Player {
     private int radarCharges = 0;
     @Getter
     private int beaconCount = 0;
+    @Getter
+    private int shieldCount = 0;
+    @Getter
+    private int elixirCount = 0;
     private boolean shieldActive = false;
 
     public Player(int row, int col) {
@@ -32,13 +36,20 @@ public class Player {
 
     public boolean hasShield()       { return shieldActive; }
 
+    //adding artifacts
     public void addCrystals(int amount)    { crystals += amount; }
+    public void addRadarCharge(int amount) { radarCharges += amount; }
+    public void addShield(int amount)      { shieldCount += amount; }
+    public void addBeacon(int amount)      { beaconCount += amount; }
+    public void addElixir(int amount)      { elixirCount += amount; }
+
+
+    //using artifacts
     public void activateShield()           { shieldActive = true; }
     public void deactivateShield()         { shieldActive = false; }
-    public void addRadarCharge(int amount) { radarCharges += amount; }
     public void useRadarCharge()           { if (radarCharges > 0) radarCharges--; }
-    public void addBeacon(int amount)      { beaconCount += amount; }
     public void useBeacon()                { if (beaconCount > 0) beaconCount--; }
+    public void useElixir()                { if (elixirCount > 0) elixirCount--; }
 
     public void takeDamage(int amount) {
         if (shieldActive) {

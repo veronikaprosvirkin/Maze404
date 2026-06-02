@@ -41,6 +41,7 @@ public class InputHandler {
             case B -> GameAction.BEACON;
             case R -> GameAction.RADAR;
             case E -> GameAction.SHIELD;
+            case H -> GameAction.ELIXIR;
             default -> null;
         };
     }
