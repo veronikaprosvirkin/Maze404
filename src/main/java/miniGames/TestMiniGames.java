@@ -32,22 +32,22 @@ public class TestMiniGames extends Application {
         difficultyBtn.setStyle("-fx-font-weight: bold; -fx-background-color: #4A90E2; -fx-text-fill: white;");
 
         Button guessGameBtn = new Button("Test: Guess The Number");
-        guessGameBtn.setOnAction(e -> GuessTheNumber.startNewGame(TestLauncher.difficulty));
+        guessGameBtn.setOnAction(e -> GuessTheNumber.startNewGame(TestLauncher.difficulty, "Guess The Number Reward"));
 
         Button clickerGameBtn = new Button("Test: Clicker Game");
-        clickerGameBtn.setOnAction(e -> ClickerMiniGame.startNewGame(TestLauncher.difficulty));
+        clickerGameBtn.setOnAction(e -> ClickerMiniGame.startNewGame(TestLauncher.difficulty, "Clicker Game Reward"));
 
         Button memoryGameBtn = new Button("Test: Memory Game");
-        memoryGameBtn.setOnAction(e -> MemoryGame.startNewGame(TestLauncher.difficulty));
+        memoryGameBtn.setOnAction(e -> MemoryGame.startNewGame(TestLauncher.difficulty, "Memory Game Reward"));
 
         Button echoGameBtn = new Button("Test: Echo Game");
-        echoGameBtn.setOnAction(e -> EchoGame.startNewGame(TestLauncher.difficulty));
+        echoGameBtn.setOnAction(e -> EchoGame.startNewGame(TestLauncher.difficulty, "Echo Game Reward"));
 
         Button powerGame = new Button("Test: Power Game");
-        powerGame.setOnAction(e -> PowerGridGame.startNewGame(TestLauncher.difficulty));
+        powerGame.setOnAction(e -> PowerGridGame.startNewGame(TestLauncher.difficulty, "Power Grid Reward"));
 
         Button numberleGame = new Button("Test: Numberle Game");
-        numberleGame.setOnAction(e -> Numberle.startNewGame(TestLauncher.difficulty));
+        numberleGame.setOnAction(e -> Numberle.startNewGame(TestLauncher.difficulty, "Numberle Reward"));
 
         VBox root = new VBox(15, difficultyBtn, guessGameBtn, clickerGameBtn, memoryGameBtn, echoGameBtn, powerGame,
                 numberleGame);

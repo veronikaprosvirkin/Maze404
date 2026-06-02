@@ -31,8 +31,9 @@ public class EchoGame extends MiniGame {
     private Label resultLabel;
     private StackPane wrapper;
 
-    public static EchoGame startNewGame(Difficulty difficulty) {
+    public static EchoGame startNewGame(Difficulty difficulty, String reward) {
         EchoGame game = new EchoGame();
+        game.rewardName = reward;
         game.applyDifficulty(difficulty);
         game.showWindow();
         return game;
