@@ -1,5 +1,6 @@
 package logic;
 
+import Utilities.Util;
 import enums.ArtifactType;
 import enums.CellType;
 import enums.Difficulty;
@@ -13,21 +14,8 @@ import java.util.List;
 
 public class ArtifactSpawner {
 
-    private List<Position> getFloorCells(Grid grid) {
-        List<Position> floorCells = new ArrayList<>();
-
-        for (int x = 0; x < grid.getWidth(); x++) {
-            for (int y = 0; y < grid.getHeight(); y++) {
-                if (grid.getCell(x, y).getType() == CellType.FLOOR) {
-                    floorCells.add(new Position(x, y));
-                }
-            }
-        }
-        return floorCells;
-    }
-
     public List<Artifact> spawnArtifacts(Grid grid, Difficulty difficulty, Position playerStart) {
-        List<Position> floorCells = getFloorCells(grid);
+        List<Position> floorCells = Util.getFloorCells(grid);
         floorCells.removeIf(p -> p.manhattanDistance(playerStart) < 2);
         Collections.shuffle(floorCells);
 
