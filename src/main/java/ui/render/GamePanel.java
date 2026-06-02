@@ -6,8 +6,11 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import model.Artifact;
 import model.Grid;
 import model.Player;
+
+import java.util.List;
 
 public class GamePanel extends Pane {
     private static final int TILE_SIZE = 32;
@@ -20,6 +23,7 @@ public class GamePanel extends Pane {
     private final GridRenderer gridRenderer;
     private final PlayerRenderer playerRenderer;
     private final Difficulty difficulty;
+    private final List<Artifact> artifacts;
     private boolean mistEnabled = false;
     private double mistAnimationTimeScale = 1.0;
     private double mistDensity = 1.0;
@@ -57,12 +61,14 @@ public class GamePanel extends Pane {
     ) {
     }
 
-    public GamePanel(Grid grid, Player player) {
-        this(grid, player, Difficulty.current);
-    }
 
     public GamePanel(Grid grid, Player player, Difficulty difficulty) {
+        this(grid, player, List.of(), difficulty);
+    }
+
+    public GamePanel(Grid grid, Player player, List<Artifact> artifacts, Difficulty difficulty) {
         this.difficulty = difficulty != null ? difficulty : Difficulty.current;
+        this.artifacts = artifacts != null ? List.copyOf(artifacts) : List.of();
         this.canvas = new Canvas(grid.getWidth() * TILE_SIZE, grid.getHeight() * TILE_SIZE);
         this.gridRenderer = new GridRenderer(new SpriteSheet(this.difficulty));
         this.playerRenderer = new PlayerRenderer();
@@ -91,6 +97,7 @@ public class GamePanel extends Pane {
         if (mistEnabled) {
             drawMist(gc, grid, player);
         }
+        drawArtifacts(gc);
         playerRenderer.draw(gc, player, TILE_SIZE, this.difficulty);
     }
 
@@ -169,6 +176,40 @@ public class GamePanel extends Pane {
                     gc.fillRect(x, y, MIST_SAMPLE_STEP, MIST_SAMPLE_STEP);
                 }
             }
+        }
+    }
+
+    private void drawArtifacts(GraphicsContext gc) {
+        for (Artifact artifact : artifacts) {
+            if (artifact == null || artifact.isCollected() || artifact.getPosition() == null) {
+                continue;
+            }
+
+            double centerX = artifact.getPosition().getCol() * TILE_SIZE + TILE_SIZE / 2.0;
+            double centerY = artifact.getPosition().getRow() * TILE_SIZE + TILE_SIZE / 2.0;
+            double radius = TILE_SIZE * 0.22;
+
+            Color artifactColor;
+            switch (artifact.getType()) {
+                case CRYSTAL ->   artifactColor = Color.rgb(255, 215, 0, 0.92);
+                case MINI_GAME -> artifactColor = Color.rgb(255, 20, 147, 0.95);
+                case SHIELD ->    artifactColor = Color.rgb(0, 200, 255, 0.92);
+                case RADAR ->     artifactColor = Color.rgb(0, 255, 100, 0.92);
+                case BEACON ->    artifactColor = Color.rgb(255, 100, 0, 0.92);
+                case ELIXIR ->    artifactColor = Color.rgb(200, 0, 255, 0.92);
+                default ->        artifactColor = Color.WHITE;
+            }
+
+            gc.setFill(artifactColor);
+            gc.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
+
+
+            gc.setStroke(artifactColor.brighter());
+            gc.setLineWidth(1.2);
+            gc.strokeOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
+
+            gc.setFill(Color.rgb(255, 255, 255, 0.45));
+            gc.fillOval(centerX - radius * 0.45, centerY - radius * 0.55, radius * 0.55, radius * 0.4);
         }
     }
 
