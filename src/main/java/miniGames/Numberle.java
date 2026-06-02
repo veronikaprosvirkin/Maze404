@@ -37,8 +37,9 @@ public class Numberle extends MiniGame {
         this.height = 540;
     }
 
-    public static Numberle startNewGame(Difficulty difficulty) {
+    public static Numberle startNewGame(Difficulty difficulty, String reward) {
         Numberle game = new Numberle();
+        game.rewardName = reward;
         game.applyDifficulty(difficulty);
         game.showWindow();
         return game;

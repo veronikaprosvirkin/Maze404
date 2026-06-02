@@ -19,8 +19,9 @@ public class ClickerMiniGame extends MiniGame {
     private Timeline timer;
     private StackPane wrapper;
 
-    public static ClickerMiniGame startNewGame(Difficulty difficulty) {
+    public static ClickerMiniGame startNewGame(Difficulty difficulty, String reward) {
         ClickerMiniGame game = new ClickerMiniGame();
+        game.rewardName = reward;
         game.applyDifficulty(difficulty);
         game.showWindow();
         return game;
