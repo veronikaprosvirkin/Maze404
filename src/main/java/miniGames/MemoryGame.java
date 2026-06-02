@@ -30,8 +30,9 @@ public class MemoryGame extends MiniGame {
     private double revealTime;
     private int mistakesLimit;
 
-    public static MemoryGame startNewGame(Difficulty difficulty) {
+    public static MemoryGame startNewGame(Difficulty difficulty, String reward) {
         MemoryGame game = new MemoryGame();
+        game.rewardName = reward;
         game.applyDifficulty(difficulty);
         game.showWindow();
         return game;

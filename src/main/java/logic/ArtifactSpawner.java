@@ -27,8 +27,8 @@ public class ArtifactSpawner {
 
         switch (difficulty) {
             case EASY -> {
-                crystalCount = 7;
-                miniGameCount = 1;
+                crystalCount = 10;
+                miniGameCount = 3;
                 shieldCount = 2;
                 radarCount = 1;
                 beaconCount = 2;
@@ -43,8 +43,8 @@ public class ArtifactSpawner {
                 elixirCount = 2;
             }
             case HARD -> {
-                crystalCount = 12;
-                miniGameCount = 3;
+                crystalCount = 6;
+                miniGameCount = 2;
                 shieldCount = 2;
                 radarCount = 1;
                 beaconCount = 2;
