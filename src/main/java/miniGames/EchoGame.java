@@ -74,6 +74,7 @@ public class EchoGame extends MiniGame {
 
         Button startButton = new Button("Start");
         startButton.setId("start-button");
+        startButton.setStyle("-fx-pref-width: 215px; -fx-max-width: 215px;");
 
         GridPane grid = getGridPane();
 
