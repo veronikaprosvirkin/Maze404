@@ -50,6 +50,13 @@ public class Player {
     public void useRadarCharge()           { if (radarCharges > 0) radarCharges--; }
     public void useBeacon()                { if (beaconCount > 0) beaconCount--; }
     public void useElixir()                { if (elixirCount > 0) elixirCount--; }
+    public boolean useCrystal()              {
+        if (crystals > 0) {
+            crystals--;
+            return true;
+        }
+        return false;
+    }
 
     public void takeDamage(int amount) {
         if (shieldActive) {
