@@ -8,6 +8,7 @@ public enum GameAction {
     SCAN,
     BEACON,
     RADAR,
-    SHIELD
+    SHIELD,
+    ELIXIR
 }
 
