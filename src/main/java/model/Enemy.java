@@ -16,6 +16,9 @@ public class Enemy {
     private EnemyMode mode;
     private List<Position> patrolPath;
 
+    public Enemy(String goblin, int i, int i1, int i2) {
+    }
+
     public List<Position> getPatrolRoute() {
         return patrolPath;
     }
