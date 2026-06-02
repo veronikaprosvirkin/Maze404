@@ -83,7 +83,7 @@
 #instruction-label {
     -fx-text-fill: #D2DCE8;
     -fx-font-family: "IM Fell English", serif;
-    -fx-font-size: 12px;
+    -fx-font-size: 14px;
     -fx-font-weight: normal;
     -fx-pref-width: 370;
     -fx-max-width: 370;
@@ -123,9 +123,9 @@
    MOVES LABEL — secondary HUD stat (PowerGrid)
    ---------------------------------------------------------- */
 #moves-label {
-    -fx-text-fill: #6A7D9A;
+    -fx-text-fill: #A8B8CC;
     -fx-font-family: "IBM Plex Mono", monospace;
-    -fx-font-size: 13px;
+    -fx-font-size: 14px;
     -fx-font-weight: normal;
     -fx-alignment: CENTER;
     -fx-text-alignment: CENTER;
@@ -138,9 +138,9 @@
    RESULT LABEL — feedback after a guess
    ---------------------------------------------------------- */
 #result-label {
-    -fx-text-fill: #445570;
+    -fx-text-fill: #A8B8CC;
     -fx-font-family: "IBM Plex Mono", monospace;
-    -fx-font-size: 11px;
+    -fx-font-size: 13px;
     -fx-pref-width: 370;
     -fx-max-width: 370;
     -fx-wrap-text: true;
@@ -165,9 +165,9 @@
    HISTORY LABEL — section heading
    ---------------------------------------------------------- */
 #history-label {
-    -fx-text-fill: #6A7D9A;
+    -fx-text-fill: #A8B8CC;
     -fx-font-family: "IBM Plex Mono", monospace;
-    -fx-font-size: 10px;
+    -fx-font-size: 12px;
     -fx-font-weight: normal;
     -fx-pref-width: 332;
     -fx-max-width: 332;
@@ -325,17 +325,17 @@
 
 #history-list .list-cell {
     -fx-background-color: transparent;
-    -fx-text-fill: #445570;
+    -fx-text-fill: #A8B8CC;
     -fx-font-family: "IBM Plex Mono", monospace;
-    -fx-font-size: 10px;
+    -fx-font-size: 12px;
     -fx-padding: 3 8 3 8;
     -fx-border-color: transparent;
 }
 
 .history-text {
-    -fx-text-fill: #445570;
+    -fx-text-fill: #A8B8CC;
     -fx-font-family: "IBM Plex Mono", monospace;
-    -fx-font-size: 10px;
+    -fx-font-size: 12px;
 }
 
 #history-list .list-cell:odd {
@@ -667,9 +667,9 @@
 
 #end-subtitle-label {
     -fx-font-family: "IBM Plex Mono", monospace;
-    -fx-font-size: 12px;
+    -fx-font-size: 13px;
     -fx-font-weight: normal;
-    -fx-text-fill: #6A7D9A;
+    -fx-text-fill: #A8B8CC;
     -fx-alignment: CENTER;
     -fx-text-alignment: CENTER;
     -fx-padding: 4 0 0 0;
@@ -677,7 +677,8 @@
 
 #end-separator-label {
     -fx-font-family: "IBM Plex Mono", monospace;
-    -fx-font-size: 11px;
+    -fx-font-size: 12px;
+    -fx-text-fill: #A8B8CC;
     -fx-alignment: CENTER;
     -fx-text-alignment: CENTER;
 }
