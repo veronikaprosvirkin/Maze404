@@ -73,7 +73,7 @@ public class MainApp extends Application {
         };
         root.setStyle("-fx-background-color: " + bgColor + ";");
 
-        Grid grid = new MazeGenerator().generate(15, 15);
+        Grid grid = new MazeGenerator().generate(21, 21);
 
         Player player = new Player(7, 7);
         player.setSkin(settings.playerSkin() != null ? settings.playerSkin() : PlayerSkin.CIRCLE);
@@ -90,7 +90,7 @@ public class MainApp extends Application {
         miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(player);
 
         GamePanel gamePanel = new GamePanel(grid, player, artifacts, Difficulty.current, settings.mistSampleStep());
-        boolean mistEnabled = false;
+        boolean mistEnabled = true;
         double mistAnimationTime = 1.2;
         double mistDensity = 1;
         gamePanel.setMistEnabled(mistEnabled);

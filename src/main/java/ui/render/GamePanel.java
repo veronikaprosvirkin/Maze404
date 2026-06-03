@@ -15,7 +15,7 @@ import java.util.List;
 
 public class GamePanel extends Pane {
     private static final int TILE_SIZE = 32;
-    private static final int MIST_RADIUS_CELLS = 3;
+    private static final int MIST_RADIUS_CELLS = 6;
     private static final int DEFAULT_MIST_SAMPLE_STEP = 2;
     private static final double MIST_ALPHA_CAP = 0.97;
     private static final double MIST_FOCUS_TRANSITION_SECONDS = 0.3;

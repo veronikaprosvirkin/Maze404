@@ -36,9 +36,9 @@ public class LevelConfig {
     // Фабричний метод  повертає дефолтний конфіг для рівня без JSON
     public static LevelConfig defaultFor(int level) {
         return switch (level) {
-            case 1 -> new LevelConfig(1, 11, 11,  5, 3,  8, 0, 1, false, 0, 0);
-            case 2 -> new LevelConfig(2, 15, 15, 10, 3, 12, 3, 2, true,  2, 4);
-            case 3 -> new LevelConfig(3, 19, 19, 18, 2, 15, 5, 3, true,  2, 4);
+            case 1 -> new LevelConfig(1, 21, 21,  5, 3,  8, 0, 1, false, 0, 0);
+            case 2 -> new LevelConfig(2, 21, 21, 10, 3, 12, 3, 2, true,  2, 4);
+            case 3 -> new LevelConfig(3, 21, 21, 18, 2, 15, 5, 3, true,  2, 4);
             default -> throw new IllegalArgumentException("Unknown level: " + level);
         };
     }
