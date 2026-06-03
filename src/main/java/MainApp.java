@@ -62,8 +62,7 @@ public class MainApp extends Application {
     }
 
     private void startGame(StackPane root, Scene scene, StartMenuView.MenuSettings settings) {
-        // FOR NOW - this is a difficulty changer for labyrinth
-        Difficulty.current = Difficulty.EASY;
+        Difficulty.current = settings.difficulty() != null ? settings.difficulty() : Difficulty.EASY;
 
         String bgColor = switch (Difficulty.current) {
             case MEDIUM -> "#161210";
