@@ -1,6 +1,7 @@
 package ui.render;
 
 import enums.Difficulty;
+import enums.PlayerSkin;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -41,11 +42,12 @@ public class StartMenuView extends StackPane {
     private static final int TILE_SIZE = 32;
     private static final double BASE_WIDTH = 1024.0;
     private static final double BASE_HEIGHT = 576.0;
-    private static final int MIST_SAMPLE_STEP = 4;
+    private static final int MIST_SAMPLE_STEP = 6;
     private static final int DEFAULT_GAME_VOLUME = 75;
     private static final double SETTINGS_FRAME_WIDTH = 660.0;
     private static final double SETTINGS_CONTROL_WIDTH = 550.0;
     private static final double SETTINGS_SLIDER_WIDTH = 550.0;
+    private static final double SKINS_FRAME_WIDTH = 660.0;
     private static final double MIST_ALPHA_CAP = 0.98;
     private static final double TITLE_FONT_SIZE = 62.0;
 
@@ -62,8 +64,9 @@ public class StartMenuView extends StackPane {
     private double mistTargetY = BASE_HEIGHT * 0.5;
     private double gameVolume = DEFAULT_GAME_VOLUME;
     private double mistSampleStep = MIST_SAMPLE_STEP;
+    private int currentSkinIndex = 0;
 
-    public record MenuSettings(double gameVolume, int mistSampleStep) {
+    public record MenuSettings(double gameVolume, int mistSampleStep, PlayerSkin playerSkin) {
     }
 
     private record MenuArtifact(int row, int col, Color base, Color accent, double phase, boolean diamond) {
@@ -208,7 +211,10 @@ public class StartMenuView extends StackPane {
                                 createMainMenuActions(onPlay, onExit, menuSlot)))),
                         false),
                 createMenuAction("Play", "play.png", () -> onPlay.accept(getMenuSettings()), true),
-                createMenuAction("Exit", "exit.png", onExit, false));
+                createMenuAction("Skins", "skins.png", () -> menuSlot.getChildren().setAll(
+                        createSkinsFrame(() -> menuSlot.getChildren().setAll(
+                                createMainMenuActions(onPlay, onExit, menuSlot)))),
+                        false));
         return actions;
     }
 
@@ -246,10 +252,10 @@ public class StartMenuView extends StackPane {
                 createSliderSetting(
                         "Mist quality",
                         1,
-                        20,
-                        20-mistSampleStep,
+                        30,
+                        30-mistSampleStep,
                         value -> Math.round(value) +"",
-                        value -> mistSampleStep = 20-value));
+                        value -> mistSampleStep = 30-value));
 
         Button exitButton = new Button("Back");
         exitButton.getStyleClass().add("settings-exit-button");
@@ -258,6 +264,52 @@ public class StartMenuView extends StackPane {
 
         settingsFrame.getChildren().addAll(heading, controls, exitButton);
         return settingsFrame;
+    }
+
+    private VBox createSkinsFrame(Runnable onBack) {
+        VBox skinsFrame = new VBox(18);
+        skinsFrame.getStyleClass().add("settings-frame");
+        skinsFrame.getStyleClass().add("skins-frame");
+        skinsFrame.setAlignment(Pos.CENTER);
+        skinsFrame.setMinWidth(SKINS_FRAME_WIDTH);
+        skinsFrame.setPrefWidth(SKINS_FRAME_WIDTH);
+        skinsFrame.setMaxWidth(SKINS_FRAME_WIDTH);
+
+        Rectangle clip = new Rectangle();
+        clip.setArcWidth(60);
+        clip.setArcHeight(60);
+        clip.widthProperty().bind(skinsFrame.widthProperty());
+        clip.heightProperty().bind(skinsFrame.heightProperty());
+        skinsFrame.setClip(clip);
+
+        Text heading = new Text("SKINS");
+        heading.getStyleClass().add("settings-heading");
+        heading.setEffect(new DropShadow(14, VIOLET_GLOW));
+
+        Text helper = new Text("Center skin is active");
+        helper.getStyleClass().add("skins-helper");
+
+        HBox gallery = new HBox(12);
+        gallery.getStyleClass().add("skins-gallery");
+        gallery.setAlignment(Pos.CENTER);
+
+        Button leftButton = createGalleryNavButton("left.png", -1, gallery);
+        Button rightButton = createGalleryNavButton("right.png", 1, gallery);
+        gallery.getChildren().setAll(
+                leftButton,
+                createSkinPreviewCard(getRelativeSkin(-1), false),
+                createSkinPreviewCard(getSelectedSkin(), true),
+                createSkinPreviewCard(getRelativeSkin(1), false),
+                rightButton
+        );
+
+        Button backButton = new Button("Back");
+        backButton.getStyleClass().add("settings-exit-button");
+        backButton.setGraphic(createIcon("back.png", 22));
+        backButton.setOnAction(event -> onBack.run());
+
+        skinsFrame.getChildren().addAll(heading, helper, gallery, backButton);
+        return skinsFrame;
     }
 
     private VBox createSliderSetting(
@@ -305,8 +357,69 @@ public class StartMenuView extends StackPane {
         return setting;
     }
 
+    private Button createGalleryNavButton(String iconName, int direction, HBox gallery) {
+        Button button = new Button();
+        button.getStyleClass().add("skins-nav-button");
+        button.setGraphic(createIcon(iconName, 28));
+        button.setOnAction(event -> {
+            currentSkinIndex = wrapSkinIndex(currentSkinIndex + direction);
+            gallery.getChildren().setAll(
+                    createGalleryNavButton("left.png", -1, gallery),
+                    createSkinPreviewCard(getRelativeSkin(-1), false),
+                    createSkinPreviewCard(getSelectedSkin(), true),
+                    createSkinPreviewCard(getRelativeSkin(1), false),
+                    createGalleryNavButton("right.png", 1, gallery)
+            );
+        });
+        return button;
+    }
+
+    private VBox createSkinPreviewCard(PlayerSkin skin, boolean current) {
+        VBox card = new VBox(current ? 14 : 10);
+        card.getStyleClass().add("skin-card");
+        if (current) {
+            card.getStyleClass().add("current");
+        } else {
+            card.getStyleClass().add("neighbor");
+        }
+        card.setAlignment(Pos.CENTER);
+
+        double canvasSize = current ? 138.0 : 104.0;
+        double radius = current ? 30.0 : 22.0;
+        double opacity = current ? 1.0 : 0.62;
+
+        Canvas canvas = new Canvas(canvasSize, canvasSize);
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.clearRect(0, 0, canvasSize, canvasSize);
+        PlayerRenderer.drawPreview(gc, skin, Difficulty.MEDIUM, canvasSize * 0.5, canvasSize * 0.5, radius, opacity);
+
+        Text name = new Text(skin.getDisplayName());
+        name.getStyleClass().add(current ? "skin-card-title-current" : "skin-card-title");
+
+        card.getChildren().addAll(canvas, name);
+        return card;
+    }
+
+    private PlayerSkin getSelectedSkin() {
+        return PlayerSkin.values()[wrapSkinIndex(currentSkinIndex)];
+    }
+
+    private PlayerSkin getRelativeSkin(int offset) {
+        return PlayerSkin.values()[wrapSkinIndex(currentSkinIndex + offset)];
+    }
+
+    private int wrapSkinIndex(int index) {
+        int total = PlayerSkin.values().length;
+        int wrapped = index % total;
+        return wrapped < 0 ? wrapped + total : wrapped;
+    }
+
     private MenuSettings getMenuSettings() {
-        return new MenuSettings(clamp(gameVolume / 100.0, 0.0, 1.0), (int) Math.round(mistSampleStep));
+        return new MenuSettings(
+                clamp(gameVolume / 100.0, 0.0, 1.0),
+                (int) Math.round(mistSampleStep),
+                getSelectedSkin()
+        );
     }
 
     private Font loadTitleFont(double size) {

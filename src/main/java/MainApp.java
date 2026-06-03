@@ -1,5 +1,6 @@
 import enums.CellType;
 import enums.Difficulty;
+import enums.PlayerSkin;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -24,8 +25,8 @@ import java.util.concurrent.CountDownLatch;
  * background threads can wait for the toolkit to be up and the primary stage shown.
  */
 public class MainApp extends Application {
-    private static final double MIN_WINDOW_WIDTH = 820;
-    private static final double MIN_WINDOW_HEIGHT = 500;
+    private static final double MIN_WINDOW_WIDTH = 1024;
+    private static final double MIN_WINDOW_HEIGHT = 680;
 
     private static final CountDownLatch START_LATCH = new CountDownLatch(1);
 
@@ -41,7 +42,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         StackPane root = new StackPane();
-        Scene scene = new Scene(root, 1024, 576);
+        Scene scene = new Scene(root, 1024, 680);
         StartMenuView startMenu = new StartMenuView(
                 settings -> startGame(root, scene, settings),
                 Platform::exit
@@ -62,7 +63,7 @@ public class MainApp extends Application {
 
     private void startGame(StackPane root, Scene scene, StartMenuView.MenuSettings settings) {
         // FOR NOW - this is a difficulty changer for labyrinth
-        Difficulty.current = Difficulty.MEDIUM;
+        Difficulty.current = Difficulty.EASY;
 
         String bgColor = switch (Difficulty.current) {
             case MEDIUM -> "#161210";
@@ -80,6 +81,7 @@ public class MainApp extends Application {
         }
 
         Player player = new Player(7, 7);
+        player.setSkin(settings.playerSkin() != null ? settings.playerSkin() : PlayerSkin.CIRCLE);
 
         ArtifactSpawner artifactSpawner = new ArtifactSpawner();
         List<Artifact> artifacts = artifactSpawner.spawnArtifacts(
