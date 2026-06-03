@@ -1,4 +1,4 @@
-package logic;
+package logic.generation;
 import enums.CellType;
 import model.Grid;
 import model.Position;
