@@ -516,11 +516,12 @@ public class StartMenuView extends StackPane {
         double clearRadius = Math.max(86.0, Math.min(width, height) * 0.20);
         double edgeFadeBand = clearRadius * 0.82;
         double timeSeconds = mistTimeNanos / 1_000_000_000.0;
+        int sampleStep = Math.max(1, (int) Math.round(mistSampleStep));
 
-        for (int y = 0; y < height; y += MIST_SAMPLE_STEP) {
-            for (int x = 0; x < width; x += MIST_SAMPLE_STEP) {
-                double sampleX = x + MIST_SAMPLE_STEP * 0.5;
-                double sampleY = y + MIST_SAMPLE_STEP * 0.5;
+        for (int y = 0; y < height; y += sampleStep) {
+            for (int x = 0; x < width; x += sampleStep) {
+                double sampleX = x + sampleStep * 0.5;
+                double sampleY = y + sampleStep * 0.5;
                 double dx = sampleX - mistFocusX;
                 double dy = sampleY - mistFocusY;
                 double dist = Math.sqrt(dx * dx + dy * dy);
@@ -556,7 +557,7 @@ public class StartMenuView extends StackPane {
                     double colorG = lerp(profile.colorG(), profile.accentG(), accentMask);
                     double colorB = lerp(profile.colorB(), profile.accentB(), accentMask);
                     gc.setFill(Color.color(colorR, colorG, colorB, alpha));
-                    gc.fillRect(x, y, MIST_SAMPLE_STEP, MIST_SAMPLE_STEP);
+                    gc.fillRect(x, y, sampleStep, sampleStep);
                 }
             }
         }
