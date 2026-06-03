@@ -1,0 +1,213 @@
+.start-menu {
+    -fx-background-color: #10071D;
+}
+
+.menu-maze-tint {
+    -fx-fill: rgba(24, 8, 42, 0.18);
+}
+
+.menu-edge-shade {
+    -fx-fill: rgba(0, 0, 0, 0.30);
+}
+
+.menu-vignette {
+    -fx-fill: rgba(8, 3, 14, 0.16);
+}
+
+.start-menu-title {
+    -fx-fill: #F1E8FF;
+    -fx-font-size: 62px;
+    -fx-font-weight: 300;
+}
+
+.menu-action-button {
+    -fx-background-radius: 999;
+    -fx-background-color: rgba(34, 16, 58, 0.42);
+    -fx-border-color: rgba(201, 167, 255, 0.96);
+    -fx-border-width: 4;
+    -fx-border-radius: 999;
+    -fx-cursor: hand;
+}
+
+.menu-action-button:focused {
+    -fx-background-insets: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.menu-action-button:hover {
+    -fx-background-color: rgba(76, 38, 124, 0.58);
+    -fx-border-color: #F1E8FF;
+}
+
+.menu-action-button.primary {
+    -fx-padding: 27;
+}
+
+.menu-action-button.secondary {
+    -fx-padding: 22;
+}
+
+.menu-action-label {
+    -fx-fill: #F1E8FF;
+    -fx-font-family: "Arial";
+    -fx-font-weight: 400;
+}
+
+.menu-action-label.primary {
+    -fx-font-size: 39px;
+}
+
+.menu-action-label.secondary {
+    -fx-font-size: 31px;
+}
+
+.settings-frame {
+    -fx-padding: 34 42 30 42;
+    -fx-background-color: rgba(20, 8, 34, 0.72);
+    -fx-background-radius: 30;
+    -fx-border-color: rgba(201, 167, 255, 0.88);
+    -fx-border-width: 3;
+    -fx-border-radius: 30;
+}
+
+.settings-heading {
+    -fx-fill: #F1E8FF;
+    -fx-font-size: 38px;
+    -fx-font-weight: 300;
+}
+
+.settings-row {
+    -fx-padding: 8 0 4 0;
+}
+
+.settings-label {
+    -fx-text-fill: #F1E8FF;
+    -fx-font-size: 20px;
+    -fx-font-weight: 400;
+}
+
+.settings-value {
+    -fx-text-fill: #C9A7FF;
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+}
+
+.settings-slider {
+    -fx-pref-width: 550px;
+    -fx-max-width: 550px;
+}
+
+.settings-slider .track {
+    -fx-background-color: rgba(241, 232, 255, 0.22);
+    -fx-background-radius: 999;
+    -fx-pref-height: 4px;
+}
+
+.settings-slider .thumb {
+    -fx-background-color: #F1E8FF;
+    -fx-background-radius: 999;
+    -fx-effect: dropshadow(gaussian, rgba(201, 167, 255, 0.86), 12, 0.18, 0, 0);
+    -fx-pref-width: 16px;
+    -fx-pref-height: 16px;
+}
+
+.settings-slider .axis {
+    -fx-tick-label-fill: transparent;
+}
+
+.settings-exit-button {
+    -fx-padding: 12 26 12 22;
+    -fx-background-color: rgba(76, 38, 124, 0.58);
+    -fx-background-radius: 999;
+    -fx-border-color: rgba(241, 232, 255, 0.86);
+    -fx-border-width: 2;
+    -fx-border-radius: 999;
+    -fx-cursor: hand;
+    -fx-text-fill: #F1E8FF;
+    -fx-font-size: 20px;
+}
+
+.settings-exit-button:hover {
+    -fx-background-color: rgba(113, 62, 176, 0.72);
+    -fx-border-color: #F1E8FF;
+}
+
+.settings-exit-button:focused {
+    -fx-background-insets: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.skins-frame {
+    -fx-padding: 26 24 22 24;
+}
+
+.skins-helper {
+    -fx-fill: rgba(241, 232, 255, 0.72);
+    -fx-font-size: 17px;
+}
+
+.skins-gallery {
+    -fx-padding: 4 0 8 0;
+}
+
+.skins-nav-button {
+    -fx-min-width: 52px;
+    -fx-min-height: 52px;
+    -fx-pref-width: 52px;
+    -fx-pref-height: 52px;
+    -fx-max-width: 52px;
+    -fx-max-height: 52px;
+    -fx-background-color: rgba(76, 38, 124, 0.58);
+    -fx-background-radius: 999;
+    -fx-border-color: rgba(241, 232, 255, 0.86);
+    -fx-border-width: 2;
+    -fx-border-radius: 999;
+    -fx-cursor: hand;
+}
+
+.skins-nav-button:hover {
+    -fx-background-color: rgba(113, 62, 176, 0.72);
+    -fx-border-color: #F1E8FF;
+}
+
+.skins-nav-button:focused {
+    -fx-background-insets: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.skin-card {
+    -fx-min-width: 138px;
+    -fx-pref-width: 138px;
+    -fx-max-width: 138px;
+    -fx-padding: 10 8 8 8;
+    -fx-background-color: rgba(26, 10, 42, 0.36);
+    -fx-background-radius: 20;
+    -fx-border-color: rgba(201, 167, 255, 0.24);
+    -fx-border-width: 2;
+    -fx-border-radius: 20;
+}
+
+.skin-card.current {
+    -fx-min-width: 170px;
+    -fx-pref-width: 170px;
+    -fx-max-width: 170px;
+    -fx-background-color: rgba(41, 18, 68, 0.52);
+    -fx-border-color: rgba(241, 232, 255, 0.88);
+}
+
+.skin-card.neighbor {
+    -fx-opacity: 0.92;
+}
+
+.skin-card-title {
+    -fx-fill: rgba(241, 232, 255, 0.68);
+    -fx-font-size: 16px;
+}
+
+.skin-card-title-current {
+    -fx-fill: #F1E8FF;
+    -fx-font-size: 19px;
+}

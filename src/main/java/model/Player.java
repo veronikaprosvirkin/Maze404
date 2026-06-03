@@ -1,5 +1,6 @@
 package model;
 
+import enums.PlayerSkin;
 import lombok.Getter;
 import lombok.Setter;
 import events.EventBus;
@@ -27,6 +28,9 @@ public class Player {
     private int shieldCount = 0;
     @Getter
     private int elixirCount = 0;
+    @Getter
+    @Setter
+    private PlayerSkin skin = PlayerSkin.CIRCLE;
     private boolean shieldActive = false;
 
     public Player(int row, int col) {
