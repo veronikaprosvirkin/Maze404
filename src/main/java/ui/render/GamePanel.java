@@ -94,7 +94,7 @@ public class GamePanel extends Pane {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         gridRenderer.draw(gc, grid);
-        drawArtifacts(gc);
+        drawArtifacts(gc, player);
         if (mistEnabled) {
             drawMist(gc, grid, player);
         }
@@ -179,9 +179,13 @@ public class GamePanel extends Pane {
         }
     }
 
-    private void drawArtifacts(GraphicsContext gc) {
+    private void drawArtifacts(GraphicsContext gc, Player player) {
         for (Artifact artifact : artifacts) {
             if (artifact == null || artifact.isCollected() || artifact.getPosition() == null) {
+                continue;
+            }
+
+            if (mistEnabled && !isWithinVisibleMistRadius(player, artifact)) {
                 continue;
             }
 
@@ -211,6 +215,18 @@ public class GamePanel extends Pane {
             gc.setFill(Color.rgb(255, 255, 255, 0.45));
             gc.fillOval(centerX - radius * 0.45, centerY - radius * 0.55, radius * 0.55, radius * 0.4);
         }
+    }
+
+    private boolean isWithinVisibleMistRadius(Player player, Artifact artifact) {
+        double playerCenterX = (player.getCol() + 0.5) * TILE_SIZE;
+        double playerCenterY = (player.getRow() + 0.5) * TILE_SIZE;
+        double artifactCenterX = artifact.getPosition().getCol() * TILE_SIZE + TILE_SIZE / 2.0;
+        double artifactCenterY = artifact.getPosition().getRow() * TILE_SIZE + TILE_SIZE / 2.0;
+        double dx = artifactCenterX - playerCenterX;
+        double dy = artifactCenterY - playerCenterY;
+        double visibleRadius = MIST_RADIUS_CELLS * TILE_SIZE;
+
+        return Math.sqrt(dx * dx + dy * dy) <= visibleRadius;
     }
 
     private void updateMistFocus(Player player) {
