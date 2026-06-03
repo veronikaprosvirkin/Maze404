@@ -43,8 +43,7 @@ public class MainApp extends Application {
         StackPane root = new StackPane();
         Scene scene = new Scene(root, 1024, 576);
         StartMenuView startMenu = new StartMenuView(
-                () -> startGame(root, scene),
-                root::requestFocus,
+                settings -> startGame(root, scene, settings),
                 Platform::exit
         );
 
@@ -61,7 +60,7 @@ public class MainApp extends Application {
         START_LATCH.countDown();
     }
 
-    private void startGame(StackPane root, Scene scene) {
+    private void startGame(StackPane root, Scene scene, StartMenuView.MenuSettings settings) {
         // FOR NOW - this is a difficulty changer for labyrinth
         Difficulty.current = Difficulty.MEDIUM;
 
@@ -93,13 +92,14 @@ public class MainApp extends Application {
         ArtifactSystem artifactSystem = new ArtifactSystem();
         miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(player);
 
-        GamePanel gamePanel = new GamePanel(grid, player, artifacts, Difficulty.current);
+        GamePanel gamePanel = new GamePanel(grid, player, artifacts, Difficulty.current, settings.mistSampleStep());
         boolean mistEnabled = true;
         double mistAnimationTime = 1.2;
         double mistDensity = 1;
         gamePanel.setMistEnabled(mistEnabled);
         gamePanel.setMistAnimationTimeScale(mistAnimationTime);
         gamePanel.setMistDensity(mistDensity);
+        gamePanel.setGameVolume(settings.gameVolume());
         root.getChildren().setAll(gamePanel);
 
         InputHandler inputHandler = new InputHandler(action -> {

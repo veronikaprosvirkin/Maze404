@@ -13,10 +13,14 @@ import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -28,6 +32,7 @@ import logic.MazeGenerator;
 import model.Grid;
 
 import java.io.InputStream;
+import java.util.function.Consumer;
 
 public class StartMenuView extends StackPane {
     private static final String ICON_PATH = "/icons/";
@@ -37,6 +42,11 @@ public class StartMenuView extends StackPane {
     private static final double BASE_WIDTH = 1024.0;
     private static final double BASE_HEIGHT = 576.0;
     private static final int MIST_SAMPLE_STEP = 4;
+    private static final int MIN_MIST_SAMPLE_STEP = 1;
+    private static final int MAX_MIST_SAMPLE_STEP = 8;
+    private static final int DEFAULT_GAME_VOLUME = 75;
+    private static final double SETTINGS_CONTROL_WIDTH = 536.0;
+    private static final double SETTINGS_SLIDER_WIDTH = 550.0;
     private static final double MIST_ALPHA_CAP = 0.98;
     private static final double TITLE_FONT_SIZE = 62.0;
 
@@ -51,6 +61,11 @@ public class StartMenuView extends StackPane {
     private double mistFocusY = BASE_HEIGHT * 0.5;
     private double mistTargetX = BASE_WIDTH * 0.5;
     private double mistTargetY = BASE_HEIGHT * 0.5;
+    private double gameVolume = DEFAULT_GAME_VOLUME;
+    private double mistSampleStep = MIST_SAMPLE_STEP;
+
+    public record MenuSettings(double gameVolume, int mistSampleStep) {
+    }
 
     private record MenuArtifact(int row, int col, Color base, Color accent, double phase, boolean diamond) {
     }
@@ -76,8 +91,7 @@ public class StartMenuView extends StackPane {
             double verticalSwing,
             double noiseScaleX,
             double noiseScaleY,
-            double accentStrength
-    ) {
+            double accentStrength) {
     }
 
     private static final MenuArtifact[] MENU_ARTIFACTS = {
@@ -89,6 +103,10 @@ public class StartMenuView extends StackPane {
     };
 
     public StartMenuView(Runnable onPlay, Runnable onSettings, Runnable onExit) {
+        this(settings -> onPlay.run(), onExit);
+    }
+
+    public StartMenuView(Consumer<MenuSettings> onPlay, Runnable onExit) {
         getStyleClass().add("start-menu");
         var stylesheet = StartMenuView.class.getResource("/styles/start-menu.css");
         if (stylesheet != null) {
@@ -98,8 +116,7 @@ public class StartMenuView extends StackPane {
         DoubleBinding uiScale = Bindings.createDoubleBinding(
                 () -> clamp(Math.min(getWidth() / BASE_WIDTH, getHeight() / BASE_HEIGHT), 0.38, 1.34),
                 widthProperty(),
-                heightProperty()
-        );
+                heightProperty());
 
         background.widthProperty().bind(widthProperty());
         background.heightProperty().bind(heightProperty());
@@ -146,20 +163,13 @@ public class StartMenuView extends StackPane {
         }
         title.setEffect(new DropShadow(24, VIOLET_GLOW));
 
-        HBox actions = new HBox();
-        actions.setAlignment(Pos.CENTER);
-        actions.setSpacing(86);
-        actions.setMinWidth(688);
-        actions.setPrefWidth(688);
-        actions.setMaxWidth(688);
+        StackPane menuSlot = new StackPane();
+        menuSlot.setMinWidth(760);
+        menuSlot.setPrefWidth(760);
+        menuSlot.setMaxWidth(760);
+        menuSlot.getChildren().setAll(createMainMenuActions(onPlay, onExit, menuSlot));
 
-        actions.getChildren().addAll(
-                createMenuAction("Settings", "settings.png", onSettings, false),
-                createMenuAction("Play", "play.png", onPlay, true),
-                createMenuAction("Exit", "exit.png", onExit, false)
-        );
-
-        content.getChildren().addAll(title, actions);
+        content.getChildren().addAll(title, menuSlot);
         contentFrame.getChildren().add(content);
         getChildren().add(contentFrame);
 
@@ -183,6 +193,120 @@ public class StartMenuView extends StackPane {
                 mistTimer.start();
             }
         });
+    }
+
+    private HBox createMainMenuActions(Consumer<MenuSettings> onPlay, Runnable onExit, StackPane menuSlot) {
+        HBox actions = new HBox();
+        actions.setAlignment(Pos.CENTER);
+        actions.setSpacing(86);
+        actions.setMinWidth(688);
+        actions.setPrefWidth(688);
+        actions.setMaxWidth(688);
+
+        actions.getChildren().addAll(
+                createMenuAction("Settings", "settings.png", () -> menuSlot.getChildren().setAll(
+                        createSettingsFrame(() -> menuSlot.getChildren().setAll(
+                                createMainMenuActions(onPlay, onExit, menuSlot)))),
+                        false),
+                createMenuAction("Play", "play.png", () -> onPlay.accept(getMenuSettings()), true),
+                createMenuAction("Exit", "exit.png", onExit, false));
+        return actions;
+    }
+
+    private VBox createSettingsFrame(Runnable onExitSettings) {
+        VBox settingsFrame = new VBox(24);
+        settingsFrame.getStyleClass().add("settings-frame");
+        settingsFrame.setAlignment(Pos.CENTER);
+        settingsFrame.setMinWidth(620);
+        settingsFrame.setPrefWidth(620);
+        settingsFrame.setMaxWidth(620);
+
+        Rectangle clip = new Rectangle();
+        clip.setArcWidth(60);
+        clip.setArcHeight(60);
+        clip.widthProperty().bind(settingsFrame.widthProperty());
+        clip.heightProperty().bind(settingsFrame.heightProperty());
+        settingsFrame.setClip(clip);
+
+        Text heading = new Text("SETTINGS");
+        heading.getStyleClass().add("settings-heading");
+        heading.setEffect(new DropShadow(14, VIOLET_GLOW));
+
+        VBox controls = new VBox(18);
+        controls.setAlignment(Pos.CENTER);
+        controls.setMaxWidth(SETTINGS_CONTROL_WIDTH);
+        controls.getChildren().addAll(
+                createSliderSetting(
+                        "Game volume",
+                        0,
+                        100,
+                        gameVolume,
+                        value -> Math.round(value) + "%",
+                        value -> gameVolume = value),
+                createSliderSetting(
+                        "MIST_SAMPLE_STEP",
+                        MIN_MIST_SAMPLE_STEP,
+                        MAX_MIST_SAMPLE_STEP,
+                        mistSampleStep,
+                        value -> String.format("%.1f", value),
+                        value -> mistSampleStep = value));
+
+        Button exitButton = new Button("Exit");
+        exitButton.getStyleClass().add("settings-exit-button");
+        exitButton.setGraphic(createIcon("exit.png", 22));
+        exitButton.setOnAction(event -> onExitSettings.run());
+
+        settingsFrame.getChildren().addAll(heading, controls, exitButton);
+        return settingsFrame;
+    }
+
+    private VBox createSliderSetting(
+            String name,
+            double min,
+            double max,
+            double initialValue,
+            java.util.function.DoubleFunction<String> valueFormatter,
+            java.util.function.DoubleConsumer onValueChanged) {
+        VBox setting = new VBox(8);
+        setting.getStyleClass().add("settings-row");
+        setting.setAlignment(Pos.TOP_CENTER);
+        setting.setMaxWidth(SETTINGS_CONTROL_WIDTH);
+
+        HBox labels = new HBox();
+        labels.setAlignment(Pos.CENTER_LEFT);
+        labels.setPrefWidth(SETTINGS_CONTROL_WIDTH);
+        labels.setMaxWidth(SETTINGS_CONTROL_WIDTH);
+
+        Label nameLabel = new Label(name);
+        nameLabel.getStyleClass().add("settings-label");
+
+        Label valueLabel = new Label(valueFormatter.apply(initialValue));
+        valueLabel.getStyleClass().add("settings-value");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        labels.getChildren().addAll(nameLabel, spacer, valueLabel);
+
+        Slider slider = new Slider(min, max, initialValue);
+        slider.getStyleClass().add("settings-slider");
+        slider.setPrefWidth(SETTINGS_SLIDER_WIDTH);
+        slider.setMaxWidth(SETTINGS_SLIDER_WIDTH);
+        slider.setMinWidth(SETTINGS_SLIDER_WIDTH);
+        slider.setShowTickMarks(false);
+        slider.setShowTickLabels(false);
+        slider.setSnapToTicks(false);
+        slider.valueProperty().addListener((obs, oldValue, newValue) -> {
+            double value = newValue.doubleValue();
+            onValueChanged.accept(value);
+            valueLabel.setText(valueFormatter.apply(value));
+        });
+
+        setting.getChildren().addAll(labels, slider);
+        return setting;
+    }
+
+    private MenuSettings getMenuSettings() {
+        return new MenuSettings(clamp(gameVolume / 100.0, 0.0, 1.0), (int) Math.round(mistSampleStep));
     }
 
     private Font loadTitleFont(double size) {
@@ -232,8 +356,7 @@ public class StartMenuView extends StackPane {
             String label,
             String iconName,
             Runnable action,
-            boolean primary
-    ) {
+            boolean primary) {
         double buttonSize = primary ? 178 : 136;
         double iconSize = primary ? 86 : 64;
         double itemWidth = primary ? 196 : 160;
@@ -279,8 +402,7 @@ public class StartMenuView extends StackPane {
                 new KeyValue(button.scaleXProperty(), scale, Interpolator.EASE_BOTH),
                 new KeyValue(button.scaleYProperty(), scale, Interpolator.EASE_BOTH),
                 new KeyValue(shadow.radiusProperty(), radius, Interpolator.EASE_BOTH),
-                new KeyValue(shadow.spreadProperty(), spread, Interpolator.EASE_BOTH)
-        ));
+                new KeyValue(shadow.spreadProperty(), spread, Interpolator.EASE_BOTH)));
         button.getProperties().put("hoverAnimation", animation);
         animation.play();
     }
@@ -341,10 +463,9 @@ public class StartMenuView extends StackPane {
             gc.setFill(artifact.base());
             if (artifact.diamond()) {
                 gc.fillPolygon(
-                        new double[]{centerX, centerX + radius, centerX, centerX - radius},
-                        new double[]{centerY - radius, centerY, centerY + radius, centerY},
-                        4
-                );
+                        new double[] { centerX, centerX + radius, centerX, centerX - radius },
+                        new double[] { centerY - radius, centerY, centerY + radius, centerY },
+                        4);
             } else {
                 gc.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
             }
@@ -354,8 +475,7 @@ public class StartMenuView extends StackPane {
                     artifact.accent().getRed(),
                     artifact.accent().getGreen(),
                     artifact.accent().getBlue(),
-                    0.50 + pulse * 0.30
-            ));
+                    0.50 + pulse * 0.30));
             gc.setLineWidth(Math.max(1.2, tile * 0.035));
             gc.strokeOval(centerX - radius * 1.9, centerY - radius * 1.9, radius * 3.8, radius * 3.8);
         }
@@ -417,7 +537,8 @@ public class StartMenuView extends StackPane {
 
                 double drift1 = Math.sin(flowX * profile.noiseScaleX() + timeSeconds * profile.driftSpeed())
                         * Math.cos(flowY * profile.noiseScaleY() - timeSeconds * profile.driftSpeed() * 0.85);
-                double drift2 = Math.sin(flowX * profile.noiseScaleX() * 0.62 - timeSeconds * profile.driftSpeed() * 0.52)
+                double drift2 = Math
+                        .sin(flowX * profile.noiseScaleX() * 0.62 - timeSeconds * profile.driftSpeed() * 0.52)
                         * Math.sin(flowY * profile.noiseScaleY() * 0.88 + timeSeconds * profile.driftSpeed() * 0.68);
                 double drift3 = Math.cos(flowX * profile.noiseScaleX() * 0.38 + flowY * profile.noiseScaleY() * 0.56
                         + timeSeconds * profile.driftSpeed() * 0.38);
@@ -452,8 +573,7 @@ public class StartMenuView extends StackPane {
                 1.12, 0.08,
                 42.0, 18.0,
                 0.016, 0.012,
-                0.58
-        );
+                0.58);
     }
 
     private MazeViewport getMazeViewport(double width, double height) {
