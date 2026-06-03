@@ -16,7 +16,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import model.Player;
 
-import java.util.Optional;
 import java.util.Random;
 
 public class MiniGameManager {
@@ -42,15 +41,20 @@ public class MiniGameManager {
                 "Artifact Recovered",
                 "A strange relic hums with unstable energy.\nSpend 1 crystal to enter a random mini-game?"
         );
+        boolean[] challengeAccepted = {false};
         Button enterChallengeButton = createAlertButton(alert, ButtonType.OK, "Enter Challenge", "artifact-confirm-button");
+        enterChallengeButton.setOnAction(event -> {
+            challengeAccepted[0] = true;
+            alert.setResult(ButtonType.OK);
+            alert.close();
+        });
         Button leaveItButton = createAlertButton(alert, ButtonType.CANCEL, "Leave It", "artifact-cancel-button");
         setAlertActions(alert, leaveItButton, enterChallengeButton);
         configureWindowClose(alert, ButtonType.CANCEL, ButtonType.OK);
 
-        Optional<ButtonType> result = alert.showAndWait();
+        alert.showAndWait();
 
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-
+        if (challengeAccepted[0]) {
             if (player.useCrystal()) {
                 launchRandomMiniGame();
             } else {
