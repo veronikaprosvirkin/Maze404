@@ -303,9 +303,9 @@ public class StartMenuView extends StackPane {
                 rightButton
         );
 
-        Button backButton = new Button("Back");
+        Button backButton = new Button("Select");
         backButton.getStyleClass().add("settings-exit-button");
-        backButton.setGraphic(createIcon("back.png", 22));
+        backButton.setGraphic(createIcon("select.png", 22));
         backButton.setOnAction(event -> onBack.run());
 
         skinsFrame.getChildren().addAll(heading, helper, gallery, backButton);
