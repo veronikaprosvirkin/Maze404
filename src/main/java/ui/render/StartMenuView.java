@@ -39,7 +39,8 @@ import java.util.function.Consumer;
 public class StartMenuView extends StackPane {
     private static final String ICON_PATH = "/icons/";
     private static final String TITLE_FONT_PATH = "/fonts/DoctorGlitch.otf";
-    private static final Color VIOLET_GLOW = Color.web("#C9A7FF");
+    private static final String LEVEL_PALETTE_CLASS_PREFIX = "start-menu-";
+    private static final Color DEFAULT_MENU_GLOW = Color.web("#C9A7FF");
     private static final int TILE_SIZE = 32;
     private static final double BASE_WIDTH = 1024.0;
     private static final double BASE_HEIGHT = 576.0;
@@ -67,7 +68,7 @@ public class StartMenuView extends StackPane {
     private final Canvas artifacts = new Canvas();
     private final Canvas mist = new Canvas();
     private final Grid menuMaze = new MazeGenerator().generate(19, 31);
-    private final GridRenderer gridRenderer = new GridRenderer(new SpriteSheet(Difficulty.MEDIUM));
+    private GridRenderer gridRenderer = new GridRenderer(new SpriteSheet(Difficulty.MEDIUM));
     private long mistTimeNanos = 0L;
     private long lastMistFrameNanos = 0L;
     private double mistFocusX = BASE_WIDTH * 0.5;
@@ -78,6 +79,7 @@ public class StartMenuView extends StackPane {
     private double mistSampleStep = MIST_SAMPLE_STEP;
     private int currentSkinIndex = 0;
     private int currentLevelIndex = 0;
+    private boolean levelPaletteActive = false;
 
     public record MenuSettings(double gameVolume, int mistSampleStep, PlayerSkin playerSkin, Difficulty difficulty) {
     }
@@ -86,6 +88,9 @@ public class StartMenuView extends StackPane {
     }
 
     private record LevelChoice(Difficulty difficulty, String levelName, String styleClass) {
+    }
+
+    private record LevelPalette(Color glow, MistProfile mistProfile) {
     }
 
     private record MazeViewport(double scale, double offsetX, double offsetY) {
@@ -111,6 +116,16 @@ public class StartMenuView extends StackPane {
             double noiseScaleY,
             double accentStrength) {
     }
+
+    private static final MistProfile DEFAULT_MENU_MIST_PROFILE = new MistProfile(
+            0.08, 0.03, 0.14,
+            0.62, 0.36, 0.96,
+            0.82, 0.28,
+            1.05, 52.0, -14.0,
+            1.12, 0.08,
+            42.0, 18.0,
+            0.016, 0.012,
+            0.58);
 
     private static final MenuArtifact[] MENU_ARTIFACTS = {
             new MenuArtifact(3, 5, Color.web("#F0D66A"), Color.web("#FFF3A6"), 0.0, true),
@@ -211,7 +226,7 @@ public class StartMenuView extends StackPane {
         if (titleFont != null) {
             title.setFont(titleFont);
         }
-        title.setEffect(new DropShadow(24, VIOLET_GLOW));
+        title.setEffect(new DropShadow(24, DEFAULT_MENU_GLOW));
 
         StackPane menuSlot = new StackPane();
         menuSlot.setMinWidth(760);
@@ -254,6 +269,8 @@ public class StartMenuView extends StackPane {
     }
 
     private StackPane createLevelsFrame(Runnable onSelectLevel, Runnable onBack) {
+        applySelectedLevelPalette();
+
         StackPane levelFrame = new StackPane();
         levelFrame.getStyleClass().add("levels-frame");
         levelFrame.setMinSize(BASE_WIDTH, BASE_HEIGHT);
@@ -274,7 +291,10 @@ public class StartMenuView extends StackPane {
         Button backButton = new Button("");
         backButton.getStyleClass().addAll("settings-exit-button", "levels-back-button");
         backButton.setGraphic(createIcon("back.png", 22));
-        backButton.setOnAction(event -> onBack.run());
+        backButton.setOnAction(event -> {
+            applyDefaultMenuPalette();
+            onBack.run();
+        });
 
         StackPane.setAlignment(backButton, Pos.TOP_LEFT);
         StackPane.setMargin(backButton, new Insets(0, 0, 0, 24));
@@ -299,7 +319,7 @@ public class StartMenuView extends StackPane {
 
         Text heading = new Text("SETTINGS");
         heading.getStyleClass().add("settings-heading");
-        heading.setEffect(new DropShadow(14, VIOLET_GLOW));
+        heading.setEffect(new DropShadow(14, DEFAULT_MENU_GLOW));
 
         VBox controls = new VBox(18);
         controls.setAlignment(Pos.CENTER);
@@ -348,7 +368,7 @@ public class StartMenuView extends StackPane {
 
         Text heading = new Text("SKINS");
         heading.getStyleClass().add("settings-heading");
-        heading.setEffect(new DropShadow(14, VIOLET_GLOW));
+        heading.setEffect(new DropShadow(14, DEFAULT_MENU_GLOW));
 
         Text helper = new Text("Center skin is active");
         helper.getStyleClass().add("skins-helper");
@@ -502,6 +522,7 @@ public class StartMenuView extends StackPane {
 
         slideOut.setOnFinished(event -> {
             currentLevelIndex = wrapLevelIndex(currentLevelIndex + direction);
+            applySelectedLevelPalette();
             StackPane nextCard = createLevelCard(getSelectedLevel(), onSelectLevel);
             nextCard.setOpacity(0.0);
             nextCard.setTranslateX(incomingStart);
@@ -602,6 +623,68 @@ public class StartMenuView extends StackPane {
         );
     }
 
+    private void applySelectedLevelPalette() {
+        levelPaletteActive = true;
+        removeLevelPaletteClasses();
+        getStyleClass().add(LEVEL_PALETTE_CLASS_PREFIX + getSelectedLevel().styleClass());
+        gridRenderer = new GridRenderer(new SpriteSheet(getSelectedLevel().difficulty()));
+        drawBackground();
+    }
+
+    private void applyDefaultMenuPalette() {
+        levelPaletteActive = false;
+        removeLevelPaletteClasses();
+        gridRenderer = new GridRenderer(new SpriteSheet(Difficulty.MEDIUM));
+        drawBackground();
+    }
+
+    private void removeLevelPaletteClasses() {
+        getStyleClass().removeIf(styleClass -> styleClass.startsWith(LEVEL_PALETTE_CLASS_PREFIX)
+                && !styleClass.equals("start-menu"));
+    }
+
+    private LevelPalette getSelectedLevelPalette() {
+        return paletteFor(getSelectedLevel().difficulty());
+    }
+
+    private LevelPalette paletteFor(Difficulty difficulty) {
+        return switch (difficulty) {
+            case MEDIUM -> new LevelPalette(
+                    Color.web("#E0C79B"),
+                    new MistProfile(
+                            0.20, 0.17, 0.12,
+                            0.82, 0.68, 0.42,
+                            0.78, 0.24,
+                            0.86, 36.0, -10.0,
+                            0.82, 0.06,
+                            28.0, 12.0,
+                            0.014, 0.011,
+                            0.46));
+            case HARD -> new LevelPalette(
+                    Color.web("#FF745B"),
+                    new MistProfile(
+                            0.16, 0.03, 0.05,
+                            0.92, 0.22, 0.12,
+                            0.86, 0.30,
+                            1.18, 58.0, -20.0,
+                            1.18, 0.09,
+                            46.0, 24.0,
+                            0.017, 0.013,
+                            0.60));
+            default -> new LevelPalette(
+                    Color.web("#7DE4FF"),
+                    new MistProfile(
+                            0.05, 0.08, 0.14,
+                            0.32, 0.68, 0.92,
+                            0.80, 0.26,
+                            0.92, 42.0, -12.0,
+                            0.96, 0.07,
+                            34.0, 16.0,
+                            0.015, 0.012,
+                            0.52));
+        };
+    }
+
     private Font loadTitleFont(double size) {
         try (InputStream fontStream = StartMenuView.class.getResourceAsStream(TITLE_FONT_PATH)) {
             if (fontStream != null) {
@@ -660,7 +743,7 @@ public class StartMenuView extends StackPane {
         button.setPrefSize(buttonSize, buttonSize);
         button.setMaxSize(buttonSize, buttonSize);
         button.setGraphic(createIcon(iconName, iconSize));
-        DropShadow buttonShadow = new DropShadow(34, VIOLET_GLOW);
+        DropShadow buttonShadow = new DropShadow(34, DEFAULT_MENU_GLOW);
         button.setEffect(buttonShadow);
         button.setOnAction(event -> action.run());
 
@@ -859,15 +942,7 @@ public class StartMenuView extends StackPane {
     }
 
     private MistProfile getMenuMistProfile() {
-        return new MistProfile(
-                0.08, 0.03, 0.14,
-                0.62, 0.36, 0.96,
-                0.82, 0.28,
-                1.05, 52.0, -14.0,
-                1.12, 0.08,
-                42.0, 18.0,
-                0.016, 0.012,
-                0.58);
+        return levelPaletteActive ? getSelectedLevelPalette().mistProfile() : DEFAULT_MENU_MIST_PROFILE;
     }
 
     private MazeViewport getMazeViewport(double width, double height) {

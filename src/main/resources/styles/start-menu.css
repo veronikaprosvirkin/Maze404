@@ -1,9 +1,86 @@
 .start-menu {
-    -fx-background-color: #10071D;
+    -menu-bg: #10071D;
+    -menu-tint: rgba(24, 8, 42, 0.18);
+    -menu-vignette: rgba(8, 3, 14, 0.16);
+    -menu-text: #F1E8FF;
+    -menu-text-soft: rgba(241, 232, 255, 0.74);
+    -menu-text-muted: rgba(241, 232, 255, 0.68);
+    -menu-accent: #C9A7FF;
+    -menu-accent-soft: rgba(201, 167, 255, 0.86);
+    -menu-border: rgba(201, 167, 255, 0.88);
+    -menu-border-soft: rgba(201, 167, 255, 0.28);
+    -menu-panel-bg: rgba(20, 8, 34, 0.72);
+    -menu-card-bg: rgba(26, 10, 42, 0.36);
+    -menu-card-current-bg: rgba(41, 18, 68, 0.52);
+    -menu-button-bg: rgba(76, 38, 124, 0.58);
+    -menu-button-hover-bg: rgba(113, 62, 176, 0.72);
+    -menu-action-bg: rgba(34, 16, 58, 0.42);
+    -menu-action-hover-bg: rgba(76, 38, 124, 0.58);
+    -fx-background-color: -menu-bg;
+}
+
+.start-menu-cryo {
+    -menu-bg: #111520;
+    -menu-tint: rgba(10, 24, 38, 0.20);
+    -menu-vignette: rgba(4, 10, 18, 0.18);
+    -menu-text: #F0FBFF;
+    -menu-text-soft: rgba(240, 251, 255, 0.74);
+    -menu-text-muted: rgba(240, 251, 255, 0.68);
+    -menu-accent: #7DE4FF;
+    -menu-accent-soft: rgba(125, 228, 255, 0.86);
+    -menu-border: rgba(125, 228, 255, 0.88);
+    -menu-border-soft: rgba(125, 228, 255, 0.30);
+    -menu-panel-bg: rgba(12, 18, 30, 0.76);
+    -menu-card-bg: rgba(12, 22, 34, 0.40);
+    -menu-card-current-bg: rgba(18, 38, 54, 0.56);
+    -menu-button-bg: rgba(25, 72, 96, 0.56);
+    -menu-button-hover-bg: rgba(42, 106, 132, 0.72);
+    -menu-action-bg: rgba(14, 44, 64, 0.44);
+    -menu-action-hover-bg: rgba(35, 88, 116, 0.60);
+}
+
+.start-menu-stone {
+    -menu-bg: #161210;
+    -menu-tint: rgba(46, 38, 28, 0.22);
+    -menu-vignette: rgba(10, 8, 6, 0.20);
+    -menu-text: #FFF2D8;
+    -menu-text-soft: rgba(255, 242, 216, 0.74);
+    -menu-text-muted: rgba(255, 242, 216, 0.66);
+    -menu-accent: #E0C79B;
+    -menu-accent-soft: rgba(224, 199, 155, 0.86);
+    -menu-border: rgba(224, 199, 155, 0.86);
+    -menu-border-soft: rgba(224, 199, 155, 0.30);
+    -menu-panel-bg: rgba(26, 22, 18, 0.78);
+    -menu-card-bg: rgba(46, 36, 26, 0.42);
+    -menu-card-current-bg: rgba(68, 54, 36, 0.56);
+    -menu-button-bg: rgba(96, 74, 42, 0.58);
+    -menu-button-hover-bg: rgba(130, 100, 56, 0.74);
+    -menu-action-bg: rgba(58, 45, 28, 0.46);
+    -menu-action-hover-bg: rgba(98, 76, 44, 0.62);
+}
+
+.start-menu-inferno {
+    -menu-bg: #150A0C;
+    -menu-tint: rgba(54, 10, 14, 0.24);
+    -menu-vignette: rgba(12, 2, 4, 0.22);
+    -menu-text: #FFF0EA;
+    -menu-text-soft: rgba(255, 240, 234, 0.74);
+    -menu-text-muted: rgba(255, 240, 234, 0.66);
+    -menu-accent: #FF745B;
+    -menu-accent-soft: rgba(255, 116, 91, 0.86);
+    -menu-border: rgba(255, 116, 91, 0.88);
+    -menu-border-soft: rgba(255, 116, 91, 0.32);
+    -menu-panel-bg: rgba(28, 8, 12, 0.78);
+    -menu-card-bg: rgba(58, 14, 18, 0.42);
+    -menu-card-current-bg: rgba(82, 20, 24, 0.58);
+    -menu-button-bg: rgba(132, 36, 30, 0.58);
+    -menu-button-hover-bg: rgba(176, 50, 36, 0.74);
+    -menu-action-bg: rgba(72, 18, 20, 0.46);
+    -menu-action-hover-bg: rgba(124, 34, 28, 0.64);
 }
 
 .menu-maze-tint {
-    -fx-fill: rgba(24, 8, 42, 0.18);
+    -fx-fill: -menu-tint;
 }
 
 .menu-edge-shade {
@@ -11,19 +88,19 @@
 }
 
 .menu-vignette {
-    -fx-fill: rgba(8, 3, 14, 0.16);
+    -fx-fill: -menu-vignette;
 }
 
 .start-menu-title {
-    -fx-fill: #F1E8FF;
+    -fx-fill: -menu-text;
     -fx-font-size: 62px;
     -fx-font-weight: 300;
 }
 
 .menu-action-button {
     -fx-background-radius: 999;
-    -fx-background-color: rgba(34, 16, 58, 0.42);
-    -fx-border-color: rgba(201, 167, 255, 0.96);
+    -fx-background-color: -menu-action-bg;
+    -fx-border-color: -menu-border;
     -fx-border-width: 4;
     -fx-border-radius: 999;
     -fx-cursor: hand;
@@ -36,8 +113,8 @@
 }
 
 .menu-action-button:hover {
-    -fx-background-color: rgba(76, 38, 124, 0.58);
-    -fx-border-color: #F1E8FF;
+    -fx-background-color: -menu-action-hover-bg;
+    -fx-border-color: -menu-text;
 }
 
 .menu-action-button.primary {
@@ -49,7 +126,7 @@
 }
 
 .menu-action-label {
-    -fx-fill: #F1E8FF;
+    -fx-fill: -menu-text;
     -fx-font-family: "Arial";
     -fx-font-weight: 400;
 }
@@ -64,15 +141,15 @@
 
 .settings-frame {
     -fx-padding: 34 42 30 42;
-    -fx-background-color: rgba(20, 8, 34, 0.72);
+    -fx-background-color: -menu-panel-bg;
     -fx-background-radius: 30;
-    -fx-border-color: rgba(201, 167, 255, 0.88);
+    -fx-border-color: -menu-border;
     -fx-border-width: 3;
     -fx-border-radius: 30;
 }
 
 .settings-heading {
-    -fx-fill: #F1E8FF;
+    -fx-fill: -menu-text;
     -fx-font-size: 38px;
     -fx-font-weight: 300;
 }
@@ -82,13 +159,13 @@
 }
 
 .settings-label {
-    -fx-text-fill: #F1E8FF;
+    -fx-text-fill: -menu-text;
     -fx-font-size: 20px;
     -fx-font-weight: 400;
 }
 
 .settings-value {
-    -fx-text-fill: #C9A7FF;
+    -fx-text-fill: -menu-accent;
     -fx-font-size: 20px;
     -fx-font-weight: 700;
 }
@@ -99,15 +176,15 @@
 }
 
 .settings-slider .track {
-    -fx-background-color: rgba(241, 232, 255, 0.22);
+    -fx-background-color: -menu-border-soft;
     -fx-background-radius: 999;
     -fx-pref-height: 4px;
 }
 
 .settings-slider .thumb {
-    -fx-background-color: #F1E8FF;
+    -fx-background-color: -menu-text;
     -fx-background-radius: 999;
-    -fx-effect: dropshadow(gaussian, rgba(201, 167, 255, 0.86), 12, 0.18, 0, 0);
+    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 12, 0.18, 0, 0);
     -fx-pref-width: 16px;
     -fx-pref-height: 16px;
 }
@@ -118,19 +195,19 @@
 
 .settings-exit-button {
     -fx-padding: 12 26 12 22;
-    -fx-background-color: rgba(76, 38, 124, 0.58);
+    -fx-background-color: -menu-button-bg;
     -fx-background-radius: 999;
-    -fx-border-color: rgba(241, 232, 255, 0.86);
+    -fx-border-color: -menu-accent-soft;
     -fx-border-width: 2;
     -fx-border-radius: 999;
     -fx-cursor: hand;
-    -fx-text-fill: #F1E8FF;
+    -fx-text-fill: -menu-text;
     -fx-font-size: 20px;
 }
 
 .settings-exit-button:hover {
-    -fx-background-color: rgba(113, 62, 176, 0.72);
-    -fx-border-color: #F1E8FF;
+    -fx-background-color: -menu-button-hover-bg;
+    -fx-border-color: -menu-text;
 }
 
 .settings-exit-button:focused {
@@ -159,17 +236,17 @@
     -fx-pref-height: 64px;
     -fx-max-width: 64px;
     -fx-max-height: 64px;
-    -fx-background-color: rgba(76, 38, 124, 0.58);
+    -fx-background-color: -menu-button-bg;
     -fx-background-radius: 999;
-    -fx-border-color: rgba(241, 232, 255, 0.86);
+    -fx-border-color: -menu-accent-soft;
     -fx-border-width: 2;
     -fx-border-radius: 999;
     -fx-cursor: hand;
 }
 
 .levels-nav-button:hover {
-    -fx-background-color: rgba(113, 62, 176, 0.72);
-    -fx-border-color: #F1E8FF;
+    -fx-background-color: -menu-button-hover-bg;
+    -fx-border-color: -menu-text;
 }
 
 .levels-nav-button:focused {
@@ -186,7 +263,7 @@
 }
 
 .level-card:hover {
-    -fx-effect: dropshadow(gaussian, rgba(241, 232, 255, 0.42), 30, 0.12, 0, 0);
+    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 30, 0.12, 0, 0);
 }
 
 .level-card-cryo {
@@ -205,13 +282,13 @@
 }
 
 .level-difficulty {
-    -fx-fill: rgba(241, 232, 255, 0.74);
+    -fx-fill: -menu-text-soft;
     -fx-font-size: 28px;
     -fx-font-weight: 700;
 }
 
 .level-name {
-    -fx-fill: #F1E8FF;
+    -fx-fill: -menu-text;
     -fx-font-size: 44px;
     -fx-font-weight: 300;
 }
@@ -221,7 +298,7 @@
 }
 
 .skins-helper {
-    -fx-fill: rgba(241, 232, 255, 0.72);
+    -fx-fill: -menu-text-soft;
     -fx-font-size: 17px;
 }
 
@@ -236,17 +313,17 @@
     -fx-pref-height: 52px;
     -fx-max-width: 52px;
     -fx-max-height: 52px;
-    -fx-background-color: rgba(76, 38, 124, 0.58);
+    -fx-background-color: -menu-button-bg;
     -fx-background-radius: 999;
-    -fx-border-color: rgba(241, 232, 255, 0.86);
+    -fx-border-color: -menu-accent-soft;
     -fx-border-width: 2;
     -fx-border-radius: 999;
     -fx-cursor: hand;
 }
 
 .skins-nav-button:hover {
-    -fx-background-color: rgba(113, 62, 176, 0.72);
-    -fx-border-color: #F1E8FF;
+    -fx-background-color: -menu-button-hover-bg;
+    -fx-border-color: -menu-text;
 }
 
 .skins-nav-button:focused {
@@ -263,16 +340,16 @@
     -fx-pref-height: 170px;
     -fx-max-height: 170px;
     -fx-padding: 10 8 8 8;
-    -fx-background-color: rgba(26, 10, 42, 0.36);
+    -fx-background-color: -menu-card-bg;
     -fx-background-radius: 20;
-    -fx-border-color: rgba(201, 167, 255, 0.24);
+    -fx-border-color: -menu-border-soft;
     -fx-border-width: 2;
     -fx-border-radius: 20;
 }
 
 .skin-card.current {
-    -fx-background-color: rgba(41, 18, 68, 0.52);
-    -fx-border-color: rgba(241, 232, 255, 0.88);
+    -fx-background-color: -menu-card-current-bg;
+    -fx-border-color: -menu-border;
 }
 
 .skin-card.neighbor {
@@ -280,11 +357,11 @@
 }
 
 .skin-card-title {
-    -fx-fill: rgba(241, 232, 255, 0.68);
+    -fx-fill: -menu-text-muted;
     -fx-font-size: 16px;
 }
 
 .skin-card-title-current {
-    -fx-fill: #F1E8FF;
+    -fx-fill: -menu-text;
     -fx-font-size: 19px;
 }
