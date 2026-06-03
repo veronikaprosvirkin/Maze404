@@ -3,7 +3,7 @@ package enums;
 public enum PlayerSkin {
     CIRCLE("Circle"),
     RECTANGLE("Rectangle"),
-    TRIANGLE("Triangle"),
+    TRIANGLE("Hexa star"),
     DEMON("Demon"),
     DONUT("Donut");
 
