@@ -161,8 +161,15 @@ public class PlayerRenderer {
             case TRIANGLE -> drawHexaStarFill(gc, centerX - radius * 0.18, centerY - radius * 0.28,
                     radius * 0.34, radius * 0.15);
             case DEMON -> {
-                gc.fillOval(centerX - radius * 0.54, centerY - radius * 0.18, radius * 0.22, radius * 0.12);
-                gc.fillOval(centerX + radius * 0.32, centerY - radius * 0.18, radius * 0.22, radius * 0.12);
+                Color eyeFill = Color.color(
+                        Math.min(1.0, fill.getRed() * 1.18),
+                        Math.min(1.0, fill.getGreen() * 1.18),
+                        Math.min(1.0, fill.getBlue() * 1.18),
+                        Math.min(0.92, fill.getOpacity() * 2.8)
+                );
+                gc.setFill(eyeFill);
+                gc.fillOval(centerX - radius * 0.72, centerY - radius * 0.26, radius * 0.46, radius * 0.24);
+                gc.fillOval(centerX + radius * 0.26, centerY - radius * 0.26, radius * 0.46, radius * 0.24);
             }
             case DONUT -> gc.fillArc(centerX - radius * 0.56, centerY - radius * 0.62,
                     radius * 0.94, radius * 0.78, 118, 80, javafx.scene.shape.ArcType.ROUND);
