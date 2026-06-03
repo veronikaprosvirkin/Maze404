@@ -100,9 +100,6 @@ public class MainApp extends Application {
         gamePanel.setMistEnabled(mistEnabled);
         gamePanel.setMistAnimationTimeScale(mistAnimationTime);
         gamePanel.setMistDensity(mistDensity);
-        double baseWidth = grid.getWidth() * 32.0;
-        double baseHeight = grid.getHeight() * 32.0;
-        gamePanel.setPrefSize(baseWidth, baseHeight);
         root.getChildren().setAll(gamePanel);
 
         InputHandler inputHandler = new InputHandler(action -> {
@@ -130,25 +127,6 @@ public class MainApp extends Application {
         });
         inputHandler.attachTo(scene);
 
-        Runnable updateScaleAndCenter = () -> {
-            double rootHeight = root.getHeight();
-            double rootWidth = root.getWidth();
-            if (rootHeight <= 0 || rootWidth <= 0) {
-                return;
-            }
-
-            double scale = Math.min(rootWidth / baseWidth, rootHeight / baseHeight);
-            gamePanel.setScaleX(scale);
-            gamePanel.setScaleY(scale);
-
-            gamePanel.setTranslateX((rootWidth - baseWidth) / 2.0);
-            gamePanel.setTranslateY((rootHeight - baseHeight) / 2.0);
-        };
-
-        root.widthProperty().addListener((obs, oldWidth, newWidth) -> updateScaleAndCenter.run());
-        root.heightProperty().addListener((obs, oldHeight, newHeight) -> updateScaleAndCenter.run());
-
         scene.getRoot().requestFocus();
-        Platform.runLater(updateScaleAndCenter);
     }
 }
