@@ -9,6 +9,8 @@ import javafx.animation.Timeline;
 import javafx.animation.AnimationTimer;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
@@ -34,12 +36,12 @@ import logic.generation.MazeGenerator;
 import model.Grid;
 
 import java.io.InputStream;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 public class StartMenuView extends StackPane {
     private static final String ICON_PATH = "/icons/";
     private static final String TITLE_FONT_PATH = "/fonts/DoctorGlitch.otf";
-    private static final String LEVEL_PALETTE_CLASS_PREFIX = "start-menu-";
     private static final Color DEFAULT_MENU_GLOW = Color.web("#C9A7FF");
     private static final int TILE_SIZE = 32;
     private static final double BASE_WIDTH = 1024.0;
@@ -57,6 +59,7 @@ public class StartMenuView extends StackPane {
     private static final double MIST_ALPHA_CAP = 0.98;
     private static final double TITLE_FONT_SIZE = 62.0;
     private static final double LEVEL_SWITCH_ANIMATION_MS = 240.0;
+    private static final double LEVEL_PALETTE_TRANSITION_MS = 420.0;
     private static final double SKIN_SWITCH_ANIMATION_MS = 240.0;
     private static final double SKIN_CARD_WIDTH = 150.0;
     private static final double SKIN_CURRENT_CARD_WIDTH = 150.0;
@@ -69,8 +72,12 @@ public class StartMenuView extends StackPane {
     private final Canvas mist = new Canvas();
     private final Grid menuMaze = new MazeGenerator().generate(19, 31);
     private GridRenderer gridRenderer = new GridRenderer(new SpriteSheet(Difficulty.MEDIUM));
+    private GridRenderer previousGridRenderer = null;
+    private final DoubleProperty paletteTransitionProgress = new SimpleDoubleProperty(1.0);
+    private Timeline paletteTransition;
     private long mistTimeNanos = 0L;
     private long lastMistFrameNanos = 0L;
+    private boolean mistMotionFrozen = false;
     private double mistFocusX = BASE_WIDTH * 0.5;
     private double mistFocusY = BASE_HEIGHT * 0.5;
     private double mistTargetX = BASE_WIDTH * 0.5;
@@ -79,7 +86,13 @@ public class StartMenuView extends StackPane {
     private double mistSampleStep = MIST_SAMPLE_STEP;
     private int currentSkinIndex = 0;
     private int currentLevelIndex = 0;
-    private boolean levelPaletteActive = false;
+    private double backgroundBlend = 1.0;
+    private MenuPalette currentMenuPalette = DEFAULT_MENU_PALETTE;
+    private MenuPalette transitionStartPalette = DEFAULT_MENU_PALETTE;
+    private MenuPalette transitionTargetPalette = DEFAULT_MENU_PALETTE;
+    private MistProfile currentMistProfile = DEFAULT_MENU_MIST_PROFILE;
+    private MistProfile transitionStartMistProfile = DEFAULT_MENU_MIST_PROFILE;
+    private MistProfile transitionTargetMistProfile = DEFAULT_MENU_MIST_PROFILE;
 
     public record MenuSettings(double gameVolume, int mistSampleStep, PlayerSkin playerSkin, Difficulty difficulty) {
     }
@@ -90,7 +103,27 @@ public class StartMenuView extends StackPane {
     private record LevelChoice(Difficulty difficulty, String levelName, String styleClass) {
     }
 
-    private record LevelPalette(Color glow, MistProfile mistProfile) {
+    private record MenuPalette(
+            Color bg,
+            Color tint,
+            Color vignette,
+            Color text,
+            Color textSoft,
+            Color textMuted,
+            Color accent,
+            Color accentSoft,
+            Color border,
+            Color borderSoft,
+            Color panelBg,
+            Color cardBg,
+            Color cardCurrentBg,
+            Color buttonBg,
+            Color buttonHoverBg,
+            Color actionBg,
+            Color actionHoverBg,
+            Color glow,
+            Difficulty backgroundDifficulty,
+            MistProfile mistProfile) {
     }
 
     private record MazeViewport(double scale, double offsetX, double offsetY) {
@@ -127,6 +160,28 @@ public class StartMenuView extends StackPane {
             0.016, 0.012,
             0.58);
 
+    private static final MenuPalette DEFAULT_MENU_PALETTE = new MenuPalette(
+            Color.web("#10071D"),
+            Color.rgb(24, 8, 42, 0.18),
+            Color.rgb(8, 3, 14, 0.16),
+            Color.web("#F1E8FF"),
+            Color.rgb(241, 232, 255, 0.74),
+            Color.rgb(241, 232, 255, 0.68),
+            Color.web("#C9A7FF"),
+            Color.rgb(201, 167, 255, 0.86),
+            Color.rgb(201, 167, 255, 0.88),
+            Color.rgb(201, 167, 255, 0.28),
+            Color.rgb(20, 8, 34, 0.72),
+            Color.rgb(26, 10, 42, 0.36),
+            Color.rgb(41, 18, 68, 0.52),
+            Color.rgb(76, 38, 124, 0.58),
+            Color.rgb(113, 62, 176, 0.72),
+            Color.rgb(34, 16, 58, 0.42),
+            Color.rgb(76, 38, 124, 0.58),
+            DEFAULT_MENU_GLOW,
+            Difficulty.MEDIUM,
+            DEFAULT_MENU_MIST_PROFILE);
+
     private static final MenuArtifact[] MENU_ARTIFACTS = {
             new MenuArtifact(3, 5, Color.web("#F0D66A"), Color.web("#FFF3A6"), 0.0, true),
             new MenuArtifact(5, 20, Color.web("#7DE4FF"), Color.web("#D7FAFF"), 1.4, false),
@@ -151,6 +206,9 @@ public class StartMenuView extends StackPane {
         if (stylesheet != null) {
             getStylesheets().add(stylesheet.toExternalForm());
         }
+        setStyle(createPaletteStyle(DEFAULT_MENU_PALETTE));
+        paletteTransitionProgress.addListener((obs, oldValue, newValue) ->
+                updatePaletteTransition(newValue.doubleValue()));
 
         DoubleBinding uiScale = Bindings.createDoubleBinding(
                 () -> clamp(Math.min(getWidth() / BASE_WIDTH, getHeight() / BASE_HEIGHT), 0.38, 1.34),
@@ -624,33 +682,35 @@ public class StartMenuView extends StackPane {
     }
 
     private void applySelectedLevelPalette() {
-        levelPaletteActive = true;
-        removeLevelPaletteClasses();
-        getStyleClass().add(LEVEL_PALETTE_CLASS_PREFIX + getSelectedLevel().styleClass());
-        gridRenderer = new GridRenderer(new SpriteSheet(getSelectedLevel().difficulty()));
-        drawBackground();
+        animateMenuPaletteTo(paletteFor(getSelectedLevel().difficulty()));
     }
 
     private void applyDefaultMenuPalette() {
-        levelPaletteActive = false;
-        removeLevelPaletteClasses();
-        gridRenderer = new GridRenderer(new SpriteSheet(Difficulty.MEDIUM));
-        drawBackground();
+        animateMenuPaletteTo(DEFAULT_MENU_PALETTE);
     }
 
-    private void removeLevelPaletteClasses() {
-        getStyleClass().removeIf(styleClass -> styleClass.startsWith(LEVEL_PALETTE_CLASS_PREFIX)
-                && !styleClass.equals("start-menu"));
-    }
-
-    private LevelPalette getSelectedLevelPalette() {
-        return paletteFor(getSelectedLevel().difficulty());
-    }
-
-    private LevelPalette paletteFor(Difficulty difficulty) {
+    private MenuPalette paletteFor(Difficulty difficulty) {
         return switch (difficulty) {
-            case MEDIUM -> new LevelPalette(
+            case MEDIUM -> new MenuPalette(
+                    Color.web("#161210"),
+                    Color.rgb(46, 38, 28, 0.22),
+                    Color.rgb(10, 8, 6, 0.20),
+                    Color.web("#FFF2D8"),
+                    Color.rgb(255, 242, 216, 0.74),
+                    Color.rgb(255, 242, 216, 0.66),
                     Color.web("#E0C79B"),
+                    Color.rgb(224, 199, 155, 0.86),
+                    Color.rgb(224, 199, 155, 0.86),
+                    Color.rgb(224, 199, 155, 0.30),
+                    Color.rgb(26, 22, 18, 0.78),
+                    Color.rgb(46, 36, 26, 0.42),
+                    Color.rgb(68, 54, 36, 0.56),
+                    Color.rgb(96, 74, 42, 0.58),
+                    Color.rgb(130, 100, 56, 0.74),
+                    Color.rgb(58, 45, 28, 0.46),
+                    Color.rgb(98, 76, 44, 0.62),
+                    Color.web("#E0C79B"),
+                    Difficulty.MEDIUM,
                     new MistProfile(
                             0.20, 0.17, 0.12,
                             0.82, 0.68, 0.42,
@@ -660,8 +720,26 @@ public class StartMenuView extends StackPane {
                             28.0, 12.0,
                             0.014, 0.011,
                             0.46));
-            case HARD -> new LevelPalette(
+            case HARD -> new MenuPalette(
+                    Color.web("#150A0C"),
+                    Color.rgb(54, 10, 14, 0.24),
+                    Color.rgb(12, 2, 4, 0.22),
+                    Color.web("#FFF0EA"),
+                    Color.rgb(255, 240, 234, 0.74),
+                    Color.rgb(255, 240, 234, 0.66),
                     Color.web("#FF745B"),
+                    Color.rgb(255, 116, 91, 0.86),
+                    Color.rgb(255, 116, 91, 0.88),
+                    Color.rgb(255, 116, 91, 0.32),
+                    Color.rgb(28, 8, 12, 0.78),
+                    Color.rgb(58, 14, 18, 0.42),
+                    Color.rgb(82, 20, 24, 0.58),
+                    Color.rgb(132, 36, 30, 0.58),
+                    Color.rgb(176, 50, 36, 0.74),
+                    Color.rgb(72, 18, 20, 0.46),
+                    Color.rgb(124, 34, 28, 0.64),
+                    Color.web("#FF745B"),
+                    Difficulty.HARD,
                     new MistProfile(
                             0.16, 0.03, 0.05,
                             0.92, 0.22, 0.12,
@@ -671,8 +749,26 @@ public class StartMenuView extends StackPane {
                             46.0, 24.0,
                             0.017, 0.013,
                             0.60));
-            default -> new LevelPalette(
+            default -> new MenuPalette(
+                    Color.web("#111520"),
+                    Color.rgb(10, 24, 38, 0.20),
+                    Color.rgb(4, 10, 18, 0.18),
+                    Color.web("#F0FBFF"),
+                    Color.rgb(240, 251, 255, 0.74),
+                    Color.rgb(240, 251, 255, 0.68),
                     Color.web("#7DE4FF"),
+                    Color.rgb(125, 228, 255, 0.86),
+                    Color.rgb(125, 228, 255, 0.88),
+                    Color.rgb(125, 228, 255, 0.30),
+                    Color.rgb(12, 18, 30, 0.76),
+                    Color.rgb(12, 22, 34, 0.40),
+                    Color.rgb(18, 38, 54, 0.56),
+                    Color.rgb(25, 72, 96, 0.56),
+                    Color.rgb(42, 106, 132, 0.72),
+                    Color.rgb(14, 44, 64, 0.44),
+                    Color.rgb(35, 88, 116, 0.60),
+                    Color.web("#7DE4FF"),
+                    Difficulty.EASY,
                     new MistProfile(
                             0.05, 0.08, 0.14,
                             0.32, 0.68, 0.92,
@@ -683,6 +779,154 @@ public class StartMenuView extends StackPane {
                             0.015, 0.012,
                             0.52));
         };
+    }
+
+    private void animateMenuPaletteTo(MenuPalette targetPalette) {
+        if (paletteTransition != null) {
+            paletteTransition.stop();
+        }
+
+        transitionStartPalette = currentMenuPalette;
+        transitionTargetPalette = targetPalette;
+        transitionStartMistProfile = currentMistProfile;
+        transitionTargetMistProfile = colorOnlyMistProfile(targetPalette.mistProfile());
+        previousGridRenderer = gridRenderer;
+        gridRenderer = new GridRenderer(new SpriteSheet(targetPalette.backgroundDifficulty()));
+        backgroundBlend = 0.0;
+        mistMotionFrozen = true;
+
+        paletteTransitionProgress.set(0.0);
+        paletteTransition = new Timeline(new KeyFrame(
+                Duration.millis(LEVEL_PALETTE_TRANSITION_MS),
+                new KeyValue(paletteTransitionProgress, 1.0, Interpolator.EASE_BOTH)));
+        paletteTransition.setOnFinished(event -> {
+            currentMenuPalette = targetPalette;
+            currentMistProfile = colorOnlyMistProfile(targetPalette.mistProfile());
+            previousGridRenderer = null;
+            backgroundBlend = 1.0;
+            mistMotionFrozen = false;
+            setStyle(createPaletteStyle(targetPalette));
+            drawBackground();
+        });
+        paletteTransition.play();
+    }
+
+    private void updatePaletteTransition(double progress) {
+        double easedProgress = clamp(progress, 0.0, 1.0);
+        currentMenuPalette = interpolatePalette(transitionStartPalette, transitionTargetPalette, easedProgress);
+        currentMistProfile = interpolateMistProfile(transitionStartMistProfile, transitionTargetMistProfile,
+                easedProgress);
+        backgroundBlend = easedProgress;
+        setStyle(createPaletteStyle(currentMenuPalette));
+        drawBackground();
+    }
+
+    private MenuPalette interpolatePalette(MenuPalette start, MenuPalette end, double progress) {
+        return new MenuPalette(
+                interpolateColor(start.bg(), end.bg(), progress),
+                interpolateColor(start.tint(), end.tint(), progress),
+                interpolateColor(start.vignette(), end.vignette(), progress),
+                interpolateColor(start.text(), end.text(), progress),
+                interpolateColor(start.textSoft(), end.textSoft(), progress),
+                interpolateColor(start.textMuted(), end.textMuted(), progress),
+                interpolateColor(start.accent(), end.accent(), progress),
+                interpolateColor(start.accentSoft(), end.accentSoft(), progress),
+                interpolateColor(start.border(), end.border(), progress),
+                interpolateColor(start.borderSoft(), end.borderSoft(), progress),
+                interpolateColor(start.panelBg(), end.panelBg(), progress),
+                interpolateColor(start.cardBg(), end.cardBg(), progress),
+                interpolateColor(start.cardCurrentBg(), end.cardCurrentBg(), progress),
+                interpolateColor(start.buttonBg(), end.buttonBg(), progress),
+                interpolateColor(start.buttonHoverBg(), end.buttonHoverBg(), progress),
+                interpolateColor(start.actionBg(), end.actionBg(), progress),
+                interpolateColor(start.actionHoverBg(), end.actionHoverBg(), progress),
+                interpolateColor(start.glow(), end.glow(), progress),
+                progress < 1.0 ? start.backgroundDifficulty() : end.backgroundDifficulty(),
+                interpolateMistProfile(start.mistProfile(), end.mistProfile(), progress));
+    }
+
+    private MistProfile interpolateMistProfile(MistProfile start, MistProfile end, double progress) {
+        MistProfile motion = DEFAULT_MENU_MIST_PROFILE;
+        return new MistProfile(
+                lerp(start.colorR(), end.colorR(), progress),
+                lerp(start.colorG(), end.colorG(), progress),
+                lerp(start.colorB(), end.colorB(), progress),
+                lerp(start.accentR(), end.accentR(), progress),
+                lerp(start.accentG(), end.accentG(), progress),
+                lerp(start.accentB(), end.accentB(), progress),
+                motion.baseAlpha(),
+                motion.swirlAlpha(),
+                motion.driftSpeed(),
+                motion.flowSpeedX(),
+                motion.flowSpeedY(),
+                motion.pulseSpeed(),
+                motion.pulseStrength(),
+                motion.lateralSwing(),
+                motion.verticalSwing(),
+                motion.noiseScaleX(),
+                motion.noiseScaleY(),
+                lerp(start.accentStrength(), end.accentStrength(), progress));
+    }
+
+    private MistProfile colorOnlyMistProfile(MistProfile source) {
+        return new MistProfile(
+                source.colorR(),
+                source.colorG(),
+                source.colorB(),
+                source.accentR(),
+                source.accentG(),
+                source.accentB(),
+                DEFAULT_MENU_MIST_PROFILE.baseAlpha(),
+                DEFAULT_MENU_MIST_PROFILE.swirlAlpha(),
+                DEFAULT_MENU_MIST_PROFILE.driftSpeed(),
+                DEFAULT_MENU_MIST_PROFILE.flowSpeedX(),
+                DEFAULT_MENU_MIST_PROFILE.flowSpeedY(),
+                DEFAULT_MENU_MIST_PROFILE.pulseSpeed(),
+                DEFAULT_MENU_MIST_PROFILE.pulseStrength(),
+                DEFAULT_MENU_MIST_PROFILE.lateralSwing(),
+                DEFAULT_MENU_MIST_PROFILE.verticalSwing(),
+                DEFAULT_MENU_MIST_PROFILE.noiseScaleX(),
+                DEFAULT_MENU_MIST_PROFILE.noiseScaleY(),
+                source.accentStrength());
+    }
+
+    private Color interpolateColor(Color start, Color end, double progress) {
+        return Color.color(
+                lerp(start.getRed(), end.getRed(), progress),
+                lerp(start.getGreen(), end.getGreen(), progress),
+                lerp(start.getBlue(), end.getBlue(), progress),
+                lerp(start.getOpacity(), end.getOpacity(), progress));
+    }
+
+    private String createPaletteStyle(MenuPalette palette) {
+        return String.join("",
+                cssColor("-menu-bg", palette.bg()),
+                cssColor("-menu-tint", palette.tint()),
+                cssColor("-menu-vignette", palette.vignette()),
+                cssColor("-menu-text", palette.text()),
+                cssColor("-menu-text-soft", palette.textSoft()),
+                cssColor("-menu-text-muted", palette.textMuted()),
+                cssColor("-menu-accent", palette.accent()),
+                cssColor("-menu-accent-soft", palette.accentSoft()),
+                cssColor("-menu-border", palette.border()),
+                cssColor("-menu-border-soft", palette.borderSoft()),
+                cssColor("-menu-panel-bg", palette.panelBg()),
+                cssColor("-menu-card-bg", palette.cardBg()),
+                cssColor("-menu-card-current-bg", palette.cardCurrentBg()),
+                cssColor("-menu-button-bg", palette.buttonBg()),
+                cssColor("-menu-button-hover-bg", palette.buttonHoverBg()),
+                cssColor("-menu-action-bg", palette.actionBg()),
+                cssColor("-menu-action-hover-bg", palette.actionHoverBg()),
+                "-fx-background-color: -menu-bg;");
+    }
+
+    private String cssColor(String name, Color color) {
+        return String.format(Locale.US, "%s: rgba(%d, %d, %d, %.3f);",
+                name,
+                Math.round(color.getRed() * 255),
+                Math.round(color.getGreen() * 255),
+                Math.round(color.getBlue() * 255),
+                color.getOpacity());
     }
 
     private Font loadTitleFont(double size) {
@@ -809,6 +1053,11 @@ public class StartMenuView extends StackPane {
         gc.save();
         gc.translate(viewport.offsetX(), viewport.offsetY());
         gc.scale(viewport.scale(), viewport.scale());
+        if (previousGridRenderer != null && backgroundBlend < 1.0) {
+            gc.setGlobalAlpha(1.0 - backgroundBlend);
+            previousGridRenderer.draw(gc, menuMaze);
+            gc.setGlobalAlpha(backgroundBlend);
+        }
         gridRenderer.draw(gc, menuMaze);
         gc.restore();
     }
@@ -873,7 +1122,11 @@ public class StartMenuView extends StackPane {
 
         double deltaSeconds = (now - lastMistFrameNanos) / 1_000_000_000.0;
         lastMistFrameNanos = now;
-        mistTimeNanos = now;
+        if (mistMotionFrozen) {
+            return;
+        }
+
+        mistTimeNanos += (long) (deltaSeconds * 1_000_000_000.0);
 
         double follow = 1.0 - Math.pow(0.001, Math.min(deltaSeconds, 0.05));
         mistFocusX = lerp(mistFocusX, mistTargetX, follow);
@@ -942,7 +1195,7 @@ public class StartMenuView extends StackPane {
     }
 
     private MistProfile getMenuMistProfile() {
-        return levelPaletteActive ? getSelectedLevelPalette().mistProfile() : DEFAULT_MENU_MIST_PROFILE;
+        return currentMistProfile;
     }
 
     private MazeViewport getMazeViewport(double width, double height) {
