@@ -61,3 +61,80 @@
 .menu-action-label.secondary {
     -fx-font-size: 31px;
 }
+
+.settings-frame {
+    -fx-padding: 34 42 30 42;
+    -fx-background-color: rgba(20, 8, 34, 0.72);
+    -fx-background-radius: 30;
+    -fx-border-color: rgba(201, 167, 255, 0.88);
+    -fx-border-width: 3;
+    -fx-border-radius: 30;
+}
+
+.settings-heading {
+    -fx-fill: #F1E8FF;
+    -fx-font-size: 38px;
+    -fx-font-weight: 300;
+}
+
+.settings-row {
+    -fx-padding: 8 0 4 0;
+}
+
+.settings-label {
+    -fx-text-fill: #F1E8FF;
+    -fx-font-size: 20px;
+    -fx-font-weight: 400;
+}
+
+.settings-value {
+    -fx-text-fill: #C9A7FF;
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+}
+
+.settings-slider {
+    -fx-pref-width: 550px;
+    -fx-max-width: 550px;
+}
+
+.settings-slider .track {
+    -fx-background-color: rgba(241, 232, 255, 0.22);
+    -fx-background-radius: 999;
+    -fx-pref-height: 4px;
+}
+
+.settings-slider .thumb {
+    -fx-background-color: #F1E8FF;
+    -fx-background-radius: 999;
+    -fx-effect: dropshadow(gaussian, rgba(201, 167, 255, 0.86), 12, 0.18, 0, 0);
+    -fx-pref-width: 16px;
+    -fx-pref-height: 16px;
+}
+
+.settings-slider .axis {
+    -fx-tick-label-fill: transparent;
+}
+
+.settings-exit-button {
+    -fx-padding: 12 26 12 22;
+    -fx-background-color: rgba(76, 38, 124, 0.58);
+    -fx-background-radius: 999;
+    -fx-border-color: rgba(241, 232, 255, 0.86);
+    -fx-border-width: 2;
+    -fx-border-radius: 999;
+    -fx-cursor: hand;
+    -fx-text-fill: #F1E8FF;
+    -fx-font-size: 20px;
+}
+
+.settings-exit-button:hover {
+    -fx-background-color: rgba(113, 62, 176, 0.72);
+    -fx-border-color: #F1E8FF;
+}
+
+.settings-exit-button:focused {
+    -fx-background-insets: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}

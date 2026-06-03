@@ -15,7 +15,7 @@ import java.util.List;
 public class GamePanel extends Pane {
     private static final int TILE_SIZE = 32;
     private static final int MIST_RADIUS_CELLS = 3;
-    private static final int MIST_SAMPLE_STEP = 2;
+    private static final int DEFAULT_MIST_SAMPLE_STEP = 2;
     private static final double MIST_ALPHA_CAP = 0.97;
     private static final double MIST_FOCUS_TRANSITION_SECONDS = 0.3;
     private static final double MIST_EDGE_FADE_BAND = TILE_SIZE * 2.2;
@@ -27,9 +27,11 @@ public class GamePanel extends Pane {
     private final List<Artifact> artifacts;
     private final double baseWidth;
     private final double baseHeight;
+    private final int mistSampleStep;
     private boolean mistEnabled = false;
     private double mistAnimationTimeScale = 1.0;
     private double mistDensity = 1.0;
+    private double gameVolume = 1.0;
     private long mistTimeNanos = 0L;
     private long lastFrameNanos = 0L;
     private double frameDeltaSeconds = 1.0 / 60.0;
@@ -70,10 +72,15 @@ public class GamePanel extends Pane {
     }
 
     public GamePanel(Grid grid, Player player, List<Artifact> artifacts, Difficulty difficulty) {
+        this(grid, player, artifacts, difficulty, DEFAULT_MIST_SAMPLE_STEP);
+    }
+
+    public GamePanel(Grid grid, Player player, List<Artifact> artifacts, Difficulty difficulty, int mistSampleStep) {
         this.difficulty = difficulty != null ? difficulty : Difficulty.current;
         this.artifacts = artifacts != null ? List.copyOf(artifacts) : List.of();
         this.baseWidth = grid.getWidth() * TILE_SIZE;
         this.baseHeight = grid.getHeight() * TILE_SIZE;
+        this.mistSampleStep = Math.max(1, mistSampleStep);
         this.canvas = new Canvas(baseWidth, baseHeight);
         this.gridRenderer = new GridRenderer(new SpriteSheet(this.difficulty));
         this.playerRenderer = new PlayerRenderer();
@@ -152,6 +159,14 @@ public class GamePanel extends Pane {
         this.mistDensity = clamp(mistDensity, 0.0, 1.0);
     }
 
+    public double getGameVolume() {
+        return gameVolume;
+    }
+
+    public void setGameVolume(double gameVolume) {
+        this.gameVolume = clamp(gameVolume, 0.0, 1.0);
+    }
+
     private void drawMist(GraphicsContext gc, Grid grid, Player player) {
         MistProfile profile = getMistProfile();
         double clearRadius = MIST_RADIUS_CELLS * TILE_SIZE;
@@ -159,10 +174,10 @@ public class GamePanel extends Pane {
         double width = grid.getWidth() * TILE_SIZE;
         double height = grid.getHeight() * TILE_SIZE;
 
-        for (int y = 0; y < height; y += MIST_SAMPLE_STEP) {
-            for (int x = 0; x < width; x += MIST_SAMPLE_STEP) {
-                double sampleX = x + MIST_SAMPLE_STEP * 0.5;
-                double sampleY = y + MIST_SAMPLE_STEP * 0.5;
+        for (int y = 0; y < height; y += mistSampleStep) {
+            for (int x = 0; x < width; x += mistSampleStep) {
+                double sampleX = x + mistSampleStep * 0.5;
+                double sampleY = y + mistSampleStep * 0.5;
                 double dx = sampleX - mistFocusX;
                 double dy = sampleY - mistFocusY;
                 double dist = Math.sqrt(dx * dx + dy * dy);
@@ -198,7 +213,7 @@ public class GamePanel extends Pane {
                     double colorG = lerp(profile.colorG(), profile.accentG(), accentMask);
                     double colorB = lerp(profile.colorB(), profile.accentB(), accentMask);
                     gc.setFill(Color.color(colorR, colorG, colorB, alpha));
-                    gc.fillRect(x, y, MIST_SAMPLE_STEP, MIST_SAMPLE_STEP);
+                    gc.fillRect(x, y, mistSampleStep, mistSampleStep);
                 }
             }
         }
