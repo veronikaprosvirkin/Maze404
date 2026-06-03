@@ -763,6 +763,20 @@
     -fx-font-size: 11px;
 }
 
+#artifact-alert-crystals {
+    -fx-background-color: rgba(22, 18, 16, 0.78);
+    -fx-background-radius: 999;
+    -fx-border-color: rgba(240, 176, 48, 0.35);
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-padding: 5 11 5 11;
+    -fx-text-fill: #FFF1C8;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+    -fx-effect: dropshadow(gaussian, rgba(240, 176, 48, 0.45), 12, 0.45, 0, 0);
+}
+
 #artifact-alert-message {
     -fx-text-fill: #C2B49A;
     -fx-font-family: "IBM Plex Mono", monospace;
