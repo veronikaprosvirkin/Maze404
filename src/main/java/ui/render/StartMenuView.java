@@ -5,6 +5,7 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.animation.AnimationTimer;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.geometry.Insets;
@@ -19,7 +20,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
@@ -34,10 +34,41 @@ public class StartMenuView extends StackPane {
     private static final int TILE_SIZE = 32;
     private static final double BASE_WIDTH = 1024.0;
     private static final double BASE_HEIGHT = 576.0;
+    private static final int MIST_SAMPLE_STEP = 4;
+    private static final double MIST_ALPHA_CAP = 0.98;
 
     private final Canvas background = new Canvas();
+    private final Canvas mist = new Canvas();
     private final Grid menuMaze = new MazeGenerator().generate(19, 31);
     private final GridRenderer gridRenderer = new GridRenderer(new SpriteSheet(Difficulty.MEDIUM));
+    private long mistTimeNanos = 0L;
+    private long lastMistFrameNanos = 0L;
+    private double mistFocusX = BASE_WIDTH * 0.5;
+    private double mistFocusY = BASE_HEIGHT * 0.5;
+    private double mistTargetX = BASE_WIDTH * 0.5;
+    private double mistTargetY = BASE_HEIGHT * 0.5;
+
+    private record MistProfile(
+            double colorR,
+            double colorG,
+            double colorB,
+            double accentR,
+            double accentG,
+            double accentB,
+            double baseAlpha,
+            double swirlAlpha,
+            double driftSpeed,
+            double flowSpeedX,
+            double flowSpeedY,
+            double pulseSpeed,
+            double pulseStrength,
+            double lateralSwing,
+            double verticalSwing,
+            double noiseScaleX,
+            double noiseScaleY,
+            double accentStrength
+    ) {
+    }
 
     public StartMenuView(Runnable onPlay, Runnable onSettings, Runnable onExit) {
         getStyleClass().add("start-menu");
@@ -56,6 +87,20 @@ public class StartMenuView extends StackPane {
         background.heightProperty().bind(heightProperty());
         getChildren().add(background);
         getChildren().add(createMenuOverlays());
+
+        mist.widthProperty().bind(widthProperty());
+        mist.heightProperty().bind(heightProperty());
+        mist.setMouseTransparent(true);
+        getChildren().add(mist);
+
+        setOnMouseMoved(event -> {
+            mistTargetX = event.getX();
+            mistTargetY = event.getY();
+        });
+        setOnMouseExited(event -> {
+            mistTargetX = getWidth() * 0.5;
+            mistTargetY = getHeight() * 0.5;
+        });
 
         StackPane contentFrame = new StackPane();
         contentFrame.setMinSize(BASE_WIDTH, BASE_HEIGHT);
@@ -93,6 +138,23 @@ public class StartMenuView extends StackPane {
 
         widthProperty().addListener((obs, oldValue, newValue) -> drawBackground());
         heightProperty().addListener((obs, oldValue, newValue) -> drawBackground());
+
+        AnimationTimer mistTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                updateMistFocus(now);
+                drawMist();
+            }
+        };
+        mistTimer.start();
+        sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene == null) {
+                mistTimer.stop();
+            } else {
+                lastMistFrameNanos = 0L;
+                mistTimer.start();
+            }
+        });
     }
 
     private StackPane createMenuOverlays() {
@@ -105,11 +167,6 @@ public class StartMenuView extends StackPane {
         mazeTint.getStyleClass().add("menu-maze-tint");
         mazeTint.widthProperty().bind(widthProperty());
         mazeTint.heightProperty().bind(heightProperty());
-
-        Ellipse centerAura = new Ellipse();
-        centerAura.getStyleClass().add("menu-center-aura");
-        centerAura.radiusXProperty().bind(widthProperty().multiply(0.36));
-        centerAura.radiusYProperty().bind(heightProperty().multiply(0.29));
 
         Rectangle topShade = new Rectangle();
         topShade.getStyleClass().add("menu-edge-shade");
@@ -128,7 +185,7 @@ public class StartMenuView extends StackPane {
         vignette.widthProperty().bind(widthProperty());
         vignette.heightProperty().bind(heightProperty());
 
-        overlays.getChildren().addAll(mazeTint, centerAura, topShade, bottomShade, vignette);
+        overlays.getChildren().addAll(mazeTint, topShade, bottomShade, vignette);
         return overlays;
     }
 
@@ -225,7 +282,115 @@ public class StartMenuView extends StackPane {
         gc.restore();
     }
 
+    private void updateMistFocus(long now) {
+        double width = mist.getWidth();
+        double height = mist.getHeight();
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+        if (lastMistFrameNanos == 0L) {
+            mistFocusX = width * 0.5;
+            mistFocusY = height * 0.5;
+            mistTargetX = mistFocusX;
+            mistTargetY = mistFocusY;
+            lastMistFrameNanos = now;
+        }
+
+        double deltaSeconds = (now - lastMistFrameNanos) / 1_000_000_000.0;
+        lastMistFrameNanos = now;
+        mistTimeNanos = now;
+
+        double follow = 1.0 - Math.pow(0.001, Math.min(deltaSeconds, 0.05));
+        mistFocusX = lerp(mistFocusX, mistTargetX, follow);
+        mistFocusY = lerp(mistFocusY, mistTargetY, follow);
+    }
+
+    private void drawMist() {
+        double width = mist.getWidth();
+        double height = mist.getHeight();
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+
+        GraphicsContext gc = mist.getGraphicsContext2D();
+        gc.clearRect(0, 0, width, height);
+
+        MistProfile profile = getMenuMistProfile();
+        double clearRadius = Math.max(86.0, Math.min(width, height) * 0.20);
+        double edgeFadeBand = clearRadius * 0.82;
+        double timeSeconds = mistTimeNanos / 1_000_000_000.0;
+
+        for (int y = 0; y < height; y += MIST_SAMPLE_STEP) {
+            for (int x = 0; x < width; x += MIST_SAMPLE_STEP) {
+                double sampleX = x + MIST_SAMPLE_STEP * 0.5;
+                double sampleY = y + MIST_SAMPLE_STEP * 0.5;
+                double dx = sampleX - mistFocusX;
+                double dy = sampleY - mistFocusY;
+                double dist = Math.sqrt(dx * dx + dy * dy);
+
+                double distanceOpacity = smoothStep(clearRadius - edgeFadeBand, clearRadius + edgeFadeBand, dist);
+                double pulse = 1.0 + Math.sin(timeSeconds * profile.pulseSpeed()) * profile.pulseStrength();
+
+                double flowX = sampleX + timeSeconds * profile.flowSpeedX()
+                        + Math.sin(timeSeconds * 0.35) * profile.lateralSwing();
+                double flowY = sampleY + timeSeconds * profile.flowSpeedY()
+                        + Math.cos(timeSeconds * 0.28) * profile.verticalSwing();
+
+                double drift1 = Math.sin(flowX * profile.noiseScaleX() + timeSeconds * profile.driftSpeed())
+                        * Math.cos(flowY * profile.noiseScaleY() - timeSeconds * profile.driftSpeed() * 0.85);
+                double drift2 = Math.sin(flowX * profile.noiseScaleX() * 0.62 - timeSeconds * profile.driftSpeed() * 0.52)
+                        * Math.sin(flowY * profile.noiseScaleY() * 0.88 + timeSeconds * profile.driftSpeed() * 0.68);
+                double drift3 = Math.cos(flowX * profile.noiseScaleX() * 0.38 + flowY * profile.noiseScaleY() * 0.56
+                        + timeSeconds * profile.driftSpeed() * 0.38);
+                double drift4 = Math.sin((flowX + flowY) * profile.noiseScaleX() * 0.32
+                        - timeSeconds * profile.driftSpeed() * 0.44);
+
+                double swirl = (drift1 * 0.35 + drift2 * 0.30 + drift3 * 0.20 + drift4 * 0.15) * profile.swirlAlpha();
+                double holeNoise = ((drift1 * 0.30) + (drift2 * 0.30) + (drift3 * 0.25) + (drift4 * 0.15) + 1.0) * 0.5;
+                double densityMask = smoothStep(0.02, 0.28, holeNoise);
+                double accentMask = smoothStep(0.55, 0.95, ((drift2 * 0.55) + (drift4 * 0.45) + 1.0) * 0.5)
+                        * profile.accentStrength();
+
+                double alpha = clamp(distanceOpacity * pulse * densityMask * (profile.baseAlpha() + swirl), 0.0,
+                        MIST_ALPHA_CAP);
+                if (alpha > 0.01) {
+                    double colorR = lerp(profile.colorR(), profile.accentR(), accentMask);
+                    double colorG = lerp(profile.colorG(), profile.accentG(), accentMask);
+                    double colorB = lerp(profile.colorB(), profile.accentB(), accentMask);
+                    gc.setFill(Color.color(colorR, colorG, colorB, alpha));
+                    gc.fillRect(x, y, MIST_SAMPLE_STEP, MIST_SAMPLE_STEP);
+                }
+            }
+        }
+    }
+
+    private MistProfile getMenuMistProfile() {
+        return new MistProfile(
+                0.08, 0.03, 0.14,
+                0.62, 0.36, 0.96,
+                0.96, 0.24,
+                1.05, 52.0, -14.0,
+                1.12, 0.08,
+                42.0, 18.0,
+                0.016, 0.012,
+                0.58
+        );
+    }
+
+    private double smoothStep(double edge0, double edge1, double x) {
+        double range = edge1 - edge0;
+        if (range <= 0.0) {
+            return x >= edge1 ? 1.0 : 0.0;
+        }
+        double t = clamp((x - edge0) / range, 0.0, 1.0);
+        return t * t * (3.0 - 2.0 * t);
+    }
+
     private double clamp(double value, double min, double max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    private double lerp(double start, double end, double progress) {
+        return start + (end - start) * progress;
     }
 }
