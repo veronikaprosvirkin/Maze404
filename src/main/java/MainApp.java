@@ -1,9 +1,10 @@
 import enums.CellType;
 import enums.Difficulty;
+import enums.PlayerSkin;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import logic.ArtifactSpawner;
 import logic.ArtifactSystem;
@@ -14,6 +15,7 @@ import model.Player;
 import model.Position;
 import ui.input.InputHandler;
 import ui.render.GamePanel;
+import ui.render.StartMenuView;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -23,6 +25,9 @@ import java.util.concurrent.CountDownLatch;
  * background threads can wait for the toolkit to be up and the primary stage shown.
  */
 public class MainApp extends Application {
+    private static final double MIN_WINDOW_WIDTH = 1024;
+    private static final double MIN_WINDOW_HEIGHT = 680;
+
     private static final CountDownLatch START_LATCH = new CountDownLatch(1);
 
     @SuppressWarnings("unused")
@@ -36,10 +41,29 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        Pane root = new Pane();
+        StackPane root = new StackPane();
+        Scene scene = new Scene(root, 1024, 680);
+        StartMenuView startMenu = new StartMenuView(
+                settings -> startGame(root, scene, settings),
+                Platform::exit
+        );
 
+        root.getChildren().setAll(startMenu);
+        primaryStage.setTitle("Maze404");
+        primaryStage.setScene(scene);
+        primaryStage.setResizable(true);
+        primaryStage.setMinWidth(MIN_WINDOW_WIDTH);
+        primaryStage.setMinHeight(MIN_WINDOW_HEIGHT);
+        primaryStage.toFront();
+        primaryStage.show();
+        primaryStage.requestFocus();
+
+        START_LATCH.countDown();
+    }
+
+    private void startGame(StackPane root, Scene scene, StartMenuView.MenuSettings settings) {
         // FOR NOW - this is a difficulty changer for labyrinth
-        Difficulty.current = Difficulty.MEDIUM;
+        Difficulty.current = Difficulty.EASY;
 
         String bgColor = switch (Difficulty.current) {
             case MEDIUM -> "#161210";
@@ -47,7 +71,6 @@ public class MainApp extends Application {
             default -> "#111520";
         };
         root.setStyle("-fx-background-color: " + bgColor + ";");
-        Scene scene = new Scene(root, 800, 600);
 
         Grid grid = new Grid(15, 15);
         for (int row = 0; row < grid.getHeight(); row++) {
@@ -58,6 +81,7 @@ public class MainApp extends Application {
         }
 
         Player player = new Player(7, 7);
+        player.setSkin(settings.playerSkin() != null ? settings.playerSkin() : PlayerSkin.CIRCLE);
 
         ArtifactSpawner artifactSpawner = new ArtifactSpawner();
         List<Artifact> artifacts = artifactSpawner.spawnArtifacts(
@@ -70,17 +94,15 @@ public class MainApp extends Application {
         ArtifactSystem artifactSystem = new ArtifactSystem();
         miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(player);
 
-        GamePanel gamePanel = new GamePanel(grid, player, artifacts, Difficulty.current);
+        GamePanel gamePanel = new GamePanel(grid, player, artifacts, Difficulty.current, settings.mistSampleStep());
         boolean mistEnabled = true;
         double mistAnimationTime = 1.2;
         double mistDensity = 1;
         gamePanel.setMistEnabled(mistEnabled);
         gamePanel.setMistAnimationTimeScale(mistAnimationTime);
         gamePanel.setMistDensity(mistDensity);
-        double baseWidth = grid.getWidth() * 32.0;
-        double baseHeight = grid.getHeight() * 32.0;
-        gamePanel.setPrefSize(baseWidth, baseHeight);
-        root.getChildren().add(gamePanel);
+        gamePanel.setGameVolume(settings.gameVolume());
+        root.getChildren().setAll(gamePanel);
 
         InputHandler inputHandler = new InputHandler(action -> {
             int deltaRow = 0;
@@ -107,32 +129,6 @@ public class MainApp extends Application {
         });
         inputHandler.attachTo(scene);
 
-        Runnable updateScaleAndCenter = () -> {
-            double rootHeight = root.getHeight();
-            double rootWidth = root.getWidth();
-            if (rootHeight <= 0 || rootWidth <= 0) {
-                return;
-            }
-
-            double scale = Math.min(rootWidth / baseWidth, rootHeight / baseHeight);
-            gamePanel.setScaleX(scale);
-            gamePanel.setScaleY(scale);
-
-            gamePanel.setTranslateX((rootWidth - baseWidth) / 2.0);
-            gamePanel.setTranslateY((rootHeight - baseHeight) / 2.0);
-        };
-
-        root.widthProperty().addListener((obs, oldWidth, newWidth) -> updateScaleAndCenter.run());
-        root.heightProperty().addListener((obs, oldHeight, newHeight) -> updateScaleAndCenter.run());
-
-        primaryStage.setTitle("Maze404");
-        primaryStage.setScene(scene);
-        primaryStage.setResizable(true);
-        primaryStage.toFront();
-        primaryStage.show();
-        primaryStage.requestFocus();
-        Platform.runLater(updateScaleAndCenter);
-
-        START_LATCH.countDown();
+        scene.getRoot().requestFocus();
     }
 }
