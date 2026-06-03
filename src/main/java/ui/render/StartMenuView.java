@@ -163,28 +163,7 @@ public class StartMenuView extends StackPane {
         contentFrame.scaleXProperty().bind(uiScale);
         contentFrame.scaleYProperty().bind(uiScale);
 
-        VBox content = new VBox();
-        content.setAlignment(Pos.TOP_CENTER);
-        content.setFillWidth(true);
-        content.setPadding(new Insets(74, 58, 24, 58));
-        content.setSpacing(52);
-
-        Text title = new Text("MAZE 404");
-        title.getStyleClass().add("start-menu-title");
-        Font titleFont = loadTitleFont(TITLE_FONT_SIZE);
-        if (titleFont != null) {
-            title.setFont(titleFont);
-        }
-        title.setEffect(new DropShadow(24, VIOLET_GLOW));
-
-        StackPane menuSlot = new StackPane();
-        menuSlot.setMinWidth(760);
-        menuSlot.setPrefSize(LEVELS_FRAME_WIDTH, LEVELS_FRAME_HEIGHT);
-        menuSlot.setMaxSize(LEVELS_FRAME_WIDTH, LEVELS_FRAME_HEIGHT);
-        menuSlot.getChildren().setAll(createMainMenuActions(onPlay, onExit, menuSlot));
-
-        content.getChildren().addAll(title, menuSlot);
-        contentFrame.getChildren().add(content);
+        contentFrame.getChildren().setAll(createMainMenuContent(onPlay, onExit, contentFrame));
         getChildren().add(contentFrame);
 
         widthProperty().addListener((obs, oldValue, newValue) -> drawBackground());
@@ -209,7 +188,36 @@ public class StartMenuView extends StackPane {
         });
     }
 
-    private HBox createMainMenuActions(Consumer<MenuSettings> onPlay, Runnable onExit, StackPane menuSlot) {
+    private VBox createMainMenuContent(Consumer<MenuSettings> onPlay, Runnable onExit, StackPane contentFrame) {
+        VBox content = new VBox();
+        content.setAlignment(Pos.TOP_CENTER);
+        content.setFillWidth(true);
+        content.setPadding(new Insets(74, 58, 24, 58));
+        content.setSpacing(52);
+
+        Text title = new Text("MAZE 404");
+        title.getStyleClass().add("start-menu-title");
+        Font titleFont = loadTitleFont(TITLE_FONT_SIZE);
+        if (titleFont != null) {
+            title.setFont(titleFont);
+        }
+        title.setEffect(new DropShadow(24, VIOLET_GLOW));
+
+        StackPane menuSlot = new StackPane();
+        menuSlot.setMinWidth(760);
+        menuSlot.setPrefSize(LEVELS_FRAME_WIDTH, LEVELS_FRAME_HEIGHT);
+        menuSlot.setMaxSize(LEVELS_FRAME_WIDTH, LEVELS_FRAME_HEIGHT);
+        menuSlot.getChildren().setAll(createMainMenuActions(onPlay, onExit, menuSlot, contentFrame));
+
+        content.getChildren().addAll(title, menuSlot);
+        return content;
+    }
+
+    private HBox createMainMenuActions(
+            Consumer<MenuSettings> onPlay,
+            Runnable onExit,
+            StackPane menuSlot,
+            StackPane contentFrame) {
         HBox actions = new HBox();
         actions.setAlignment(Pos.CENTER);
         actions.setSpacing(86);
@@ -220,17 +228,17 @@ public class StartMenuView extends StackPane {
         actions.getChildren().addAll(
                 createMenuAction("Settings", "settings.png", () -> menuSlot.getChildren().setAll(
                         createSettingsFrame(() -> menuSlot.getChildren().setAll(
-                                createMainMenuActions(onPlay, onExit, menuSlot)))),
+                                createMainMenuActions(onPlay, onExit, menuSlot, contentFrame)))),
                         false),
-                createMenuAction("Play", "play.png", () -> menuSlot.getChildren().setAll(
+                createMenuAction("Play", "play.png", () -> contentFrame.getChildren().setAll(
                         createLevelsFrame(
                                 () -> onPlay.accept(getMenuSettings()),
-                                () -> menuSlot.getChildren().setAll(
-                                        createMainMenuActions(onPlay, onExit, menuSlot)))),
+                                () -> contentFrame.getChildren().setAll(
+                                        createMainMenuContent(onPlay, onExit, contentFrame)))),
                         true),
                 createMenuAction("Skins", "skins.png", () -> menuSlot.getChildren().setAll(
                         createSkinsFrame(() -> menuSlot.getChildren().setAll(
-                                createMainMenuActions(onPlay, onExit, menuSlot)))),
+                                createMainMenuActions(onPlay, onExit, menuSlot, contentFrame)))),
                         false));
         return actions;
     }
@@ -238,9 +246,9 @@ public class StartMenuView extends StackPane {
     private StackPane createLevelsFrame(Runnable onSelectLevel, Runnable onBack) {
         StackPane levelFrame = new StackPane();
         levelFrame.getStyleClass().add("levels-frame");
-        levelFrame.setMinSize(LEVELS_FRAME_WIDTH, LEVELS_FRAME_HEIGHT);
-        levelFrame.setPrefSize(LEVELS_FRAME_WIDTH, LEVELS_FRAME_HEIGHT);
-        levelFrame.setMaxSize(LEVELS_FRAME_WIDTH, LEVELS_FRAME_HEIGHT);
+        levelFrame.setMinSize(BASE_WIDTH, BASE_HEIGHT);
+        levelFrame.setPrefSize(BASE_WIDTH, BASE_HEIGHT);
+        levelFrame.setMaxSize(BASE_WIDTH, BASE_HEIGHT);
 
         HBox levelSwitcher = new HBox(28);
         levelSwitcher.setAlignment(Pos.CENTER);
@@ -253,13 +261,13 @@ public class StartMenuView extends StackPane {
                 createLevelCard(getSelectedLevel(), onSelectLevel),
                 rightButton);
 
-        Button backButton = new Button("Back");
+        Button backButton = new Button("");
         backButton.getStyleClass().addAll("settings-exit-button", "levels-back-button");
         backButton.setGraphic(createIcon("back.png", 22));
         backButton.setOnAction(event -> onBack.run());
 
         StackPane.setAlignment(backButton, Pos.TOP_LEFT);
-        StackPane.setMargin(backButton, new Insets(0, 0, 0, 0));
+        StackPane.setMargin(backButton, new Insets(0, 0, 0, 24));
         levelFrame.getChildren().addAll(levelSwitcher, backButton);
         return levelFrame;
     }
