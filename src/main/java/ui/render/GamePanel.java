@@ -18,6 +18,7 @@ public class GamePanel extends Pane {
     private static final int MIST_SAMPLE_STEP = 2;
     private static final double MIST_ALPHA_CAP = 0.97;
     private static final double MIST_FOCUS_TRANSITION_SECONDS = 0.3;
+    private static final double MIST_EDGE_FADE_BAND = TILE_SIZE * 2.2;
 
     private final Canvas canvas;
     private final GridRenderer gridRenderer;
@@ -94,6 +95,9 @@ public class GamePanel extends Pane {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         gridRenderer.draw(gc, grid);
+        if (mistEnabled) {
+            updateMistFocus(player);
+        }
         drawArtifacts(gc, player);
         if (mistEnabled) {
             drawMist(gc, grid, player);
@@ -127,9 +131,7 @@ public class GamePanel extends Pane {
 
     private void drawMist(GraphicsContext gc, Grid grid, Player player) {
         MistProfile profile = getMistProfile();
-        updateMistFocus(player);
         double clearRadius = MIST_RADIUS_CELLS * TILE_SIZE;
-        double fadeBand = TILE_SIZE * 2.2;
         double timeSeconds = (mistTimeNanos / 1_000_000_000.0) * mistAnimationTimeScale;
         double width = grid.getWidth() * TILE_SIZE;
         double height = grid.getHeight() * TILE_SIZE;
@@ -142,7 +144,7 @@ public class GamePanel extends Pane {
                 double dy = sampleY - mistFocusY;
                 double dist = Math.sqrt(dx * dx + dy * dy);
 
-                double distanceOpacity = smoothStep(clearRadius - fadeBand, clearRadius + fadeBand, dist);
+                double distanceOpacity = smoothStep(clearRadius - MIST_EDGE_FADE_BAND, clearRadius + MIST_EDGE_FADE_BAND, dist);
                 double pulse = 1.0 + Math.sin(timeSeconds * profile.pulseSpeed()) * profile.pulseStrength();
 
                 double flowX = sampleX + timeSeconds * profile.flowSpeedX()
@@ -185,7 +187,8 @@ public class GamePanel extends Pane {
                 continue;
             }
 
-            if (mistEnabled && !isWithinVisibleMistRadius(player, artifact)) {
+            double visibility = getArtifactVisibility(player, artifact);
+            if (visibility <= 0.01) {
                 continue;
             }
 
@@ -204,29 +207,51 @@ public class GamePanel extends Pane {
                 default ->        artifactColor = Color.WHITE;
             }
 
-            gc.setFill(artifactColor);
+            gc.setFill(Color.color(
+                    artifactColor.getRed(),
+                    artifactColor.getGreen(),
+                    artifactColor.getBlue(),
+                    artifactColor.getOpacity() * visibility
+            ));
             gc.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
 
 
-            gc.setStroke(artifactColor.brighter());
+            Color outlineColor = artifactColor.brighter();
+            gc.setStroke(Color.color(
+                    outlineColor.getRed(),
+                    outlineColor.getGreen(),
+                    outlineColor.getBlue(),
+                    visibility
+            ));
             gc.setLineWidth(1.2);
             gc.strokeOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
 
-            gc.setFill(Color.rgb(255, 255, 255, 0.45));
+            gc.setFill(Color.rgb(255, 255, 255, 0.45 * visibility));
             gc.fillOval(centerX - radius * 0.45, centerY - radius * 0.55, radius * 0.55, radius * 0.4);
         }
     }
 
-    private boolean isWithinVisibleMistRadius(Player player, Artifact artifact) {
+    private double getArtifactVisibility(Player player, Artifact artifact) {
+        if (!mistEnabled) {
+            return 1.0;
+        }
+
         double playerCenterX = (player.getCol() + 0.5) * TILE_SIZE;
         double playerCenterY = (player.getRow() + 0.5) * TILE_SIZE;
         double artifactCenterX = artifact.getPosition().getCol() * TILE_SIZE + TILE_SIZE / 2.0;
         double artifactCenterY = artifact.getPosition().getRow() * TILE_SIZE + TILE_SIZE / 2.0;
-        double dx = artifactCenterX - playerCenterX;
-        double dy = artifactCenterY - playerCenterY;
+        double focusX = mistFocusInitialized ? mistFocusX : playerCenterX;
+        double focusY = mistFocusInitialized ? mistFocusY : playerCenterY;
+        double dx = artifactCenterX - focusX;
+        double dy = artifactCenterY - focusY;
         double visibleRadius = MIST_RADIUS_CELLS * TILE_SIZE;
+        double distance = Math.sqrt(dx * dx + dy * dy);
 
-        return Math.sqrt(dx * dx + dy * dy) <= visibleRadius;
+        return 1.0 - smoothStep(
+                visibleRadius - MIST_EDGE_FADE_BAND,
+                visibleRadius + MIST_EDGE_FADE_BAND,
+                distance
+        );
     }
 
     private void updateMistFocus(Player player) {
