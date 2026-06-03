@@ -13,6 +13,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -50,8 +51,11 @@ public class StartMenuView extends StackPane {
     private static final double SKINS_FRAME_WIDTH = 660.0;
     private static final double LEVELS_FRAME_WIDTH = BASE_WIDTH * 0.80;
     private static final double LEVELS_FRAME_HEIGHT = BASE_HEIGHT * 0.80;
+    private static final double LEVEL_CARD_WIDTH = LEVELS_FRAME_WIDTH * 0.68;
+    private static final double LEVEL_CARD_HEIGHT = LEVELS_FRAME_HEIGHT * 0.70;
     private static final double MIST_ALPHA_CAP = 0.98;
     private static final double TITLE_FONT_SIZE = 62.0;
+    private static final double LEVEL_SWITCH_ANIMATION_MS = 240.0;
 
     private final Canvas background = new Canvas();
     private final Canvas artifacts = new Canvas();
@@ -436,22 +440,51 @@ public class StartMenuView extends StackPane {
         Button button = new Button();
         button.getStyleClass().add("levels-nav-button");
         button.setGraphic(createIcon(iconName, 34));
-        button.setOnAction(event -> {
-            currentLevelIndex = wrapLevelIndex(currentLevelIndex + direction);
-            levelSwitcher.getChildren().setAll(
-                    createLevelNavButton("left.png", -1, levelSwitcher, onSelectLevel),
-                    createLevelCard(getSelectedLevel(), onSelectLevel),
-                    createLevelNavButton("right.png", 1, levelSwitcher, onSelectLevel));
-        });
+        button.setOnAction(event -> animateLevelSwitch(levelSwitcher, direction, onSelectLevel));
         return button;
+    }
+
+    private void animateLevelSwitch(HBox levelSwitcher, int direction, Runnable onSelectLevel) {
+        if (Boolean.TRUE.equals(levelSwitcher.getProperties().get("levelSwitching"))
+                || levelSwitcher.getChildren().size() < 3) {
+            return;
+        }
+
+        levelSwitcher.getProperties().put("levelSwitching", true);
+        Node currentCard = levelSwitcher.getChildren().get(1);
+        double travel = 74.0;
+        double outgoingEnd = direction > 0 ? -travel : travel;
+        double incomingStart = direction > 0 ? travel : -travel;
+
+        Timeline slideOut = new Timeline(new KeyFrame(
+                Duration.millis(LEVEL_SWITCH_ANIMATION_MS * 0.45),
+                new KeyValue(currentCard.opacityProperty(), 0.0, Interpolator.EASE_BOTH),
+                new KeyValue(currentCard.translateXProperty(), outgoingEnd, Interpolator.EASE_BOTH)));
+
+        slideOut.setOnFinished(event -> {
+            currentLevelIndex = wrapLevelIndex(currentLevelIndex + direction);
+            StackPane nextCard = createLevelCard(getSelectedLevel(), onSelectLevel);
+            nextCard.setOpacity(0.0);
+            nextCard.setTranslateX(incomingStart);
+            levelSwitcher.getChildren().set(1, nextCard);
+
+            Timeline slideIn = new Timeline(new KeyFrame(
+                    Duration.millis(LEVEL_SWITCH_ANIMATION_MS * 0.55),
+                    new KeyValue(nextCard.opacityProperty(), 1.0, Interpolator.EASE_BOTH),
+                    new KeyValue(nextCard.translateXProperty(), 0.0, Interpolator.EASE_BOTH)));
+            slideIn.setOnFinished(done -> levelSwitcher.getProperties().remove("levelSwitching"));
+            slideIn.play();
+        });
+
+        slideOut.play();
     }
 
     private StackPane createLevelCard(LevelChoice level, Runnable onSelectLevel) {
         StackPane card = new StackPane();
         card.getStyleClass().addAll("level-card", "level-card-" + level.styleClass());
-        card.setMinSize(LEVELS_FRAME_WIDTH * 0.68, LEVELS_FRAME_HEIGHT * 0.70);
-        card.setPrefSize(LEVELS_FRAME_WIDTH * 0.68, LEVELS_FRAME_HEIGHT * 0.70);
-        card.setMaxSize(LEVELS_FRAME_WIDTH * 0.68, LEVELS_FRAME_HEIGHT * 0.70);
+        card.setMinSize(LEVEL_CARD_WIDTH, LEVEL_CARD_HEIGHT);
+        card.setPrefSize(LEVEL_CARD_WIDTH, LEVEL_CARD_HEIGHT);
+        card.setMaxSize(LEVEL_CARD_WIDTH, LEVEL_CARD_HEIGHT);
         card.setOnMouseClicked(event -> onSelectLevel.run());
 
         VBox copy = new VBox(18);
