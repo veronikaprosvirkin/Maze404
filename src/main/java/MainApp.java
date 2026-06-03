@@ -8,6 +8,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import logic.ArtifactSpawner;
 import logic.ArtifactSystem;
+import logic.generation.MazeGenerator;
 import model.Artifact;
 import model.GameState;
 import model.Grid;
@@ -71,13 +72,7 @@ public class MainApp extends Application {
         };
         root.setStyle("-fx-background-color: " + bgColor + ";");
 
-        Grid grid = new Grid(15, 15);
-        for (int row = 0; row < grid.getHeight(); row++) {
-            for (int col = 0; col < grid.getWidth(); col++) {
-                boolean isBorder = row == 0 || col == 0 || row == grid.getHeight() - 1 || col == grid.getWidth() - 1;
-                grid.setType(row, col, isBorder ? CellType.WALL : CellType.FLOOR);
-            }
-        }
+        Grid grid = new MazeGenerator().generate(15, 15);
 
         Player player = new Player(7, 7);
         player.setSkin(settings.playerSkin() != null ? settings.playerSkin() : PlayerSkin.CIRCLE);
