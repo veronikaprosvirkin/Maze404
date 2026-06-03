@@ -94,7 +94,11 @@ public class StartMenuView extends StackPane {
     private MistProfile transitionStartMistProfile = DEFAULT_MENU_MIST_PROFILE;
     private MistProfile transitionTargetMistProfile = DEFAULT_MENU_MIST_PROFILE;
 
-    public record MenuSettings(double gameVolume, int mistSampleStep, PlayerSkin playerSkin, Difficulty difficulty) {
+    public record MenuSettings(
+            double gameVolume,
+            int mistSampleStep,
+            PlayerSkin playerSkin,
+            Difficulty difficulty) {
     }
 
     private record MenuArtifact(int row, int col, Color base, Color accent, double phase, boolean diamond) {
@@ -489,6 +493,12 @@ public class StartMenuView extends StackPane {
         slider.setShowTickMarks(false);
         slider.setShowTickLabels(false);
         slider.setSnapToTicks(false);
+        if (max - min <= 10 && Math.rint(min) == min && Math.rint(max) == max) {
+            slider.setMajorTickUnit(1);
+            slider.setMinorTickCount(0);
+            slider.setBlockIncrement(1);
+            slider.setSnapToTicks(true);
+        }
         slider.valueProperty().addListener((obs, oldValue, newValue) -> {
             double value = newValue.doubleValue();
             onValueChanged.accept(value);

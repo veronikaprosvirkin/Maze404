@@ -44,7 +44,7 @@ public class MiniGameManager {
                 player.getCrystals()
         );
         boolean[] challengeAccepted = {false};
-        Button enterChallengeButton = createAlertButton(alert, ButtonType.OK, "Enter Challenge", "artifact-confirm-button");
+        Button enterChallengeButton = createAlertButton(alert, ButtonType.OK, "✦ Enter Challenge", "artifact-confirm-button");
         enterChallengeButton.setOnAction(event -> {
             challengeAccepted[0] = true;
             alert.setResult(ButtonType.OK);
