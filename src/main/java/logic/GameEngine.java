@@ -18,7 +18,7 @@ public class GameEngine {
     private boolean paused = false;
 
     private final MovementSystem movementSystem = new MovementSystem();
-    private final CollisionDetector  collisionSystem = new CollisionDetector();
+    private final logic.system.CollisionDetector collisionSystem = new logic.system.CollisionDetector();
     private final ScanSystem scanSystem      = new ScanSystem();
     private final RadarSystem      radarSystem     = new RadarSystem();
     private final ShieldSystem     shieldSystem    = new ShieldSystem();
