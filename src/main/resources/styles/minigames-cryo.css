@@ -682,3 +682,117 @@
     -fx-alignment: CENTER;
     -fx-text-alignment: CENTER;
 }
+
+/* ----------------------------------------------------------
+   ARTIFACT ALERTS
+   ---------------------------------------------------------- */
+.artifact-alert.dialog-pane {
+    -fx-background-color:
+        linear-gradient(from 0% 0% to 100% 100%, rgba(122, 180, 208, 0.10), rgba(10, 14, 24, 0.96)),
+        #06080C;
+    -fx-border-color: #252D40;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(74, 136, 176, 0.38), 28, 0.3, 0, 10);
+}
+
+.artifact-alert.dialog-pane > .content.label {
+    -fx-text-fill: #A8B8CC;
+}
+
+.artifact-alert.dialog-pane:header .header-panel,
+.artifact-alert.dialog-pane > .header-panel {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.artifact-alert.dialog-pane > .content {
+    -fx-background-color: transparent;
+    -fx-padding: 26 28 18 28;
+}
+
+.artifact-alert.dialog-pane .button-bar {
+    -fx-background-color: #0C0F14;
+    -fx-padding: 14 18 18 18;
+    -fx-border-color: #1C2232 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+#artifact-alert-emblem {
+    -fx-text-fill: #9AB8C8;
+    -fx-font-family: "IM Fell English", serif;
+    -fx-font-size: 34px;
+    -fx-effect: dropshadow(gaussian, rgba(122, 180, 208, 0.55), 20, 0.5, 0, 0);
+}
+
+#artifact-alert-title {
+    -fx-text-fill: #D2DCE8;
+    -fx-font-family: "IM Fell English", serif;
+    -fx-font-size: 24px;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+}
+
+#artifact-alert-difficulty {
+    -fx-background-color: rgba(74, 136, 176, 0.16);
+    -fx-background-radius: 999;
+    -fx-border-color: rgba(122, 180, 208, 0.45);
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-padding: 5 14 5 14;
+    -fx-text-fill: #9AB8C8;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 11px;
+}
+
+#artifact-alert-message {
+    -fx-text-fill: #A8B8CC;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 13px;
+    -fx-line-spacing: 2px;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+}
+
+.artifact-alert .button {
+    -fx-background-color: #111520;
+    -fx-border-color: #252D40;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #D2DCE8;
+    -fx-font-family: "IM Fell English", serif;
+    -fx-font-size: 13px;
+    -fx-padding: 8 20 8 20;
+    -fx-cursor: hand;
+}
+
+.artifact-alert .button:hover {
+    -fx-background-color: #141826;
+}
+
+.artifact-alert .button:pressed {
+    -fx-background-color: #0C0F14;
+}
+
+.artifact-alert .artifact-confirm-button {
+    -fx-border-color: #4A88B0;
+    -fx-effect: dropshadow(gaussian, rgba(74, 136, 176, 0.30), 10, 0.35, 0, 0);
+}
+
+.artifact-alert .artifact-confirm-button:hover {
+    -fx-border-color: #7AB4D0;
+    -fx-effect: dropshadow(gaussian, rgba(122, 180, 208, 0.40), 14, 0.45, 0, 0);
+}
+
+.artifact-alert .artifact-cancel-button,
+.artifact-alert .artifact-warning-button {
+    -fx-border-color: #445570;
+    -fx-text-fill: #A8B8CC;
+}
+
+.artifact-warning-alert #artifact-alert-emblem {
+    -fx-text-fill: #B03878;
+    -fx-effect: dropshadow(gaussian, rgba(176, 56, 120, 0.5), 20, 0.5, 0, 0);
+}
