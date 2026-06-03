@@ -1,13 +1,16 @@
 package ui.render;
 
 import enums.Difficulty;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
-import javafx.scene.effect.Bloom;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -19,6 +22,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 import logic.MazeGenerator;
 import model.Grid;
 
@@ -86,6 +90,7 @@ public class StartMenuView extends StackPane {
         button.setPrefSize(buttonSize, buttonSize);
         button.setMaxSize(buttonSize, buttonSize);
         button.setGraphic(createIcon(iconName, iconSize));
+        DropShadow buttonShadow = new DropShadow(34, VIOLET_GLOW);
         button.setStyle(String.format("""
                 -fx-background-radius: 999;
                 -fx-background-color: rgba(34, 16, 58, 0.42);
@@ -94,7 +99,7 @@ public class StartMenuView extends StackPane {
                 -fx-border-radius: 999;
                 -fx-padding: %.0f;
                 """, padding));
-        button.setEffect(new DropShadow(34, VIOLET_GLOW));
+        button.setEffect(buttonShadow);
         button.setOnAction(event -> action.run());
 
         button.setOnMouseEntered(event -> {
@@ -106,7 +111,7 @@ public class StartMenuView extends StackPane {
                     -fx-border-radius: 999;
                     -fx-padding: %.0f;
                     """, padding));
-            button.setEffect(new Bloom(0.22));
+            animateHover(button, buttonShadow, primary ? 1.07 : 1.09, 46, 0.24);
         });
         button.setOnMouseExited(event -> {
             button.setStyle(String.format("""
@@ -117,7 +122,7 @@ public class StartMenuView extends StackPane {
                     -fx-border-radius: 999;
                     -fx-padding: %.0f;
                     """, padding));
-            button.setEffect(new DropShadow(34, VIOLET_GLOW));
+            animateHover(button, buttonShadow, 1.0, 34, 0.0);
         });
 
         Text text = new Text(label);
@@ -130,6 +135,23 @@ public class StartMenuView extends StackPane {
         item.setMinWidth(itemWidth);
         HBox.setHgrow(item, Priority.ALWAYS);
         return item;
+    }
+
+    private void animateHover(Button button, DropShadow shadow, double scale, double radius, double spread) {
+        Object existingAnimation = button.getProperties().get("hoverAnimation");
+        if (existingAnimation instanceof Timeline timeline) {
+            timeline.stop();
+        }
+
+        Timeline animation = new Timeline(new KeyFrame(
+                Duration.millis(170),
+                new KeyValue(button.scaleXProperty(), scale, Interpolator.EASE_BOTH),
+                new KeyValue(button.scaleYProperty(), scale, Interpolator.EASE_BOTH),
+                new KeyValue(shadow.radiusProperty(), radius, Interpolator.EASE_BOTH),
+                new KeyValue(shadow.spreadProperty(), spread, Interpolator.EASE_BOTH)
+        ));
+        button.getProperties().put("hoverAnimation", animation);
+        animation.play();
     }
 
     private ImageView createIcon(String iconName, double iconSize) {
