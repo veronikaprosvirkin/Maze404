@@ -8,6 +8,10 @@ import model.Player;
 
 public class PlayerRenderer {
     private static final double LERP_FACTOR = 0.2;
+    private static final Color MENU_SKIN_BASE = Color.web("#22103A");
+    private static final Color MENU_SKIN_GLOW = Color.web("#8F55FF");
+    private static final Color MENU_SKIN_BORDER = Color.web("#C9A7FF");
+    private static final Color MENU_SKIN_HIGHLIGHT = Color.web("#F1E8FF");
 
     private double renderX;
     private double renderY;
@@ -45,9 +49,18 @@ public class PlayerRenderer {
         drawSkin(gc, skin, diff, centerX, centerY, radius, opacity);
     }
 
+    public static void drawMenuPreview(GraphicsContext gc, PlayerSkin skin, double centerX, double centerY,
+                                       double radius, double opacity) {
+        drawSkin(gc, skin, menuPalette(opacity), centerX, centerY, radius);
+    }
+
     private static void drawSkin(GraphicsContext gc, PlayerSkin skin, Difficulty diff, double centerX, double centerY,
                                  double radius, double opacity) {
-        PlayerPalette palette = paletteFor(diff != null ? diff : Difficulty.EASY, opacity);
+        drawSkin(gc, skin, paletteFor(diff != null ? diff : Difficulty.EASY, opacity), centerX, centerY, radius);
+    }
+
+    private static void drawSkin(GraphicsContext gc, PlayerSkin skin, PlayerPalette palette, double centerX,
+                                 double centerY, double radius) {
         PlayerSkin effectiveSkin = skin != null ? skin : PlayerSkin.CIRCLE;
 
         gc.setFill(palette.outerAura());
@@ -173,6 +186,16 @@ public class PlayerRenderer {
                     Color.rgb(255, 255, 255, 0.25 * opacity)
             );
         };
+    }
+
+    private static PlayerPalette menuPalette(double opacity) {
+        return new PlayerPalette(
+                withOpacity(MENU_SKIN_BASE, opacity),
+                withOpacity(MENU_SKIN_GLOW, 0.32 * opacity),
+                withOpacity(MENU_SKIN_GLOW, 0.18 * opacity),
+                withOpacity(MENU_SKIN_BORDER, 0.88 * opacity),
+                withOpacity(MENU_SKIN_HIGHLIGHT, 0.28 * opacity)
+        );
     }
 
     private static Color withOpacity(Color color, double opacity) {
