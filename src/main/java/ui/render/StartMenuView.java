@@ -42,8 +42,6 @@ public class StartMenuView extends StackPane {
     private static final double BASE_WIDTH = 1024.0;
     private static final double BASE_HEIGHT = 576.0;
     private static final int MIST_SAMPLE_STEP = 4;
-    private static final int MIN_MIST_SAMPLE_STEP = 1;
-    private static final int MAX_MIST_SAMPLE_STEP = 8;
     private static final int DEFAULT_GAME_VOLUME = 75;
     private static final double SETTINGS_CONTROL_WIDTH = 536.0;
     private static final double SETTINGS_SLIDER_WIDTH = 550.0;
@@ -241,15 +239,15 @@ public class StartMenuView extends StackPane {
                         0,
                         100,
                         gameVolume,
-                        value -> Math.round(value) + "%",
+                        value -> Math.round(value) +"",
                         value -> gameVolume = value),
                 createSliderSetting(
-                        "MIST_SAMPLE_STEP",
-                        MIN_MIST_SAMPLE_STEP,
-                        MAX_MIST_SAMPLE_STEP,
-                        mistSampleStep,
-                        value -> String.format("%.1f", value),
-                        value -> mistSampleStep = value));
+                        "Mist quality",
+                        1,
+                        20,
+                        20-mistSampleStep,
+                        value -> Math.round(value) +"",
+                        value -> mistSampleStep = 20-value));
 
         Button exitButton = new Button("Exit");
         exitButton.getStyleClass().add("settings-exit-button");
