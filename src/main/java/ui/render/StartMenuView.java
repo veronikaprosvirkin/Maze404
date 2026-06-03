@@ -43,7 +43,8 @@ public class StartMenuView extends StackPane {
     private static final double BASE_HEIGHT = 576.0;
     private static final int MIST_SAMPLE_STEP = 4;
     private static final int DEFAULT_GAME_VOLUME = 75;
-    private static final double SETTINGS_CONTROL_WIDTH = 536.0;
+    private static final double SETTINGS_FRAME_WIDTH = 660.0;
+    private static final double SETTINGS_CONTROL_WIDTH = 550.0;
     private static final double SETTINGS_SLIDER_WIDTH = 550.0;
     private static final double MIST_ALPHA_CAP = 0.98;
     private static final double TITLE_FONT_SIZE = 62.0;
@@ -215,9 +216,9 @@ public class StartMenuView extends StackPane {
         VBox settingsFrame = new VBox(24);
         settingsFrame.getStyleClass().add("settings-frame");
         settingsFrame.setAlignment(Pos.CENTER);
-        settingsFrame.setMinWidth(620);
-        settingsFrame.setPrefWidth(620);
-        settingsFrame.setMaxWidth(620);
+        settingsFrame.setMinWidth(SETTINGS_FRAME_WIDTH);
+        settingsFrame.setPrefWidth(SETTINGS_FRAME_WIDTH);
+        settingsFrame.setMaxWidth(SETTINGS_FRAME_WIDTH);
 
         Rectangle clip = new Rectangle();
         clip.setArcWidth(60);
@@ -232,6 +233,7 @@ public class StartMenuView extends StackPane {
 
         VBox controls = new VBox(18);
         controls.setAlignment(Pos.CENTER);
+        controls.setPrefWidth(SETTINGS_CONTROL_WIDTH);
         controls.setMaxWidth(SETTINGS_CONTROL_WIDTH);
         controls.getChildren().addAll(
                 createSliderSetting(
@@ -249,9 +251,9 @@ public class StartMenuView extends StackPane {
                         value -> Math.round(value) +"",
                         value -> mistSampleStep = 20-value));
 
-        Button exitButton = new Button("Exit");
+        Button exitButton = new Button("Back");
         exitButton.getStyleClass().add("settings-exit-button");
-        exitButton.setGraphic(createIcon("exit.png", 22));
+        exitButton.setGraphic(createIcon("back.png", 22));
         exitButton.setOnAction(event -> onExitSettings.run());
 
         settingsFrame.getChildren().addAll(heading, controls, exitButton);
