@@ -58,9 +58,9 @@ public class GuessTheNumber extends MiniGame {
     private void showWindow() {
         Stage stage = new Stage();
 
-        Image imgUp = loadIcon("/styles/icons/up.png");
-        Image imgDown = loadIcon("/styles/icons/down.png");
-        Image imgSuccess = loadIcon("/styles/icons/success.png");
+        Image imgUp = loadIcon("/icons/up.png");
+        Image imgDown = loadIcon("/icons/down.png");
+        Image imgSuccess = loadIcon("/icons/success.png");
 
         ImageView dirIcon = new ImageView();
         dirIcon.setFitWidth(16);
