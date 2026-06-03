@@ -31,6 +31,7 @@ public class MainApp extends Application {
 
     private static final CountDownLatch START_LATCH = new CountDownLatch(1);
 
+
     @SuppressWarnings("unused")
     public static void waitForStart() {
         try {
