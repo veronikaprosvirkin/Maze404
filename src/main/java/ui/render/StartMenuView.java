@@ -38,6 +38,7 @@ public class StartMenuView extends StackPane {
     private static final double MIST_ALPHA_CAP = 0.98;
 
     private final Canvas background = new Canvas();
+    private final Canvas artifacts = new Canvas();
     private final Canvas mist = new Canvas();
     private final Grid menuMaze = new MazeGenerator().generate(19, 31);
     private final GridRenderer gridRenderer = new GridRenderer(new SpriteSheet(Difficulty.MEDIUM));
@@ -47,6 +48,12 @@ public class StartMenuView extends StackPane {
     private double mistFocusY = BASE_HEIGHT * 0.5;
     private double mistTargetX = BASE_WIDTH * 0.5;
     private double mistTargetY = BASE_HEIGHT * 0.5;
+
+    private record MenuArtifact(int row, int col, Color base, Color accent, double phase, boolean diamond) {
+    }
+
+    private record MazeViewport(double scale, double offsetX, double offsetY) {
+    }
 
     private record MistProfile(
             double colorR,
@@ -70,6 +77,14 @@ public class StartMenuView extends StackPane {
     ) {
     }
 
+    private static final MenuArtifact[] MENU_ARTIFACTS = {
+            new MenuArtifact(3, 5, Color.web("#F0D66A"), Color.web("#FFF3A6"), 0.0, true),
+            new MenuArtifact(5, 20, Color.web("#7DE4FF"), Color.web("#D7FAFF"), 1.4, false),
+            new MenuArtifact(9, 11, Color.web("#C46BFF"), Color.web("#F0C8FF"), 2.3, true),
+            new MenuArtifact(12, 25, Color.web("#65F2A0"), Color.web("#D4FFE3"), 3.5, false),
+            new MenuArtifact(15, 7, Color.web("#FF73B7"), Color.web("#FFD4EA"), 4.2, true)
+    };
+
     public StartMenuView(Runnable onPlay, Runnable onSettings, Runnable onExit) {
         getStyleClass().add("start-menu");
         var stylesheet = StartMenuView.class.getResource("/styles/start-menu.css");
@@ -87,6 +102,11 @@ public class StartMenuView extends StackPane {
         background.heightProperty().bind(heightProperty());
         getChildren().add(background);
         getChildren().add(createMenuOverlays());
+
+        artifacts.widthProperty().bind(widthProperty());
+        artifacts.heightProperty().bind(heightProperty());
+        artifacts.setMouseTransparent(true);
+        getChildren().add(artifacts);
 
         mist.widthProperty().bind(widthProperty());
         mist.heightProperty().bind(heightProperty());
@@ -143,6 +163,7 @@ public class StartMenuView extends StackPane {
             @Override
             public void handle(long now) {
                 updateMistFocus(now);
+                drawMenuArtifacts(now);
                 drawMist();
             }
         };
@@ -267,19 +288,59 @@ public class StartMenuView extends StackPane {
         GraphicsContext gc = background.getGraphicsContext2D();
         gc.clearRect(0, 0, width, height);
 
-        double mazeWidth = menuMaze.getWidth() * TILE_SIZE;
-        double mazeHeight = menuMaze.getHeight() * TILE_SIZE;
-        double scale = Math.max(width / mazeWidth, height / mazeHeight) * 1.06;
-        double drawWidth = mazeWidth * scale;
-        double drawHeight = mazeHeight * scale;
-        double offsetX = (width - drawWidth) * 0.5;
-        double offsetY = (height - drawHeight) * 0.5;
+        MazeViewport viewport = getMazeViewport(width, height);
 
         gc.save();
-        gc.translate(offsetX, offsetY);
-        gc.scale(scale, scale);
+        gc.translate(viewport.offsetX(), viewport.offsetY());
+        gc.scale(viewport.scale(), viewport.scale());
         gridRenderer.draw(gc, menuMaze);
         gc.restore();
+    }
+
+    private void drawMenuArtifacts(long now) {
+        double width = artifacts.getWidth();
+        double height = artifacts.getHeight();
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+
+        GraphicsContext gc = artifacts.getGraphicsContext2D();
+        gc.clearRect(0, 0, width, height);
+
+        MazeViewport viewport = getMazeViewport(width, height);
+        double tile = TILE_SIZE * viewport.scale();
+        double timeSeconds = now / 1_000_000_000.0;
+
+        for (MenuArtifact artifact : MENU_ARTIFACTS) {
+            double pulse = 0.5 + 0.5 * Math.sin(timeSeconds * 1.8 + artifact.phase());
+            double centerX = viewport.offsetX() + (artifact.col() + 0.5) * tile;
+            double centerY = viewport.offsetY() + (artifact.row() + 0.5) * tile;
+            double radius = tile * (0.16 + pulse * 0.045);
+
+            gc.save();
+            gc.setGlobalAlpha(0.78 + pulse * 0.20);
+            gc.setEffect(new DropShadow(tile * (0.55 + pulse * 0.25), artifact.accent()));
+            gc.setFill(artifact.base());
+            if (artifact.diamond()) {
+                gc.fillPolygon(
+                        new double[]{centerX, centerX + radius, centerX, centerX - radius},
+                        new double[]{centerY - radius, centerY, centerY + radius, centerY},
+                        4
+                );
+            } else {
+                gc.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
+            }
+            gc.restore();
+
+            gc.setStroke(Color.color(
+                    artifact.accent().getRed(),
+                    artifact.accent().getGreen(),
+                    artifact.accent().getBlue(),
+                    0.50 + pulse * 0.30
+            ));
+            gc.setLineWidth(Math.max(1.2, tile * 0.035));
+            gc.strokeOval(centerX - radius * 1.9, centerY - radius * 1.9, radius * 3.8, radius * 3.8);
+        }
     }
 
     private void updateMistFocus(long now) {
@@ -368,13 +429,22 @@ public class StartMenuView extends StackPane {
         return new MistProfile(
                 0.08, 0.03, 0.14,
                 0.62, 0.36, 0.96,
-                0.96, 0.24,
+                0.82, 0.28,
                 1.05, 52.0, -14.0,
                 1.12, 0.08,
                 42.0, 18.0,
                 0.016, 0.012,
                 0.58
         );
+    }
+
+    private MazeViewport getMazeViewport(double width, double height) {
+        double mazeWidth = menuMaze.getWidth() * TILE_SIZE;
+        double mazeHeight = menuMaze.getHeight() * TILE_SIZE;
+        double scale = Math.max(width / mazeWidth, height / mazeHeight) * 1.06;
+        double drawWidth = mazeWidth * scale;
+        double drawHeight = mazeHeight * scale;
+        return new MazeViewport(scale, (width - drawWidth) * 0.5, (height - drawHeight) * 0.5);
     }
 
     private double smoothStep(double edge0, double edge1, double x) {

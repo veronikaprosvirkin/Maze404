@@ -1,17 +1,17 @@
 .start-menu {
-    -fx-background-color: #08040F;
+    -fx-background-color: #10071D;
 }
 
 .menu-maze-tint {
-    -fx-fill: rgba(12, 4, 22, 0.34);
+    -fx-fill: rgba(24, 8, 42, 0.18);
 }
 
 .menu-edge-shade {
-    -fx-fill: rgba(0, 0, 0, 0.45);
+    -fx-fill: rgba(0, 0, 0, 0.30);
 }
 
 .menu-vignette {
-    -fx-fill: rgba(8, 3, 14, 0.28);
+    -fx-fill: rgba(8, 3, 14, 0.16);
 }
 
 .start-menu-title {
