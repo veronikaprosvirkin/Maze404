@@ -197,7 +197,7 @@ public class StartMenuView extends StackPane {
     private static final LevelChoice[] LEVEL_CHOICES = {
             new LevelChoice(Difficulty.EASY, "Cryo Dungeon", "cryo"),
             new LevelChoice(Difficulty.MEDIUM, "Stone Desert", "stone"),
-            new LevelChoice(Difficulty.HARD, "Inferno hell", "inferno")
+            new LevelChoice(Difficulty.HARD, "Inferno Hell", "inferno")
     };
 
     public StartMenuView(Runnable onPlay, Runnable onSettings, Runnable onExit) {
