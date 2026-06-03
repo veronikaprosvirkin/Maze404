@@ -63,11 +63,8 @@ public class PlayerRenderer {
                                  double centerY, double radius) {
         PlayerSkin effectiveSkin = skin != null ? skin : PlayerSkin.CIRCLE;
 
-        gc.setFill(palette.outerAura());
-        gc.fillOval(centerX - radius * 1.8, centerY - radius * 1.8, radius * 3.6, radius * 3.6);
-
-        gc.setFill(palette.innerGlow());
-        gc.fillOval(centerX - radius * 1.3, centerY - radius * 1.3, radius * 2.6, radius * 2.6);
+        drawOuterAura(gc, effectiveSkin, palette.outerAura(), centerX, centerY, radius);
+        drawInnerGlow(gc, effectiveSkin, palette.innerGlow(), centerX, centerY, radius);
 
         drawBody(gc, effectiveSkin, palette.base(), centerX, centerY, radius);
         gc.setLineWidth(1.5);
@@ -76,17 +73,35 @@ public class PlayerRenderer {
         drawHighlight(gc, effectiveSkin, palette.highlight(), centerX, centerY, radius);
     }
 
+    private static void drawOuterAura(GraphicsContext gc, PlayerSkin skin, Color fill, double centerX, double centerY,
+                                      double radius) {
+        gc.setFill(fill);
+        switch (skin) {
+            case RECTANGLE -> gc.fillRoundRect(centerX - radius * 1.7, centerY - radius * 1.7,
+                    radius * 3.4, radius * 3.4, radius * 0.95, radius * 0.95);
+            case TRIANGLE -> drawHexaStarFill(gc, centerX, centerY, radius * 1.62, radius * 0.7);
+            default -> gc.fillOval(centerX - radius * 1.8, centerY - radius * 1.8, radius * 3.6, radius * 3.6);
+        }
+    }
+
+    private static void drawInnerGlow(GraphicsContext gc, PlayerSkin skin, Color fill, double centerX, double centerY,
+                                      double radius) {
+        gc.setFill(fill);
+        switch (skin) {
+            case RECTANGLE -> gc.fillRoundRect(centerX - radius * 1.1, centerY - radius * 1.1,
+                    radius * 2.2, radius * 2.2, radius * 0.72, radius * 0.72);
+            case TRIANGLE -> drawHexaStarFill(gc, centerX, centerY, radius * 1.28, radius * 0.56);
+            default -> gc.fillOval(centerX - radius * 1.3, centerY - radius * 1.3, radius * 2.6, radius * 2.6);
+        }
+    }
+
     private static void drawBody(GraphicsContext gc, PlayerSkin skin, Color fill, double centerX, double centerY,
                                  double radius) {
         gc.setFill(fill);
         switch (skin) {
             case RECTANGLE -> gc.fillRoundRect(centerX - radius * 1.02, centerY - radius * 0.88,
                     radius * 2.04, radius * 1.76, radius * 0.56, radius * 0.56);
-            case TRIANGLE -> gc.fillPolygon(
-                    new double[]{centerX, centerX + radius * 0.98, centerX - radius * 0.98},
-                    new double[]{centerY - radius * 1.08, centerY + radius * 0.92, centerY + radius * 0.92},
-                    3
-            );
+            case TRIANGLE -> drawHexaStarFill(gc, centerX, centerY, radius, radius * 0.44);
             case DEMON -> {
                 gc.fillPolygon(
                         new double[]{centerX - radius * 0.7, centerX - radius * 0.28, centerX - radius * 0.08},
@@ -115,11 +130,7 @@ public class PlayerRenderer {
         switch (skin) {
             case RECTANGLE -> gc.strokeRoundRect(centerX - radius * 1.02, centerY - radius * 0.88,
                     radius * 2.04, radius * 1.76, radius * 0.56, radius * 0.56);
-            case TRIANGLE -> gc.strokePolygon(
-                    new double[]{centerX, centerX + radius * 0.98, centerX - radius * 0.98},
-                    new double[]{centerY - radius * 1.08, centerY + radius * 0.92, centerY + radius * 0.92},
-                    3
-            );
+            case TRIANGLE -> drawHexaStarStroke(gc, centerX, centerY, radius, radius * 0.44);
             case DEMON -> {
                 gc.strokePolygon(
                         new double[]{centerX - radius * 0.7, centerX - radius * 0.28, centerX - radius * 0.08},
@@ -147,11 +158,8 @@ public class PlayerRenderer {
         switch (skin) {
             case RECTANGLE -> gc.fillRoundRect(centerX - radius * 0.58, centerY - radius * 0.56,
                     radius * 0.7, radius * 0.42, radius * 0.2, radius * 0.2);
-            case TRIANGLE -> gc.fillPolygon(
-                    new double[]{centerX - radius * 0.08, centerX + radius * 0.24, centerX - radius * 0.3},
-                    new double[]{centerY - radius * 0.56, centerY - radius * 0.18, centerY - radius * 0.08},
-                    3
-            );
+            case TRIANGLE -> drawHexaStarFill(gc, centerX - radius * 0.18, centerY - radius * 0.28,
+                    radius * 0.34, radius * 0.15);
             case DEMON -> {
                 gc.fillOval(centerX - radius * 0.54, centerY - radius * 0.18, radius * 0.22, radius * 0.12);
                 gc.fillOval(centerX + radius * 0.32, centerY - radius * 0.18, radius * 0.22, radius * 0.12);
@@ -200,6 +208,34 @@ public class PlayerRenderer {
 
     private static Color withOpacity(Color color, double opacity) {
         return Color.color(color.getRed(), color.getGreen(), color.getBlue(), opacity);
+    }
+
+    private static void drawHexaStarFill(GraphicsContext gc, double centerX, double centerY,
+                                         double outerRadius, double halfThickness) {
+        gc.fillPolygon(
+                new double[]{centerX, centerX + outerRadius, centerX - outerRadius},
+                new double[]{centerY - outerRadius, centerY + halfThickness, centerY + halfThickness},
+                3
+        );
+        gc.fillPolygon(
+                new double[]{centerX, centerX + outerRadius, centerX - outerRadius},
+                new double[]{centerY + outerRadius, centerY - halfThickness, centerY - halfThickness},
+                3
+        );
+    }
+
+    private static void drawHexaStarStroke(GraphicsContext gc, double centerX, double centerY,
+                                           double outerRadius, double halfThickness) {
+        gc.strokePolygon(
+                new double[]{centerX, centerX + outerRadius, centerX - outerRadius},
+                new double[]{centerY - outerRadius, centerY + halfThickness, centerY + halfThickness},
+                3
+        );
+        gc.strokePolygon(
+                new double[]{centerX, centerX + outerRadius, centerX - outerRadius},
+                new double[]{centerY + outerRadius, centerY - halfThickness, centerY - halfThickness},
+                3
+        );
     }
 
     private record PlayerPalette(Color base, Color innerGlow, Color outerAura, Color border, Color highlight) {
