@@ -5,9 +5,10 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.DoubleBinding;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
@@ -15,12 +16,11 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
+import javafx.scene.shape.Ellipse;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import logic.MazeGenerator;
@@ -31,8 +31,9 @@ import java.io.InputStream;
 public class StartMenuView extends StackPane {
     private static final String ICON_PATH = "/styles/icons/";
     private static final Color VIOLET_GLOW = Color.web("#C9A7FF");
-    private static final Color VIOLET_TEXT = Color.web("#F1E8FF");
     private static final int TILE_SIZE = 32;
+    private static final double BASE_WIDTH = 1024.0;
+    private static final double BASE_HEIGHT = 576.0;
 
     private final Canvas background = new Canvas();
     private final Grid menuMaze = new MazeGenerator().generate(19, 31);
@@ -40,29 +41,45 @@ public class StartMenuView extends StackPane {
 
     public StartMenuView(Runnable onPlay, Runnable onSettings, Runnable onExit) {
         getStyleClass().add("start-menu");
-        setStyle("-fx-background-color: #08040F;");
+        var stylesheet = StartMenuView.class.getResource("/styles/start-menu.css");
+        if (stylesheet != null) {
+            getStylesheets().add(stylesheet.toExternalForm());
+        }
+
+        DoubleBinding uiScale = Bindings.createDoubleBinding(
+                () -> clamp(Math.min(getWidth() / BASE_WIDTH, getHeight() / BASE_HEIGHT), 0.38, 1.34),
+                widthProperty(),
+                heightProperty()
+        );
 
         background.widthProperty().bind(widthProperty());
         background.heightProperty().bind(heightProperty());
         getChildren().add(background);
+        getChildren().add(createMenuOverlays());
+
+        StackPane contentFrame = new StackPane();
+        contentFrame.setMinSize(BASE_WIDTH, BASE_HEIGHT);
+        contentFrame.setPrefSize(BASE_WIDTH, BASE_HEIGHT);
+        contentFrame.setMaxSize(BASE_WIDTH, BASE_HEIGHT);
+        contentFrame.scaleXProperty().bind(uiScale);
+        contentFrame.scaleYProperty().bind(uiScale);
 
         VBox content = new VBox();
         content.setAlignment(Pos.TOP_CENTER);
         content.setFillWidth(true);
-        content.setPadding(new Insets(42, 58, 48, 58));
-        content.spacingProperty().bind(heightProperty().multiply(0.09));
+        content.setPadding(new Insets(74, 58, 24, 58));
+        content.setSpacing(52);
 
         Text title = new Text("MAZE 404");
-        title.setFill(VIOLET_TEXT);
-        title.setFont(Font.font("Arial", FontWeight.LIGHT, 62));
+        title.getStyleClass().add("start-menu-title");
         title.setEffect(new DropShadow(24, VIOLET_GLOW));
-        title.scaleXProperty().bind(widthProperty().divide(1024).multiply(0.25).add(0.75));
-        title.scaleYProperty().bind(title.scaleXProperty());
 
         HBox actions = new HBox();
         actions.setAlignment(Pos.CENTER);
         actions.setSpacing(86);
-        actions.maxWidthProperty().bind(widthProperty().multiply(0.82));
+        actions.setMinWidth(688);
+        actions.setPrefWidth(688);
+        actions.setMaxWidth(688);
 
         actions.getChildren().addAll(
                 createMenuAction("Settings", "settings.png", onSettings, false),
@@ -71,69 +88,87 @@ public class StartMenuView extends StackPane {
         );
 
         content.getChildren().addAll(title, actions);
-        getChildren().add(content);
+        contentFrame.getChildren().add(content);
+        getChildren().add(contentFrame);
 
         widthProperty().addListener((obs, oldValue, newValue) -> drawBackground());
         heightProperty().addListener((obs, oldValue, newValue) -> drawBackground());
     }
 
-    private VBox createMenuAction(String label, String iconName, Runnable action, boolean primary) {
+    private StackPane createMenuOverlays() {
+        StackPane overlays = new StackPane();
+        overlays.setMouseTransparent(true);
+        overlays.prefWidthProperty().bind(widthProperty());
+        overlays.prefHeightProperty().bind(heightProperty());
+
+        Rectangle mazeTint = new Rectangle();
+        mazeTint.getStyleClass().add("menu-maze-tint");
+        mazeTint.widthProperty().bind(widthProperty());
+        mazeTint.heightProperty().bind(heightProperty());
+
+        Ellipse centerAura = new Ellipse();
+        centerAura.getStyleClass().add("menu-center-aura");
+        centerAura.radiusXProperty().bind(widthProperty().multiply(0.36));
+        centerAura.radiusYProperty().bind(heightProperty().multiply(0.29));
+
+        Rectangle topShade = new Rectangle();
+        topShade.getStyleClass().add("menu-edge-shade");
+        topShade.widthProperty().bind(widthProperty());
+        topShade.heightProperty().bind(heightProperty().multiply(0.16));
+        StackPane.setAlignment(topShade, Pos.TOP_CENTER);
+
+        Rectangle bottomShade = new Rectangle();
+        bottomShade.getStyleClass().add("menu-edge-shade");
+        bottomShade.widthProperty().bind(widthProperty());
+        bottomShade.heightProperty().bind(heightProperty().multiply(0.14));
+        StackPane.setAlignment(bottomShade, Pos.BOTTOM_CENTER);
+
+        Rectangle vignette = new Rectangle();
+        vignette.getStyleClass().add("menu-vignette");
+        vignette.widthProperty().bind(widthProperty());
+        vignette.heightProperty().bind(heightProperty());
+
+        overlays.getChildren().addAll(mazeTint, centerAura, topShade, bottomShade, vignette);
+        return overlays;
+    }
+
+    private VBox createMenuAction(
+            String label,
+            String iconName,
+            Runnable action,
+            boolean primary
+    ) {
         double buttonSize = primary ? 178 : 136;
         double iconSize = primary ? 86 : 64;
-        double padding = primary ? 27 : 22;
-        double labelSize = primary ? 39 : 31;
         double itemWidth = primary ? 196 : 160;
 
         Button button = new Button();
-        button.setCursor(Cursor.HAND);
+        button.getStyleClass().addAll("menu-action-button", primary ? "primary" : "secondary");
         button.setMinSize(buttonSize, buttonSize);
         button.setPrefSize(buttonSize, buttonSize);
         button.setMaxSize(buttonSize, buttonSize);
         button.setGraphic(createIcon(iconName, iconSize));
         DropShadow buttonShadow = new DropShadow(34, VIOLET_GLOW);
-        button.setStyle(String.format("""
-                -fx-background-radius: 999;
-                -fx-background-color: rgba(34, 16, 58, 0.42);
-                -fx-border-color: rgba(201, 167, 255, 0.96);
-                -fx-border-width: 4;
-                -fx-border-radius: 999;
-                -fx-padding: %.0f;
-                """, padding));
         button.setEffect(buttonShadow);
         button.setOnAction(event -> action.run());
 
         button.setOnMouseEntered(event -> {
-            button.setStyle(String.format("""
-                    -fx-background-radius: 999;
-                    -fx-background-color: rgba(76, 38, 124, 0.58);
-                    -fx-border-color: rgba(241, 232, 255, 1);
-                    -fx-border-width: 4;
-                    -fx-border-radius: 999;
-                    -fx-padding: %.0f;
-                    """, padding));
             animateHover(button, buttonShadow, primary ? 1.07 : 1.09, 46, 0.24);
         });
         button.setOnMouseExited(event -> {
-            button.setStyle(String.format("""
-                    -fx-background-radius: 999;
-                    -fx-background-color: rgba(34, 16, 58, 0.42);
-                    -fx-border-color: rgba(201, 167, 255, 0.96);
-                    -fx-border-width: 4;
-                    -fx-border-radius: 999;
-                    -fx-padding: %.0f;
-                    """, padding));
             animateHover(button, buttonShadow, 1.0, 34, 0.0);
         });
 
         Text text = new Text(label);
-        text.setFill(VIOLET_TEXT);
-        text.setFont(Font.font("Arial", FontWeight.NORMAL, labelSize));
+        text.getStyleClass().addAll("menu-action-label", primary ? "primary" : "secondary");
         text.setEffect(new DropShadow(7, Color.rgb(0, 0, 0, 0.92)));
 
-        VBox item = new VBox(primary ? 26 : 20, button, text);
+        VBox item = new VBox(primary ? 26 : 20);
         item.setAlignment(Pos.CENTER);
         item.setMinWidth(itemWidth);
-        HBox.setHgrow(item, Priority.ALWAYS);
+        item.setPrefWidth(itemWidth);
+        item.setMaxWidth(itemWidth);
+        item.getChildren().addAll(button, text);
         return item;
     }
 
@@ -175,9 +210,6 @@ public class StartMenuView extends StackPane {
         GraphicsContext gc = background.getGraphicsContext2D();
         gc.clearRect(0, 0, width, height);
 
-        gc.setFill(Color.web("#08040F"));
-        gc.fillRect(0, 0, width, height);
-
         double mazeWidth = menuMaze.getWidth() * TILE_SIZE;
         double mazeHeight = menuMaze.getHeight() * TILE_SIZE;
         double scale = Math.max(width / mazeWidth, height / mazeHeight) * 1.06;
@@ -191,30 +223,9 @@ public class StartMenuView extends StackPane {
         gc.scale(scale, scale);
         gridRenderer.draw(gc, menuMaze);
         gc.restore();
+    }
 
-        gc.setFill(Color.rgb(12, 4, 22, 0.34));
-        gc.fillRect(0, 0, width, height);
-
-        gc.setStroke(Color.rgb(201, 167, 255, 0.10));
-        gc.setLineWidth(1.0);
-        for (int row = 0; row < menuMaze.getHeight(); row++) {
-            for (int col = 0; col < menuMaze.getWidth(); col++) {
-                if ((row + col) % 5 == 0) {
-                    double x = offsetX + col * TILE_SIZE * scale;
-                    double y = offsetY + row * TILE_SIZE * scale;
-                    gc.strokeRect(x, y, TILE_SIZE * scale, TILE_SIZE * scale);
-                }
-            }
-        }
-
-        gc.setFill(Color.rgb(0, 0, 0, 0.45));
-        gc.fillRect(0, 0, width, height * 0.16);
-        gc.fillRect(0, height * 0.86, width, height * 0.14);
-
-        gc.setFill(Color.rgb(143, 85, 255, 0.11));
-        gc.fillOval(width * 0.14, height * 0.25, width * 0.72, height * 0.58);
-
-        gc.setFill(Color.rgb(8, 3, 14, 0.28));
-        gc.fillRect(0, 0, width, height);
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 }

@@ -1,0 +1,68 @@
+.start-menu {
+    -fx-background-color: #08040F;
+}
+
+.menu-maze-tint {
+    -fx-fill: rgba(12, 4, 22, 0.34);
+}
+
+.menu-center-aura {
+    -fx-fill: rgba(143, 85, 255, 0.11);
+}
+
+.menu-edge-shade {
+    -fx-fill: rgba(0, 0, 0, 0.45);
+}
+
+.menu-vignette {
+    -fx-fill: rgba(8, 3, 14, 0.28);
+}
+
+.start-menu-title {
+    -fx-fill: #F1E8FF;
+    -fx-font-family: "Arial";
+    -fx-font-size: 62px;
+    -fx-font-weight: 300;
+}
+
+.menu-action-button {
+    -fx-background-radius: 999;
+    -fx-background-color: rgba(34, 16, 58, 0.42);
+    -fx-border-color: rgba(201, 167, 255, 0.96);
+    -fx-border-width: 4;
+    -fx-border-radius: 999;
+    -fx-cursor: hand;
+}
+
+.menu-action-button:focused {
+    -fx-background-insets: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.menu-action-button:hover {
+    -fx-background-color: rgba(76, 38, 124, 0.58);
+    -fx-border-color: #F1E8FF;
+}
+
+.menu-action-button.primary {
+    -fx-padding: 27;
+}
+
+.menu-action-button.secondary {
+    -fx-padding: 22;
+}
+
+.menu-action-label {
+    -fx-fill: #F1E8FF;
+    -fx-font-family: "Arial";
+    -fx-font-weight: 400;
+}
+
+.menu-action-label.primary {
+    -fx-font-size: 39px;
+}
+
+.menu-action-label.secondary {
+    -fx-font-size: 31px;
+}
