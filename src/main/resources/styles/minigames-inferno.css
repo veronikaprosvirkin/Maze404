@@ -691,3 +691,117 @@
     -fx-alignment: CENTER;
     -fx-text-alignment: CENTER;
 }
+
+/* ----------------------------------------------------------
+   ARTIFACT ALERTS
+   ---------------------------------------------------------- */
+.artifact-alert.dialog-pane {
+    -fx-background-color:
+        linear-gradient(from 0% 0% to 100% 100%, rgba(200, 32, 48, 0.12), rgba(24, 8, 12, 0.96)),
+        #080406;
+    -fx-border-color: #381520;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(200, 32, 48, 0.34), 30, 0.32, 0, 10);
+}
+
+.artifact-alert.dialog-pane > .content.label {
+    -fx-text-fill: #B07A88;
+}
+
+.artifact-alert.dialog-pane:header .header-panel,
+.artifact-alert.dialog-pane > .header-panel {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.artifact-alert.dialog-pane > .content {
+    -fx-background-color: transparent;
+    -fx-padding: 26 28 18 28;
+}
+
+.artifact-alert.dialog-pane .button-bar {
+    -fx-background-color: #0E0608;
+    -fx-padding: 14 18 18 18;
+    -fx-border-color: #281018 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+#artifact-alert-emblem {
+    -fx-text-fill: #C82030;
+    -fx-font-family: "IM Fell English", serif;
+    -fx-font-size: 34px;
+    -fx-effect: dropshadow(gaussian, rgba(255, 58, 42, 0.50), 22, 0.5, 0, 0);
+}
+
+#artifact-alert-title {
+    -fx-text-fill: #D4A8B0;
+    -fx-font-family: "IM Fell English", serif;
+    -fx-font-size: 24px;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+}
+
+#artifact-alert-difficulty {
+    -fx-background-color: rgba(200, 32, 48, 0.16);
+    -fx-background-radius: 999;
+    -fx-border-color: rgba(255, 58, 42, 0.35);
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-padding: 5 14 5 14;
+    -fx-text-fill: #D4A8B0;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 11px;
+}
+
+#artifact-alert-message {
+    -fx-text-fill: #B07A88;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 13px;
+    -fx-line-spacing: 2px;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+}
+
+.artifact-alert .button {
+    -fx-background-color: #150A0C;
+    -fx-border-color: #381520;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #D4A8B0;
+    -fx-font-family: "IM Fell English", serif;
+    -fx-font-size: 13px;
+    -fx-padding: 8 20 8 20;
+    -fx-cursor: hand;
+}
+
+.artifact-alert .button:hover {
+    -fx-background-color: #1C0A10;
+}
+
+.artifact-alert .button:pressed {
+    -fx-background-color: #0E0608;
+}
+
+.artifact-alert .artifact-confirm-button {
+    -fx-border-color: #C82030;
+    -fx-effect: dropshadow(gaussian, rgba(200, 32, 48, 0.32), 10, 0.35, 0, 0);
+}
+
+.artifact-alert .artifact-confirm-button:hover {
+    -fx-border-color: #FF3A2A;
+    -fx-effect: dropshadow(gaussian, rgba(255, 58, 42, 0.42), 14, 0.45, 0, 0);
+}
+
+.artifact-alert .artifact-cancel-button,
+.artifact-alert .artifact-warning-button {
+    -fx-border-color: #6A3040;
+    -fx-text-fill: #B07A88;
+}
+
+.artifact-warning-alert #artifact-alert-emblem {
+    -fx-text-fill: #FF3A2A;
+    -fx-effect: dropshadow(gaussian, rgba(255, 58, 42, 0.58), 22, 0.5, 0, 0);
+}
