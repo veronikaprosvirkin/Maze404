@@ -29,7 +29,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
-import logic.MazeGenerator;
+import logic.generation.MazeGenerator;
 import model.Grid;
 
 import java.io.InputStream;
