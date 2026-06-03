@@ -56,6 +56,11 @@ public class StartMenuView extends StackPane {
     private static final double MIST_ALPHA_CAP = 0.98;
     private static final double TITLE_FONT_SIZE = 62.0;
     private static final double LEVEL_SWITCH_ANIMATION_MS = 240.0;
+    private static final double SKIN_SWITCH_ANIMATION_MS = 240.0;
+    private static final double SKIN_CARD_WIDTH = 138.0;
+    private static final double SKIN_CURRENT_CARD_WIDTH = 170.0;
+    private static final double SKIN_GALLERY_GAP = 12.0;
+    private static final double SKIN_CARD_STEP = (SKIN_CARD_WIDTH + SKIN_CURRENT_CARD_WIDTH) * 0.5 + SKIN_GALLERY_GAP;
 
     private final Canvas background = new Canvas();
     private final Canvas artifacts = new Canvas();
@@ -419,17 +424,50 @@ public class StartMenuView extends StackPane {
         Button button = new Button();
         button.getStyleClass().add("skins-nav-button");
         button.setGraphic(createIcon(iconName, 28));
-        button.setOnAction(event -> {
-            currentSkinIndex = wrapSkinIndex(currentSkinIndex + direction);
-            gallery.getChildren().setAll(
-                    createGalleryNavButton("left.png", -1, gallery),
-                    createSkinPreviewCard(getRelativeSkin(-1), false),
-                    createSkinPreviewCard(getSelectedSkin(), true),
-                    createSkinPreviewCard(getRelativeSkin(1), false),
-                    createGalleryNavButton("right.png", 1, gallery)
-            );
-        });
+        button.setOnAction(event -> animateSkinGallerySwitch(gallery, direction));
         return button;
+    }
+
+    private void animateSkinGallerySwitch(HBox gallery, int direction) {
+        if (Boolean.TRUE.equals(gallery.getProperties().get("skinSwitching"))
+                || gallery.getChildren().size() < 5) {
+            return;
+        }
+
+        gallery.getProperties().put("skinSwitching", true);
+        Node leftCard = gallery.getChildren().get(1);
+        Node currentCard = gallery.getChildren().get(2);
+        Node rightCard = gallery.getChildren().get(3);
+
+        Node incomingCard = direction > 0 ? rightCard : leftCard;
+        Node disappearingCard = direction > 0 ? leftCard : rightCard;
+        double sideShift = direction > 0 ? -SKIN_CARD_STEP : SKIN_CARD_STEP;
+        double disappearingShift = direction > 0 ? -SKIN_CARD_STEP * 0.62 : SKIN_CARD_STEP * 0.62;
+        double centerToSideScale = SKIN_CARD_WIDTH / SKIN_CURRENT_CARD_WIDTH;
+        double sideToCenterScale = SKIN_CURRENT_CARD_WIDTH / SKIN_CARD_WIDTH;
+
+        Timeline animation = new Timeline(new KeyFrame(
+                Duration.millis(SKIN_SWITCH_ANIMATION_MS),
+                new KeyValue(incomingCard.opacityProperty(), 1.0, Interpolator.EASE_BOTH),
+                new KeyValue(incomingCard.translateXProperty(), sideShift, Interpolator.EASE_BOTH),
+                new KeyValue(incomingCard.scaleXProperty(), sideToCenterScale, Interpolator.EASE_BOTH),
+                new KeyValue(incomingCard.scaleYProperty(), sideToCenterScale, Interpolator.EASE_BOTH),
+                new KeyValue(currentCard.opacityProperty(), 0.92, Interpolator.EASE_BOTH),
+                new KeyValue(currentCard.translateXProperty(), sideShift, Interpolator.EASE_BOTH),
+                new KeyValue(currentCard.scaleXProperty(), centerToSideScale, Interpolator.EASE_BOTH),
+                new KeyValue(currentCard.scaleYProperty(), centerToSideScale, Interpolator.EASE_BOTH),
+                new KeyValue(disappearingCard.opacityProperty(), 0.0, Interpolator.EASE_BOTH),
+                new KeyValue(disappearingCard.translateXProperty(), disappearingShift, Interpolator.EASE_BOTH)));
+
+        animation.setOnFinished(event -> {
+            currentSkinIndex = wrapSkinIndex(currentSkinIndex + direction);
+            gallery.getChildren().set(1, createSkinPreviewCard(getRelativeSkin(-1), false));
+            gallery.getChildren().set(2, createSkinPreviewCard(getSelectedSkin(), true));
+            gallery.getChildren().set(3, createSkinPreviewCard(getRelativeSkin(1), false));
+            gallery.getProperties().remove("skinSwitching");
+        });
+
+        animation.play();
     }
 
     private Button createLevelNavButton(
