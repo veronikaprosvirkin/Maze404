@@ -46,7 +46,7 @@ public class LevelLoader {
         String path = "/levels/level" + levelNumber + ".json";
         try (InputStream is = getClass().getResourceAsStream(path)) {
             if (is == null) {
-                System.out.println("[LevelLoader] " + path + " не знайдено, використовується дефолт.");
+                System.out.println("[LevelLoader] " + path + " is not found, using default.");
                 return LevelConfig.defaultFor(levelNumber);
             }
             // TODO: розпарсити JSON через Gson після узгодження з командою
@@ -54,7 +54,7 @@ public class LevelLoader {
             // return gson.fromJson(new InputStreamReader(is, StandardCharsets.UTF_8), LevelConfig.class);
             return LevelConfig.defaultFor(levelNumber);
         } catch (Exception e) {
-            System.err.println("[LevelLoader] Помилка читання конфігу: " + e.getMessage());
+            System.err.println("[LevelLoader] Error while reading a config: " + e.getMessage());
             return LevelConfig.defaultFor(levelNumber);
         }
     }

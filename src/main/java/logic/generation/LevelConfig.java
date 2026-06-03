@@ -20,16 +20,16 @@ public class LevelConfig {
                        int trapCount, int minTrapDistance, int crystalCount,
                        int droneCount, int miniGameTriggers,
                        boolean fogEnabled, int fogRadius, int flashlightRadius) {
-        this.levelNumber      = levelNumber;
-        this.gridRows         = gridRows;
-        this.gridCols         = gridCols;
-        this.trapCount        = trapCount;
-        this.minTrapDistance  = minTrapDistance;
-        this.crystalCount     = crystalCount;
-        this.droneCount       = droneCount;
+        this.levelNumber= levelNumber;
+        this.gridRows = gridRows;
+        this.gridCols  = gridCols;
+        this.trapCount = trapCount;
+        this.minTrapDistance = minTrapDistance;
+        this.crystalCount = crystalCount;
+        this.droneCount = droneCount;
         this.miniGameTriggers = miniGameTriggers;
-        this.fogEnabled       = fogEnabled;
-        this.fogRadius        = fogRadius;
+        this.fogEnabled  = fogEnabled;
+        this.fogRadius  = fogRadius;
         this.flashlightRadius = flashlightRadius;
     }
 
@@ -39,7 +39,7 @@ public class LevelConfig {
             case 1 -> new LevelConfig(1, 11, 11,  5, 3,  8, 0, 1, false, 0, 0);
             case 2 -> new LevelConfig(2, 15, 15, 10, 3, 12, 3, 2, true,  2, 4);
             case 3 -> new LevelConfig(3, 19, 19, 18, 2, 15, 5, 3, true,  2, 4);
-            default -> throw new IllegalArgumentException("Невідомий рівень: " + level);
+            default -> throw new IllegalArgumentException("Unknown level: " + level);
         };
     }
 
