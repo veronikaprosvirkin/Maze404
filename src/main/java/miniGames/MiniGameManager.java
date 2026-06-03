@@ -11,6 +11,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import model.Player;
 
@@ -31,7 +33,7 @@ public class MiniGameManager {
     }
 
     private void askToPlay() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle("Mini-game Challenge");
         styleAlert(
                 alert,
@@ -40,8 +42,10 @@ public class MiniGameManager {
                 "Artifact Recovered",
                 "A strange relic hums with unstable energy.\nSpend 1 crystal to enter a random mini-game?"
         );
-        configureButton(alert, ButtonType.OK, "Enter Challenge", "artifact-confirm-button");
-        configureButton(alert, ButtonType.CANCEL, "Leave It", "artifact-cancel-button");
+        Button enterChallengeButton = createAlertButton(alert, ButtonType.OK, "Enter Challenge", "artifact-confirm-button");
+        Button leaveItButton = createAlertButton(alert, ButtonType.CANCEL, "Leave It", "artifact-cancel-button");
+        setAlertActions(alert, leaveItButton, enterChallengeButton);
+        configureWindowClose(alert, ButtonType.CANCEL, ButtonType.OK);
 
         Optional<ButtonType> result = alert.showAndWait();
 
@@ -56,7 +60,7 @@ public class MiniGameManager {
     }
 
     private void showNoCrystalsAlert() {
-        Alert errorAlert = new Alert(Alert.AlertType.WARNING);
+        Alert errorAlert = new Alert(Alert.AlertType.NONE);
         errorAlert.setTitle("Not Enough Crystals");
         styleAlert(
                 errorAlert,
@@ -65,7 +69,9 @@ public class MiniGameManager {
                 "Crystal Reserve Empty",
                 "You need at least 1 crystal to activate this artifact.\nCollect more and return when you're ready."
         );
-        configureButton(errorAlert, ButtonType.OK, "Continue Exploring", "artifact-warning-button");
+        Button continueButton = createAlertButton(errorAlert, ButtonType.OK, "Continue Exploring", "artifact-warning-button");
+        setAlertActions(errorAlert, continueButton);
+        configureWindowClose(errorAlert, ButtonType.OK);
 
         errorAlert.showAndWait();
     }
@@ -77,6 +83,8 @@ public class MiniGameManager {
         dialogPane.setGraphic(null);
         dialogPane.setPrefWidth(420);
         dialogPane.setMinWidth(420);
+        dialogPane.setPrefHeight(360);
+        dialogPane.setMinHeight(360);
 
         Label emblemLabel = new Label(emblem);
         emblemLabel.setId("artifact-alert-emblem");
@@ -93,9 +101,16 @@ public class MiniGameManager {
 
         VBox content = new VBox(12, emblemLabel, titleLabel, difficultyLabel, messageLabel);
         content.setAlignment(Pos.CENTER);
-        content.setPadding(new Insets(8, 0, 4, 0));
+        content.setPadding(new Insets(34, 28, 28, 28));
         content.setMaxWidth(340);
-        dialogPane.setContent(content);
+        content.getStyleClass().add("artifact-alert-content");
+
+        BorderPane layout = new BorderPane();
+        layout.getStyleClass().add("artifact-alert-layout");
+        layout.setCenter(content);
+        layout.setPrefHeight(360);
+        layout.setMinHeight(360);
+        dialogPane.setContent(layout);
 
         try {
             dialogPane.getStylesheets().add(getClass().getResource(getDifficultyStylesheet()).toExternalForm());
@@ -104,13 +119,33 @@ public class MiniGameManager {
         }
     }
 
-    private void configureButton(Alert alert, ButtonType buttonType, String text, String styleClass) {
-        Button button = (Button) alert.getDialogPane().lookupButton(buttonType);
-        if (button == null) {
-            return;
-        }
-        button.setText(text);
+    private Button createAlertButton(Alert alert, ButtonType resultType, String text, String styleClass) {
+        Button button = new Button(text);
         button.getStyleClass().add(styleClass);
+        button.setOnAction(event -> {
+            alert.setResult(resultType);
+            alert.close();
+        });
+        return button;
+    }
+
+    private void setAlertActions(Alert alert, Button... buttons) {
+        HBox actions = new HBox(18);
+        actions.setAlignment(Pos.CENTER);
+        actions.setPadding(new Insets(14, 18, 18, 18));
+        actions.getStyleClass().add("artifact-alert-actions");
+        actions.getChildren().addAll(buttons);
+
+        DialogPane dialogPane = alert.getDialogPane();
+        if (dialogPane.getContent() instanceof BorderPane layout) {
+            layout.setBottom(actions);
+        }
+    }
+
+    private void configureWindowClose(Alert alert, ButtonType closeResult, ButtonType... supportedResults) {
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getButtonTypes().setAll(supportedResults);
+        alert.setOnCloseRequest(event -> alert.setResult(closeResult));
     }
 
     private String getDifficultyStylesheet() {
