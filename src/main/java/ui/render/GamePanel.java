@@ -4,6 +4,7 @@ import enums.Difficulty;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import model.Artifact;
@@ -64,6 +65,16 @@ public class GamePanel extends Pane {
             double noiseScaleY,
             double accentStrength
     ) {
+    }
+
+    private enum ArtifactShape {
+        ORB,
+        ORB_WITH_CIRCLE,
+        CRYSTAL_WITH_CIRCLE,
+        CRYSTAL
+    }
+
+    private record ArtifactPalette(Color base, Color accent) {
     }
 
 
@@ -232,41 +243,81 @@ public class GamePanel extends Pane {
 
             double centerX = artifact.getPosition().getCol() * TILE_SIZE + TILE_SIZE / 2.0;
             double centerY = artifact.getPosition().getRow() * TILE_SIZE + TILE_SIZE / 2.0;
-            double radius = TILE_SIZE * 0.22;
-
-            Color artifactColor;
-            switch (artifact.getType()) {
-                case CRYSTAL ->   artifactColor = Color.rgb(255, 215, 0, 0.92);
-                case MINI_GAME -> artifactColor = Color.rgb(255, 20, 147, 0.95);
-                case SHIELD ->    artifactColor = Color.rgb(0, 200, 255, 0.92);
-                case RADAR ->     artifactColor = Color.rgb(0, 255, 100, 0.92);
-                case BEACON ->    artifactColor = Color.rgb(255, 100, 0, 0.92);
-                case ELIXIR ->    artifactColor = Color.rgb(200, 0, 255, 0.92);
-                default ->        artifactColor = Color.WHITE;
-            }
-
-            gc.setFill(Color.color(
-                    artifactColor.getRed(),
-                    artifactColor.getGreen(),
-                    artifactColor.getBlue(),
-                    artifactColor.getOpacity() * visibility
-            ));
-            gc.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
-
-
-            Color outlineColor = artifactColor.brighter();
-            gc.setStroke(Color.color(
-                    outlineColor.getRed(),
-                    outlineColor.getGreen(),
-                    outlineColor.getBlue(),
-                    visibility
-            ));
-            gc.setLineWidth(1.2);
-            gc.strokeOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
-
-            gc.setFill(Color.rgb(255, 255, 255, 0.45 * visibility));
-            gc.fillOval(centerX - radius * 0.45, centerY - radius * 0.55, radius * 0.55, radius * 0.4);
+            ArtifactPalette palette = getArtifactPalette(artifact);
+            ArtifactShape shape = getArtifactShape(artifact);
+            double phase = artifact.getType().ordinal() * 0.78
+                    + artifact.getPosition().getRow() * 0.29
+                    + artifact.getPosition().getCol() * 0.17;
+            drawMenuStyleArtifact(gc, centerX, centerY, palette, shape, phase, visibility);
         }
+    }
+
+    private void drawMenuStyleArtifact(GraphicsContext gc, double centerX, double centerY, ArtifactPalette palette,
+                                       ArtifactShape shape, double phase, double visibility) {
+        double timeSeconds = mistTimeNanos / 1_000_000_000.0;
+        double pulse = 0.5 + 0.5 * Math.sin(timeSeconds * 1.8 + phase);
+        double radius = TILE_SIZE * (0.17 + pulse * 0.045);
+        boolean crystal = shape == ArtifactShape.CRYSTAL || shape == ArtifactShape.CRYSTAL_WITH_CIRCLE;
+        boolean circle = shape == ArtifactShape.ORB_WITH_CIRCLE || shape == ArtifactShape.CRYSTAL_WITH_CIRCLE;
+
+        gc.save();
+        gc.setGlobalAlpha((0.78 + pulse * 0.20) * visibility);
+        gc.setEffect(new DropShadow(TILE_SIZE * (0.55 + pulse * 0.25), withOpacity(palette.accent(), visibility)));
+        gc.setFill(palette.base());
+        if (crystal) {
+            gc.fillPolygon(
+                    new double[] { centerX, centerX + radius, centerX, centerX - radius },
+                    new double[] { centerY - radius, centerY, centerY + radius, centerY },
+                    4);
+        } else {
+            gc.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
+        }
+        gc.restore();
+
+        if (circle) {
+            gc.setStroke(withOpacity(palette.accent(), (0.50 + pulse * 0.30) * visibility));
+            gc.setLineWidth(Math.max(1.2, TILE_SIZE * 0.035));
+            gc.strokeOval(centerX - radius * 1.9, centerY - radius * 1.9, radius * 3.8, radius * 3.8);
+        }
+
+        gc.setFill(Color.rgb(255, 255, 255, 0.36 * visibility));
+        if (crystal) {
+            gc.fillPolygon(
+                    new double[] { centerX, centerX + radius * 0.30, centerX },
+                    new double[] { centerY - radius * 0.58, centerY - radius * 0.06, centerY + radius * 0.18 },
+                    3);
+        } else {
+            gc.fillOval(centerX - radius * 0.45, centerY - radius * 0.55, radius * 0.55, radius * 0.40);
+        }
+    }
+
+    private ArtifactPalette getArtifactPalette(Artifact artifact) {
+        return switch (artifact.getType()) {
+            case CRYSTAL -> new ArtifactPalette(Color.web("#F0D66A"), Color.web("#FFF3A6"));
+            case MINI_GAME -> new ArtifactPalette(Color.web("#FF73B7"), Color.web("#FFD4EA"));
+            case SHIELD -> new ArtifactPalette(Color.web("#7DE4FF"), Color.web("#D7FAFF"));
+            case RADAR -> new ArtifactPalette(Color.web("#65F2A0"), Color.web("#D4FFE3"));
+            case BEACON -> new ArtifactPalette(Color.web("#FF8E52"), Color.web("#FFD2A8"));
+            case ELIXIR -> new ArtifactPalette(Color.web("#C46BFF"), Color.web("#F0C8FF"));
+        };
+    }
+
+    private ArtifactShape getArtifactShape(Artifact artifact) {
+        return switch (artifact.getType()) {
+            case CRYSTAL -> ArtifactShape.CRYSTAL;
+            case SHIELD, BEACON -> ArtifactShape.ORB_WITH_CIRCLE;
+            case RADAR, MINI_GAME -> ArtifactShape.CRYSTAL_WITH_CIRCLE;
+            case ELIXIR -> ArtifactShape.ORB;
+        };
+    }
+
+    private Color withOpacity(Color color, double opacity) {
+        return Color.color(
+                color.getRed(),
+                color.getGreen(),
+                color.getBlue(),
+                clamp(opacity, 0.0, 1.0)
+        );
     }
 
     private double getArtifactVisibility(Player player, Artifact artifact) {
