@@ -24,6 +24,9 @@ import java.util.concurrent.CountDownLatch;
  * background threads can wait for the toolkit to be up and the primary stage shown.
  */
 public class MainApp extends Application {
+    private static final double MIN_WINDOW_WIDTH = 820;
+    private static final double MIN_WINDOW_HEIGHT = 500;
+
     private static final CountDownLatch START_LATCH = new CountDownLatch(1);
 
     @SuppressWarnings("unused")
@@ -49,6 +52,8 @@ public class MainApp extends Application {
         primaryStage.setTitle("Maze404");
         primaryStage.setScene(scene);
         primaryStage.setResizable(true);
+        primaryStage.setMinWidth(MIN_WINDOW_WIDTH);
+        primaryStage.setMinHeight(MIN_WINDOW_HEIGHT);
         primaryStage.toFront();
         primaryStage.show();
         primaryStage.requestFocus();
