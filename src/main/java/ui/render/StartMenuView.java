@@ -57,8 +57,9 @@ public class StartMenuView extends StackPane {
     private static final double TITLE_FONT_SIZE = 62.0;
     private static final double LEVEL_SWITCH_ANIMATION_MS = 240.0;
     private static final double SKIN_SWITCH_ANIMATION_MS = 240.0;
-    private static final double SKIN_CARD_WIDTH = 138.0;
-    private static final double SKIN_CURRENT_CARD_WIDTH = 170.0;
+    private static final double SKIN_CARD_WIDTH = 150.0;
+    private static final double SKIN_CURRENT_CARD_WIDTH = 150.0;
+    private static final double SKIN_CARD_HEIGHT = 170.0;
     private static final double SKIN_GALLERY_GAP = 12.0;
     private static final double SKIN_CARD_STEP = (SKIN_CARD_WIDTH + SKIN_CURRENT_CARD_WIDTH) * 0.5 + SKIN_GALLERY_GAP;
 
@@ -540,7 +541,7 @@ public class StartMenuView extends StackPane {
     }
 
     private VBox createSkinPreviewCard(PlayerSkin skin, boolean current) {
-        VBox card = new VBox(current ? 14 : 10);
+        VBox card = new VBox(10);
         card.getStyleClass().add("skin-card");
         if (current) {
             card.getStyleClass().add("current");
@@ -548,9 +549,12 @@ public class StartMenuView extends StackPane {
             card.getStyleClass().add("neighbor");
         }
         card.setAlignment(Pos.CENTER);
+        card.setMinSize(SKIN_CARD_WIDTH, SKIN_CARD_HEIGHT);
+        card.setPrefSize(SKIN_CARD_WIDTH, SKIN_CARD_HEIGHT);
+        card.setMaxSize(SKIN_CARD_WIDTH, SKIN_CARD_HEIGHT);
 
-        double canvasSize = current ? 138.0 : 104.0;
-        double radius = current ? 30.0 : 22.0;
+        double canvasSize = 112.0;
+        double radius = current ? 28.0 : 22.0;
         double opacity = current ? 1.0 : 0.62;
 
         Canvas canvas = new Canvas(canvasSize, canvasSize);

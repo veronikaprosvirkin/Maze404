@@ -256,9 +256,12 @@
 }
 
 .skin-card {
-    -fx-min-width: 138px;
-    -fx-pref-width: 138px;
-    -fx-max-width: 138px;
+    -fx-min-width: 150px;
+    -fx-pref-width: 150px;
+    -fx-max-width: 150px;
+    -fx-min-height: 170px;
+    -fx-pref-height: 170px;
+    -fx-max-height: 170px;
     -fx-padding: 10 8 8 8;
     -fx-background-color: rgba(26, 10, 42, 0.36);
     -fx-background-radius: 20;
@@ -268,9 +271,6 @@
 }
 
 .skin-card.current {
-    -fx-min-width: 170px;
-    -fx-pref-width: 170px;
-    -fx-max-width: 170px;
     -fx-background-color: rgba(41, 18, 68, 0.52);
     -fx-border-color: rgba(241, 232, 255, 0.88);
 }
