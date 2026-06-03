@@ -391,7 +391,7 @@ public class StartMenuView extends StackPane {
         Canvas canvas = new Canvas(canvasSize, canvasSize);
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvasSize, canvasSize);
-        PlayerRenderer.drawPreview(gc, skin, Difficulty.MEDIUM, canvasSize * 0.5, canvasSize * 0.5, radius, opacity);
+        PlayerRenderer.drawMenuPreview(gc, skin, canvasSize * 0.5, canvasSize * 0.5, radius, opacity);
 
         Text name = new Text(skin.getDisplayName());
         name.getStyleClass().add(current ? "skin-card-title-current" : "skin-card-title");
