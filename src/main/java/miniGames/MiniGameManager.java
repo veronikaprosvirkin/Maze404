@@ -13,6 +13,7 @@ import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import model.Player;
 
@@ -39,7 +40,8 @@ public class MiniGameManager {
                 "artifact-challenge-alert",
                 "✦",
                 "Artifact Recovered",
-                "A strange relic hums with unstable energy.\nSpend 1 crystal to enter a random mini-game?"
+                "A strange relic hums with unstable energy.\nSpend 1 crystal to enter a random mini-game?",
+                player.getCrystals()
         );
         boolean[] challengeAccepted = {false};
         Button enterChallengeButton = createAlertButton(alert, ButtonType.OK, "Enter Challenge", "artifact-confirm-button");
@@ -81,6 +83,10 @@ public class MiniGameManager {
     }
 
     private void styleAlert(Alert alert, String variantClass, String emblem, String title, String message) {
+        styleAlert(alert, variantClass, emblem, title, message, null);
+    }
+
+    private void styleAlert(Alert alert, String variantClass, String emblem, String title, String message, Integer crystalCount) {
         DialogPane dialogPane = alert.getDialogPane();
         dialogPane.getStyleClass().addAll("artifact-alert", variantClass);
         dialogPane.setHeaderText(null);
@@ -99,6 +105,12 @@ public class MiniGameManager {
         Label difficultyLabel = new Label(getDifficultyLabel(Difficulty.current));
         difficultyLabel.setId("artifact-alert-difficulty");
 
+        Label crystalsLabel = null;
+        if (crystalCount != null) {
+            crystalsLabel = new Label("◆ " + crystalCount);
+            crystalsLabel.setId("artifact-alert-crystals");
+        }
+
         Label messageLabel = new Label(message);
         messageLabel.setId("artifact-alert-message");
         messageLabel.setWrapText(true);
@@ -109,9 +121,16 @@ public class MiniGameManager {
         content.setMaxWidth(340);
         content.getStyleClass().add("artifact-alert-content");
 
+        StackPane body = new StackPane(content);
+        if (crystalsLabel != null) {
+            StackPane.setAlignment(crystalsLabel, Pos.TOP_RIGHT);
+            StackPane.setMargin(crystalsLabel, new Insets(18, 22, 0, 0));
+            body.getChildren().add(crystalsLabel);
+        }
+
         BorderPane layout = new BorderPane();
         layout.getStyleClass().add("artifact-alert-layout");
-        layout.setCenter(content);
+        layout.setCenter(body);
         layout.setPrefHeight(360);
         layout.setMinHeight(360);
         dialogPane.setContent(layout);
