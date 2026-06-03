@@ -94,7 +94,7 @@ public class MainApp extends Application {
         miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(player);
 
         GamePanel gamePanel = new GamePanel(grid, player, artifacts, Difficulty.current, settings.mistSampleStep());
-        boolean mistEnabled = true;
+        boolean mistEnabled = false;
         double mistAnimationTime = 1.2;
         double mistDensity = 1;
         gamePanel.setMistEnabled(mistEnabled);
