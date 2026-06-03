@@ -25,6 +25,8 @@ public class GamePanel extends Pane {
     private final PlayerRenderer playerRenderer;
     private final Difficulty difficulty;
     private final List<Artifact> artifacts;
+    private final double baseWidth;
+    private final double baseHeight;
     private boolean mistEnabled = false;
     private double mistAnimationTimeScale = 1.0;
     private double mistDensity = 1.0;
@@ -70,10 +72,17 @@ public class GamePanel extends Pane {
     public GamePanel(Grid grid, Player player, List<Artifact> artifacts, Difficulty difficulty) {
         this.difficulty = difficulty != null ? difficulty : Difficulty.current;
         this.artifacts = artifacts != null ? List.copyOf(artifacts) : List.of();
-        this.canvas = new Canvas(grid.getWidth() * TILE_SIZE, grid.getHeight() * TILE_SIZE);
+        this.baseWidth = grid.getWidth() * TILE_SIZE;
+        this.baseHeight = grid.getHeight() * TILE_SIZE;
+        this.canvas = new Canvas(baseWidth, baseHeight);
         this.gridRenderer = new GridRenderer(new SpriteSheet(this.difficulty));
         this.playerRenderer = new PlayerRenderer();
+        setMinSize(0, 0);
+        setPrefSize(baseWidth, baseHeight);
+        setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         getChildren().add(canvas);
+        widthProperty().addListener((obs, oldWidth, newWidth) -> updateCanvasScale());
+        heightProperty().addListener((obs, oldHeight, newHeight) -> updateCanvasScale());
 
         AnimationTimer timer = new AnimationTimer() {
             @Override
@@ -89,6 +98,20 @@ public class GamePanel extends Pane {
             }
         };
         timer.start();
+    }
+
+    private void updateCanvasScale() {
+        double availableWidth = getWidth();
+        double availableHeight = getHeight();
+        if (availableWidth <= 0.0 || availableHeight <= 0.0) {
+            return;
+        }
+
+        double scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight);
+        canvas.setScaleX(scale);
+        canvas.setScaleY(scale);
+        canvas.setTranslateX((availableWidth - baseWidth) / 2.0);
+        canvas.setTranslateY((availableHeight - baseHeight) / 2.0);
     }
 
     public void redraw(Grid grid, Player player) {
