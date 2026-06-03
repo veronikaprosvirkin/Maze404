@@ -139,6 +139,83 @@
     -fx-faint-focus-color: transparent;
 }
 
+.levels-frame {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.levels-switcher {
+    -fx-padding: 0;
+}
+
+.levels-back-button {
+    -fx-padding: 10 22 10 18;
+}
+
+.levels-nav-button {
+    -fx-min-width: 64px;
+    -fx-min-height: 64px;
+    -fx-pref-width: 64px;
+    -fx-pref-height: 64px;
+    -fx-max-width: 64px;
+    -fx-max-height: 64px;
+    -fx-background-color: rgba(76, 38, 124, 0.58);
+    -fx-background-radius: 999;
+    -fx-border-color: rgba(241, 232, 255, 0.86);
+    -fx-border-width: 2;
+    -fx-border-radius: 999;
+    -fx-cursor: hand;
+}
+
+.levels-nav-button:hover {
+    -fx-background-color: rgba(113, 62, 176, 0.72);
+    -fx-border-color: #F1E8FF;
+}
+
+.levels-nav-button:focused {
+    -fx-background-insets: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.level-card {
+    -fx-background-radius: 22;
+    -fx-border-width: 3;
+    -fx-border-radius: 22;
+    -fx-cursor: hand;
+}
+
+.level-card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(241, 232, 255, 0.42), 30, 0.12, 0, 0);
+}
+
+.level-card-cryo {
+    -fx-background-color: linear-gradient(to bottom, rgba(21, 58, 82, 0.86), rgba(14, 18, 36, 0.92));
+    -fx-border-color: rgba(125, 228, 255, 0.90);
+}
+
+.level-card-stone {
+    -fx-background-color: linear-gradient(to bottom, rgba(82, 72, 62, 0.88), rgba(29, 27, 29, 0.94));
+    -fx-border-color: rgba(224, 199, 155, 0.86);
+}
+
+.level-card-inferno {
+    -fx-background-color: linear-gradient(to bottom, rgba(112, 25, 31, 0.88), rgba(24, 7, 13, 0.95));
+    -fx-border-color: rgba(255, 116, 91, 0.90);
+}
+
+.level-difficulty {
+    -fx-fill: rgba(241, 232, 255, 0.74);
+    -fx-font-size: 28px;
+    -fx-font-weight: 700;
+}
+
+.level-name {
+    -fx-fill: #F1E8FF;
+    -fx-font-size: 44px;
+    -fx-font-weight: 300;
+}
+
 .skins-frame {
     -fx-padding: 26 24 22 24;
 }

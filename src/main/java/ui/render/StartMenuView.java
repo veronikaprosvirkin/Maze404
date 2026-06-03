@@ -29,7 +29,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
-import logic.MazeGenerator;
+import logic.generation.MazeGenerator;
 import model.Grid;
 
 import java.io.InputStream;
@@ -48,6 +48,8 @@ public class StartMenuView extends StackPane {
     private static final double SETTINGS_CONTROL_WIDTH = 550.0;
     private static final double SETTINGS_SLIDER_WIDTH = 550.0;
     private static final double SKINS_FRAME_WIDTH = 660.0;
+    private static final double LEVELS_FRAME_WIDTH = BASE_WIDTH * 0.80;
+    private static final double LEVELS_FRAME_HEIGHT = BASE_HEIGHT * 0.80;
     private static final double MIST_ALPHA_CAP = 0.98;
     private static final double TITLE_FONT_SIZE = 62.0;
 
@@ -65,11 +67,15 @@ public class StartMenuView extends StackPane {
     private double gameVolume = DEFAULT_GAME_VOLUME;
     private double mistSampleStep = MIST_SAMPLE_STEP;
     private int currentSkinIndex = 0;
+    private int currentLevelIndex = 0;
 
-    public record MenuSettings(double gameVolume, int mistSampleStep, PlayerSkin playerSkin) {
+    public record MenuSettings(double gameVolume, int mistSampleStep, PlayerSkin playerSkin, Difficulty difficulty) {
     }
 
     private record MenuArtifact(int row, int col, Color base, Color accent, double phase, boolean diamond) {
+    }
+
+    private record LevelChoice(Difficulty difficulty, String levelName, String styleClass) {
     }
 
     private record MazeViewport(double scale, double offsetX, double offsetY) {
@@ -102,6 +108,12 @@ public class StartMenuView extends StackPane {
             new MenuArtifact(9, 11, Color.web("#C46BFF"), Color.web("#F0C8FF"), 2.3, true),
             new MenuArtifact(12, 25, Color.web("#65F2A0"), Color.web("#D4FFE3"), 3.5, false),
             new MenuArtifact(15, 7, Color.web("#FF73B7"), Color.web("#FFD4EA"), 4.2, true)
+    };
+
+    private static final LevelChoice[] LEVEL_CHOICES = {
+            new LevelChoice(Difficulty.EASY, "Cryo Dungeon", "cryo"),
+            new LevelChoice(Difficulty.MEDIUM, "Stone Desert", "stone"),
+            new LevelChoice(Difficulty.HARD, "Inferno hell", "inferno")
     };
 
     public StartMenuView(Runnable onPlay, Runnable onSettings, Runnable onExit) {
@@ -167,8 +179,8 @@ public class StartMenuView extends StackPane {
 
         StackPane menuSlot = new StackPane();
         menuSlot.setMinWidth(760);
-        menuSlot.setPrefWidth(760);
-        menuSlot.setMaxWidth(760);
+        menuSlot.setPrefSize(LEVELS_FRAME_WIDTH, LEVELS_FRAME_HEIGHT);
+        menuSlot.setMaxSize(LEVELS_FRAME_WIDTH, LEVELS_FRAME_HEIGHT);
         menuSlot.getChildren().setAll(createMainMenuActions(onPlay, onExit, menuSlot));
 
         content.getChildren().addAll(title, menuSlot);
@@ -210,12 +222,46 @@ public class StartMenuView extends StackPane {
                         createSettingsFrame(() -> menuSlot.getChildren().setAll(
                                 createMainMenuActions(onPlay, onExit, menuSlot)))),
                         false),
-                createMenuAction("Play", "play.png", () -> onPlay.accept(getMenuSettings()), true),
+                createMenuAction("Play", "play.png", () -> menuSlot.getChildren().setAll(
+                        createLevelsFrame(
+                                () -> onPlay.accept(getMenuSettings()),
+                                () -> menuSlot.getChildren().setAll(
+                                        createMainMenuActions(onPlay, onExit, menuSlot)))),
+                        true),
                 createMenuAction("Skins", "skins.png", () -> menuSlot.getChildren().setAll(
                         createSkinsFrame(() -> menuSlot.getChildren().setAll(
                                 createMainMenuActions(onPlay, onExit, menuSlot)))),
                         false));
         return actions;
+    }
+
+    private StackPane createLevelsFrame(Runnable onSelectLevel, Runnable onBack) {
+        StackPane levelFrame = new StackPane();
+        levelFrame.getStyleClass().add("levels-frame");
+        levelFrame.setMinSize(LEVELS_FRAME_WIDTH, LEVELS_FRAME_HEIGHT);
+        levelFrame.setPrefSize(LEVELS_FRAME_WIDTH, LEVELS_FRAME_HEIGHT);
+        levelFrame.setMaxSize(LEVELS_FRAME_WIDTH, LEVELS_FRAME_HEIGHT);
+
+        HBox levelSwitcher = new HBox(28);
+        levelSwitcher.setAlignment(Pos.CENTER);
+        levelSwitcher.getStyleClass().add("levels-switcher");
+
+        Button leftButton = createLevelNavButton("left.png", -1, levelSwitcher, onSelectLevel);
+        Button rightButton = createLevelNavButton("right.png", 1, levelSwitcher, onSelectLevel);
+        levelSwitcher.getChildren().setAll(
+                leftButton,
+                createLevelCard(getSelectedLevel(), onSelectLevel),
+                rightButton);
+
+        Button backButton = new Button("Back");
+        backButton.getStyleClass().addAll("settings-exit-button", "levels-back-button");
+        backButton.setGraphic(createIcon("back.png", 22));
+        backButton.setOnAction(event -> onBack.run());
+
+        StackPane.setAlignment(backButton, Pos.TOP_LEFT);
+        StackPane.setMargin(backButton, new Insets(0, 0, 0, 0));
+        levelFrame.getChildren().addAll(levelSwitcher, backButton);
+        return levelFrame;
     }
 
     private VBox createSettingsFrame(Runnable onExitSettings) {
@@ -374,6 +420,46 @@ public class StartMenuView extends StackPane {
         return button;
     }
 
+    private Button createLevelNavButton(
+            String iconName,
+            int direction,
+            HBox levelSwitcher,
+            Runnable onSelectLevel) {
+        Button button = new Button();
+        button.getStyleClass().add("levels-nav-button");
+        button.setGraphic(createIcon(iconName, 34));
+        button.setOnAction(event -> {
+            currentLevelIndex = wrapLevelIndex(currentLevelIndex + direction);
+            levelSwitcher.getChildren().setAll(
+                    createLevelNavButton("left.png", -1, levelSwitcher, onSelectLevel),
+                    createLevelCard(getSelectedLevel(), onSelectLevel),
+                    createLevelNavButton("right.png", 1, levelSwitcher, onSelectLevel));
+        });
+        return button;
+    }
+
+    private StackPane createLevelCard(LevelChoice level, Runnable onSelectLevel) {
+        StackPane card = new StackPane();
+        card.getStyleClass().addAll("level-card", "level-card-" + level.styleClass());
+        card.setMinSize(LEVELS_FRAME_WIDTH * 0.68, LEVELS_FRAME_HEIGHT * 0.70);
+        card.setPrefSize(LEVELS_FRAME_WIDTH * 0.68, LEVELS_FRAME_HEIGHT * 0.70);
+        card.setMaxSize(LEVELS_FRAME_WIDTH * 0.68, LEVELS_FRAME_HEIGHT * 0.70);
+        card.setOnMouseClicked(event -> onSelectLevel.run());
+
+        VBox copy = new VBox(18);
+        copy.setAlignment(Pos.CENTER);
+
+        Text difficulty = new Text(level.difficulty().name());
+        difficulty.getStyleClass().add("level-difficulty");
+
+        Text name = new Text(level.levelName());
+        name.getStyleClass().add("level-name");
+
+        copy.getChildren().addAll(difficulty, name);
+        card.getChildren().add(copy);
+        return card;
+    }
+
     private VBox createSkinPreviewCard(PlayerSkin skin, boolean current) {
         VBox card = new VBox(current ? 14 : 10);
         card.getStyleClass().add("skin-card");
@@ -408,8 +494,18 @@ public class StartMenuView extends StackPane {
         return PlayerSkin.values()[wrapSkinIndex(currentSkinIndex + offset)];
     }
 
+    private LevelChoice getSelectedLevel() {
+        return LEVEL_CHOICES[wrapLevelIndex(currentLevelIndex)];
+    }
+
     private int wrapSkinIndex(int index) {
         int total = PlayerSkin.values().length;
+        int wrapped = index % total;
+        return wrapped < 0 ? wrapped + total : wrapped;
+    }
+
+    private int wrapLevelIndex(int index) {
+        int total = LEVEL_CHOICES.length;
         int wrapped = index % total;
         return wrapped < 0 ? wrapped + total : wrapped;
     }
@@ -418,7 +514,8 @@ public class StartMenuView extends StackPane {
         return new MenuSettings(
                 clamp(gameVolume / 100.0, 0.0, 1.0),
                 (int) Math.round(mistSampleStep),
-                getSelectedSkin()
+                getSelectedSkin(),
+                getSelectedLevel().difficulty()
         );
     }
 
