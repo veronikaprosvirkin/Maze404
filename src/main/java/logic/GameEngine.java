@@ -89,7 +89,7 @@ public class GameEngine {
             IEnemyAI ai = enemyAi.get(enemy);
             if (ai == null) continue;
             Position next = ai.computeNextMove(gameState, enemy);
-            // Перевіряємо, що позиція в межах і не стіна
+            // перевіряємо що позиція в межах і не стіна
             if (gameState.getGrid().isInBounds(next.getRow(), next.getCol()) &&
                     gameState.getGrid().getCell(next.getRow(), next.getCol()).getType() != CellType.WALL) {
                 enemy.setRow(next.getRow());

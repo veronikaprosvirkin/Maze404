@@ -1,5 +1,5 @@
 import enums.CellType;
-import logic.MazeGenerator;
+import logic.generation.MazeGenerator;
 import model.Grid;
 import org.junit.jupiter.api.Test;
 
