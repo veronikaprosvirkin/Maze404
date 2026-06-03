@@ -41,7 +41,11 @@ public class MainApp extends Application {
         // FOR NOW - this is a difficulty changer for labyrinth
         Difficulty.current = Difficulty.MEDIUM;
 
-        String bgColor = "#111520";
+        String bgColor = switch (Difficulty.current) {
+            case MEDIUM -> "#161210";
+            case HARD -> "#150A0C";
+            default -> "#111520";
+        };
         root.setStyle("-fx-background-color: " + bgColor + ";");
         Scene scene = new Scene(root, 800, 600);
 

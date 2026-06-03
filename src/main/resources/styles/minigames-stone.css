@@ -694,9 +694,10 @@
         #09080A;
     -fx-border-color: #2E2620;
     -fx-border-width: 1.5;
-    -fx-border-radius: 12;
-    -fx-background-radius: 12;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
     -fx-effect: dropshadow(gaussian, rgba(200, 122, 26, 0.34), 28, 0.3, 0, 10);
+    -fx-padding: 0;
 }
 
 .artifact-alert.dialog-pane > .content.label {
@@ -711,14 +712,28 @@
 
 .artifact-alert.dialog-pane > .content {
     -fx-background-color: transparent;
-    -fx-padding: 26 28 18 28;
+    -fx-padding: 0;
 }
 
-.artifact-alert.dialog-pane .button-bar {
+.artifact-alert-layout {
+    -fx-background-color: transparent;
+    -fx-pref-height: 360;
+}
+
+.artifact-alert-content {
+    -fx-alignment: CENTER;
+}
+
+.artifact-alert-actions {
+    -fx-alignment: CENTER;
     -fx-background-color: #110F0C;
-    -fx-padding: 14 18 18 18;
     -fx-border-color: #231D17 transparent transparent transparent;
     -fx-border-width: 1 0 0 0;
+    -fx-translate-x: 0;
+    -fx-max-width: Infinity;
+    -fx-pref-width: Infinity;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
 }
 
 #artifact-alert-emblem {
@@ -761,13 +776,14 @@
     -fx-background-color: #161210;
     -fx-border-color: #2E2620;
     -fx-border-width: 1.5;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
+    -fx-border-radius: 999;
+    -fx-background-radius: 999;
     -fx-text-fill: #D9C9A8;
     -fx-font-family: "IM Fell English", serif;
     -fx-font-size: 13px;
     -fx-padding: 8 20 8 20;
     -fx-cursor: hand;
+    -fx-min-width: 0;
 }
 
 .artifact-alert .button:hover {
