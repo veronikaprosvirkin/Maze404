@@ -21,6 +21,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import logic.MazeGenerator;
@@ -29,13 +30,15 @@ import model.Grid;
 import java.io.InputStream;
 
 public class StartMenuView extends StackPane {
-    private static final String ICON_PATH = "/styles/icons/";
+    private static final String ICON_PATH = "/icons/";
+    private static final String TITLE_FONT_PATH = "/fonts/DoctorGlitch.otf";
     private static final Color VIOLET_GLOW = Color.web("#C9A7FF");
     private static final int TILE_SIZE = 32;
     private static final double BASE_WIDTH = 1024.0;
     private static final double BASE_HEIGHT = 576.0;
     private static final int MIST_SAMPLE_STEP = 4;
     private static final double MIST_ALPHA_CAP = 0.98;
+    private static final double TITLE_FONT_SIZE = 62.0;
 
     private final Canvas background = new Canvas();
     private final Canvas artifacts = new Canvas();
@@ -137,6 +140,10 @@ public class StartMenuView extends StackPane {
 
         Text title = new Text("MAZE 404");
         title.getStyleClass().add("start-menu-title");
+        Font titleFont = loadTitleFont(TITLE_FONT_SIZE);
+        if (titleFont != null) {
+            title.setFont(titleFont);
+        }
         title.setEffect(new DropShadow(24, VIOLET_GLOW));
 
         HBox actions = new HBox();
@@ -176,6 +183,17 @@ public class StartMenuView extends StackPane {
                 mistTimer.start();
             }
         });
+    }
+
+    private Font loadTitleFont(double size) {
+        try (InputStream fontStream = StartMenuView.class.getResourceAsStream(TITLE_FONT_PATH)) {
+            if (fontStream != null) {
+                return Font.loadFont(fontStream, size);
+            }
+        } catch (Exception ignored) {
+            // Keep the menu usable with fallback fonts if the custom font is unavailable.
+        }
+        return null;
     }
 
     private StackPane createMenuOverlays() {
