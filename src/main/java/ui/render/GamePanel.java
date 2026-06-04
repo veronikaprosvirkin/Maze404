@@ -15,9 +15,9 @@ import java.util.List;
 
 public class GamePanel extends Pane {
     private static final int TILE_SIZE = 32;
-    private static final double VIEWPORT_ZOOM = 2.0;
-    private static final double CAMERA_LERP_FACTOR = 0.18;
-    private static final int MIST_RADIUS_CELLS = 6;
+    private static final double VIEWPORT_ZOOM = 2.5;
+    private static final double CAMERA_SMOOTHING_SECONDS = 0.3;
+    private static final int MIST_RADIUS_CELLS = 5;
     private static final int DEFAULT_MIST_SAMPLE_STEP = 2;
     private static final double MIST_ALPHA_CAP = 0.97;
     private static final double MIST_FOCUS_TRANSITION_SECONDS = 0.3;
@@ -482,8 +482,9 @@ public class GamePanel extends Pane {
             return;
         }
 
-        cameraX += (targetCameraX - cameraX) * CAMERA_LERP_FACTOR;
-        cameraY += (targetCameraY - cameraY) * CAMERA_LERP_FACTOR;
+        double smoothingFactor = 1.0 - Math.exp(-frameDeltaSeconds / CAMERA_SMOOTHING_SECONDS);
+        cameraX += (targetCameraX - cameraX) * smoothingFactor;
+        cameraY += (targetCameraY - cameraY) * smoothingFactor;
     }
 
     private double getViewportWorldWidth() {
