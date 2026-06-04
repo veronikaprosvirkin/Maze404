@@ -17,6 +17,8 @@ public class GamePanel extends Pane {
     private static final int TILE_SIZE = 32;
     private static final double VIEWPORT_ZOOM = 2.3;
     private static final double CAMERA_SMOOTHING_SECONDS = 0.3;
+    private static final double INTRO_CAMERA_SMOOTHING_SECONDS = 0.55;
+    private static final double LEVEL_INTRO_SECONDS = 2.6;
     private static final int MIST_RADIUS_CELLS = 5;
     private static final int DEFAULT_MIST_SAMPLE_STEP = 2;
     private static final double MIST_ALPHA_CAP = 0.97;
@@ -41,6 +43,7 @@ public class GamePanel extends Pane {
     private long mistTimeNanos = 0L;
     private long lastFrameNanos = 0L;
     private double frameDeltaSeconds = 1.0 / 60.0;
+    private double introElapsedSeconds = 0.0;
     private double mistFocusX;
     private double mistFocusY;
     private double mistFocusStartX;
@@ -117,6 +120,7 @@ public class GamePanel extends Pane {
                 }
                 lastFrameNanos = now;
                 mistTimeNanos = now;
+                introElapsedSeconds = Math.min(introElapsedSeconds + frameDeltaSeconds, LEVEL_INTRO_SECONDS);
                 redraw(grid, player);
             }
         };
@@ -144,26 +148,27 @@ public class GamePanel extends Pane {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         playerRenderer.update(player, TILE_SIZE, frameDeltaSeconds);
-        updateCamera(playerRenderer.getRenderCenterX(TILE_SIZE), playerRenderer.getRenderCenterY(TILE_SIZE));
+        double currentZoom = getCurrentZoom();
+        updateCamera(playerRenderer.getRenderCenterX(TILE_SIZE), playerRenderer.getRenderCenterY(TILE_SIZE), currentZoom);
         if (mistEnabled) {
             updateMistFocus(player);
         }
 
-        double viewportWorldWidth = getViewportWorldWidth();
-        double viewportWorldHeight = getViewportWorldHeight();
+        double viewportWorldWidth = getViewportWorldWidth(currentZoom);
+        double viewportWorldHeight = getViewportWorldHeight(currentZoom);
         int startCol = (int) Math.floor(cameraX / TILE_SIZE);
         int endCol = (int) Math.ceil((cameraX + viewportWorldWidth) / TILE_SIZE) + 1;
         int startRow = (int) Math.floor(cameraY / TILE_SIZE);
         int endRow = (int) Math.ceil((cameraY + viewportWorldHeight) / TILE_SIZE) + 1;
 
         gc.save();
-        double viewportOffsetX = getViewportOffsetX();
-        double viewportOffsetY = getViewportOffsetY();
+        double viewportOffsetX = getViewportOffsetX(currentZoom);
+        double viewportOffsetY = getViewportOffsetY(currentZoom);
         gc.setTransform(
-                VIEWPORT_ZOOM, 0.0,
-                0.0, VIEWPORT_ZOOM,
-                viewportOffsetX - cameraX * VIEWPORT_ZOOM,
-                viewportOffsetY - cameraY * VIEWPORT_ZOOM
+                currentZoom, 0.0,
+                0.0, currentZoom,
+                viewportOffsetX - cameraX * currentZoom,
+                viewportOffsetY - cameraY * currentZoom
         );
         gridRenderer.draw(gc, grid, startRow, endRow, startCol, endCol);
         drawArtifacts(gc, player, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
@@ -209,7 +214,7 @@ public class GamePanel extends Pane {
     private void drawMist(GraphicsContext gc, Grid grid, double viewX, double viewY,
                           double viewportWorldWidth, double viewportWorldHeight) {
         MistProfile profile = getMistProfile();
-        double clearRadius = MIST_RADIUS_CELLS * TILE_SIZE;
+        double clearRadius = getCurrentClearRadius();
         double timeSeconds = (mistTimeNanos / 1_000_000_000.0) * mistAnimationTimeScale;
         double width = grid.getWidth() * TILE_SIZE;
         double height = grid.getHeight() * TILE_SIZE;
@@ -226,7 +231,9 @@ public class GamePanel extends Pane {
                 double dy = sampleY - mistFocusY;
                 double dist = Math.sqrt(dx * dx + dy * dy);
 
-                double distanceOpacity = smoothStep(clearRadius - MIST_EDGE_FADE_BAND, clearRadius + MIST_EDGE_FADE_BAND, dist);
+                double distanceOpacity = clearRadius <= 0.0
+                        ? 1.0
+                        : smoothStep(clearRadius - MIST_EDGE_FADE_BAND, clearRadius + MIST_EDGE_FADE_BAND, dist);
                 double pulse = 1.0 + Math.sin(timeSeconds * profile.pulseSpeed()) * profile.pulseStrength();
 
                 double flowX = sampleX + timeSeconds * profile.flowSpeedX()
@@ -371,8 +378,12 @@ public class GamePanel extends Pane {
         double focusY = mistFocusInitialized ? mistFocusY : playerCenterY;
         double dx = artifactCenterX - focusX;
         double dy = artifactCenterY - focusY;
-        double visibleRadius = MIST_RADIUS_CELLS * TILE_SIZE;
+        double visibleRadius = getCurrentClearRadius();
         double distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (visibleRadius <= 0.0) {
+            return 0.0;
+        }
 
         return 1.0 - smoothStep(
                 visibleRadius - MIST_EDGE_FADE_BAND,
@@ -472,9 +483,9 @@ public class GamePanel extends Pane {
         return start + (end - start) * progress;
     }
 
-    private void updateCamera(double targetCenterX, double targetCenterY) {
-        double viewportWorldWidth = getViewportWorldWidth();
-        double viewportWorldHeight = getViewportWorldHeight();
+    private void updateCamera(double targetCenterX, double targetCenterY, double zoom) {
+        double viewportWorldWidth = getViewportWorldWidth(zoom);
+        double viewportWorldHeight = getViewportWorldHeight(zoom);
         double targetCameraX = clamp(targetCenterX - viewportWorldWidth / 2.0, 0.0, Math.max(0.0, baseWidth - viewportWorldWidth));
         double targetCameraY = clamp(targetCenterY - viewportWorldHeight / 2.0, 0.0, Math.max(0.0, baseHeight - viewportWorldHeight));
 
@@ -485,25 +496,67 @@ public class GamePanel extends Pane {
             return;
         }
 
-        double smoothingFactor = 1.0 - Math.exp(-frameDeltaSeconds / CAMERA_SMOOTHING_SECONDS);
+        double smoothingSeconds = lerp(INTRO_CAMERA_SMOOTHING_SECONDS, CAMERA_SMOOTHING_SECONDS, getIntroProgress());
+        double smoothingFactor = 1.0 - Math.exp(-frameDeltaSeconds / smoothingSeconds);
         cameraX += (targetCameraX - cameraX) * smoothingFactor;
         cameraY += (targetCameraY - cameraY) * smoothingFactor;
     }
 
-    private double getViewportWorldWidth() {
-        return canvas.getWidth() / VIEWPORT_ZOOM;
+    private double getViewportWorldWidth(double zoom) {
+        return canvas.getWidth() / zoom;
     }
 
-    private double getViewportWorldHeight() {
-        return canvas.getHeight() / VIEWPORT_ZOOM;
+    private double getViewportWorldHeight(double zoom) {
+        return canvas.getHeight() / zoom;
     }
 
-    private double getViewportOffsetX() {
-        return Math.max(0.0, (canvas.getWidth() - baseWidth * VIEWPORT_ZOOM) / 2.0);
+    private double getViewportOffsetX(double zoom) {
+        return Math.max(0.0, (canvas.getWidth() - baseWidth * zoom) / 2.0);
     }
 
-    private double getViewportOffsetY() {
-        return Math.max(0.0, (canvas.getHeight() - baseHeight * VIEWPORT_ZOOM) / 2.0);
+    private double getViewportOffsetY(double zoom) {
+        return Math.max(0.0, (canvas.getHeight() - baseHeight * zoom) / 2.0);
+    }
+
+    private double getCurrentZoom() {
+        double introProgress = getZoomIntroProgress();
+        double introZoom = getIntroZoom();
+        return lerp(introZoom, VIEWPORT_ZOOM, introProgress);
+    }
+
+    private double getIntroZoom() {
+        if (canvas.getWidth() <= 0.0 || canvas.getHeight() <= 0.0) {
+            return VIEWPORT_ZOOM;
+        }
+
+        double fitZoom = Math.min(canvas.getWidth() / baseWidth, canvas.getHeight() / baseHeight);
+        return Math.min(VIEWPORT_ZOOM, fitZoom);
+    }
+
+    private double getCurrentClearRadius() {
+        double revealProgress = smoothStep(0.30, 1.0, getIntroProgress());
+        return MIST_RADIUS_CELLS * TILE_SIZE * revealProgress;
+    }
+
+    private double getIntroProgress() {
+        if (LEVEL_INTRO_SECONDS <= 0.0) {
+            return 1.0;
+        }
+        double progress = clamp(introElapsedSeconds / LEVEL_INTRO_SECONDS, 0.0, 1.0);
+        return smoothStep(0.0, 1.0, progress);
+    }
+
+    private double getZoomIntroProgress() {
+        double progress = clamp((getIntroProgress() - 0.10) / 0.90, 0.0, 1.0);
+        return easeInOutCubic(progress);
+    }
+
+    private double easeInOutCubic(double t) {
+        double clamped = clamp(t, 0.0, 1.0);
+        if (clamped < 0.5) {
+            return 4.0 * clamped * clamped * clamped;
+        }
+        return 1.0 - Math.pow(-2.0 * clamped + 2.0, 3.0) / 2.0;
     }
 
     private int alignToSampleStep(int coordinate) {
