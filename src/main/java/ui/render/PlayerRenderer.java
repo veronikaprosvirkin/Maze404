@@ -7,7 +7,7 @@ import javafx.scene.paint.Color;
 import model.Player;
 
 public class PlayerRenderer {
-    private static final double LERP_FACTOR = 0.2;
+    private static final double MOVEMENT_SMOOTHING_SECONDS = 0.18;
     private static final Color MENU_SKIN_BASE = Color.web("#22103A");
     private static final Color MENU_SKIN_GLOW = Color.web("#8F55FF");
     private static final Color MENU_SKIN_BORDER = Color.web("#C9A7FF");
@@ -22,11 +22,11 @@ public class PlayerRenderer {
     }
 
     public void draw(GraphicsContext gc, Player player, double tileSize, Difficulty diff) {
-        update(player, tileSize);
+        update(player, tileSize, 1.0 / 60.0);
         drawCurrent(gc, player, tileSize, diff);
     }
 
-    public void update(Player player, double tileSize) {
+    public void update(Player player, double tileSize, double deltaSeconds) {
         double targetX = player.getCol() * tileSize;
         double targetY = player.getRow() * tileSize;
 
@@ -35,8 +35,9 @@ public class PlayerRenderer {
             renderY = targetY;
             initialized = true;
         } else {
-            renderX += (targetX - renderX) * LERP_FACTOR;
-            renderY += (targetY - renderY) * LERP_FACTOR;
+            double smoothingFactor = 1.0 - Math.exp(-deltaSeconds / MOVEMENT_SMOOTHING_SECONDS);
+            renderX += (targetX - renderX) * smoothingFactor;
+            renderY += (targetY - renderY) * smoothingFactor;
         }
     }
 
