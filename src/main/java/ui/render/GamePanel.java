@@ -15,7 +15,7 @@ import java.util.List;
 
 public class GamePanel extends Pane {
     private static final int TILE_SIZE = 32;
-    private static final double VIEWPORT_ZOOM = 2.5;
+    private static final double VIEWPORT_ZOOM = 2.3;
     private static final double CAMERA_SMOOTHING_SECONDS = 0.3;
     private static final int MIST_RADIUS_CELLS = 5;
     private static final int DEFAULT_MIST_SAMPLE_STEP = 2;
@@ -157,10 +157,13 @@ public class GamePanel extends Pane {
         int endRow = (int) Math.ceil((cameraY + viewportWorldHeight) / TILE_SIZE) + 1;
 
         gc.save();
+        double viewportOffsetX = getViewportOffsetX();
+        double viewportOffsetY = getViewportOffsetY();
         gc.setTransform(
                 VIEWPORT_ZOOM, 0.0,
                 0.0, VIEWPORT_ZOOM,
-                -cameraX * VIEWPORT_ZOOM, -cameraY * VIEWPORT_ZOOM
+                viewportOffsetX - cameraX * VIEWPORT_ZOOM,
+                viewportOffsetY - cameraY * VIEWPORT_ZOOM
         );
         gridRenderer.draw(gc, grid, startRow, endRow, startCol, endCol);
         drawArtifacts(gc, player, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
@@ -493,6 +496,14 @@ public class GamePanel extends Pane {
 
     private double getViewportWorldHeight() {
         return canvas.getHeight() / VIEWPORT_ZOOM;
+    }
+
+    private double getViewportOffsetX() {
+        return Math.max(0.0, (canvas.getWidth() - baseWidth * VIEWPORT_ZOOM) / 2.0);
+    }
+
+    private double getViewportOffsetY() {
+        return Math.max(0.0, (canvas.getHeight() - baseHeight * VIEWPORT_ZOOM) / 2.0);
     }
 
     private int alignToSampleStep(int coordinate) {
