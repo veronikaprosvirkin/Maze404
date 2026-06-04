@@ -9,6 +9,8 @@ public class MazeGenerator {
 
     public Grid generate(int rows, int cols){
         Grid grid = new Grid(rows, cols);
+        if (rows % 2 == 0) rows++;
+        if (cols % 2 == 0) cols++;
         for(int r = 0; r<rows; r++){
             for(int c = 0; c<cols; c++){
                 grid.setType(r, c, CellType.WALL);
