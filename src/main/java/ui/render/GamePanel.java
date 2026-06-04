@@ -143,7 +143,7 @@ public class GamePanel extends Pane {
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        playerRenderer.update(player, TILE_SIZE);
+        playerRenderer.update(player, TILE_SIZE, frameDeltaSeconds);
         updateCamera(playerRenderer.getRenderCenterX(TILE_SIZE), playerRenderer.getRenderCenterY(TILE_SIZE));
         if (mistEnabled) {
             updateMistFocus(player);
