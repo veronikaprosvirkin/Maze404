@@ -22,6 +22,11 @@ public class PlayerRenderer {
     }
 
     public void draw(GraphicsContext gc, Player player, double tileSize, Difficulty diff) {
+        update(player, tileSize);
+        drawCurrent(gc, player, tileSize, diff);
+    }
+
+    public void update(Player player, double tileSize) {
         double targetX = player.getCol() * tileSize;
         double targetY = player.getRow() * tileSize;
 
@@ -33,7 +38,9 @@ public class PlayerRenderer {
             renderX += (targetX - renderX) * LERP_FACTOR;
             renderY += (targetY - renderY) * LERP_FACTOR;
         }
+    }
 
+    public void drawCurrent(GraphicsContext gc, Player player, double tileSize, Difficulty diff) {
         if (diff == null) {
             diff = Difficulty.EASY;
         }
@@ -42,6 +49,14 @@ public class PlayerRenderer {
         double centerY = renderY + tileSize / 2.0;
         double radius = tileSize * 0.4;
         drawSkin(gc, player.getSkin(), diff, centerX, centerY, radius, 1.0);
+    }
+
+    public double getRenderCenterX(double tileSize) {
+        return renderX + tileSize / 2.0;
+    }
+
+    public double getRenderCenterY(double tileSize) {
+        return renderY + tileSize / 2.0;
     }
 
     public static void drawPreview(GraphicsContext gc, PlayerSkin skin, Difficulty diff, double centerX, double centerY,

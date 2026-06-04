@@ -15,6 +15,8 @@ import java.util.List;
 
 public class GamePanel extends Pane {
     private static final int TILE_SIZE = 32;
+    private static final double VIEWPORT_ZOOM = 2.0;
+    private static final double CAMERA_LERP_FACTOR = 0.18;
     private static final int MIST_RADIUS_CELLS = 6;
     private static final int DEFAULT_MIST_SAMPLE_STEP = 2;
     private static final double MIST_ALPHA_CAP = 0.97;
@@ -29,6 +31,9 @@ public class GamePanel extends Pane {
     private final double baseWidth;
     private final double baseHeight;
     private final int mistSampleStep;
+    private double cameraX;
+    private double cameraY;
+    private boolean cameraInitialized = false;
     private boolean mistEnabled = false;
     private double mistAnimationTimeScale = 1.0;
     private double mistDensity = 1.0;
@@ -99,8 +104,8 @@ public class GamePanel extends Pane {
         setPrefSize(baseWidth, baseHeight);
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         getChildren().add(canvas);
-        widthProperty().addListener((obs, oldWidth, newWidth) -> updateCanvasScale());
-        heightProperty().addListener((obs, oldHeight, newHeight) -> updateCanvasScale());
+        widthProperty().addListener((obs, oldWidth, newWidth) -> updateCanvasSize());
+        heightProperty().addListener((obs, oldHeight, newHeight) -> updateCanvasSize());
 
         AnimationTimer timer = new AnimationTimer() {
             @Override
@@ -118,32 +123,52 @@ public class GamePanel extends Pane {
         timer.start();
     }
 
-    private void updateCanvasScale() {
+    private void updateCanvasSize() {
         double availableWidth = getWidth();
         double availableHeight = getHeight();
         if (availableWidth <= 0.0 || availableHeight <= 0.0) {
             return;
         }
 
-        double scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight);
-        canvas.setScaleX(scale);
-        canvas.setScaleY(scale);
-        canvas.setTranslateX((availableWidth - baseWidth) / 2.0);
-        canvas.setTranslateY((availableHeight - baseHeight) / 2.0);
+        canvas.setWidth(availableWidth);
+        canvas.setHeight(availableHeight);
+        canvas.setTranslateX(0.0);
+        canvas.setTranslateY(0.0);
     }
 
     public void redraw(Grid grid, Player player) {
+        if (canvas.getWidth() <= 0.0 || canvas.getHeight() <= 0.0) {
+            updateCanvasSize();
+        }
+
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        gridRenderer.draw(gc, grid);
+        playerRenderer.update(player, TILE_SIZE);
+        updateCamera(playerRenderer.getRenderCenterX(TILE_SIZE), playerRenderer.getRenderCenterY(TILE_SIZE));
         if (mistEnabled) {
             updateMistFocus(player);
         }
-        drawArtifacts(gc, player);
+
+        double viewportWorldWidth = getViewportWorldWidth();
+        double viewportWorldHeight = getViewportWorldHeight();
+        int startCol = (int) Math.floor(cameraX / TILE_SIZE);
+        int endCol = (int) Math.ceil((cameraX + viewportWorldWidth) / TILE_SIZE) + 1;
+        int startRow = (int) Math.floor(cameraY / TILE_SIZE);
+        int endRow = (int) Math.ceil((cameraY + viewportWorldHeight) / TILE_SIZE) + 1;
+
+        gc.save();
+        gc.setTransform(
+                VIEWPORT_ZOOM, 0.0,
+                0.0, VIEWPORT_ZOOM,
+                -cameraX * VIEWPORT_ZOOM, -cameraY * VIEWPORT_ZOOM
+        );
+        gridRenderer.draw(gc, grid, startRow, endRow, startCol, endCol);
+        drawArtifacts(gc, player, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
         if (mistEnabled) {
-            drawMist(gc, grid, player);
+            drawMist(gc, grid, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
         }
-        playerRenderer.draw(gc, player, TILE_SIZE, this.difficulty);
+        playerRenderer.drawCurrent(gc, player, TILE_SIZE, this.difficulty);
+        gc.restore();
     }
 
     public boolean isMistEnabled() {
@@ -178,15 +203,20 @@ public class GamePanel extends Pane {
         this.gameVolume = clamp(gameVolume, 0.0, 1.0);
     }
 
-    private void drawMist(GraphicsContext gc, Grid grid, Player player) {
+    private void drawMist(GraphicsContext gc, Grid grid, double viewX, double viewY,
+                          double viewportWorldWidth, double viewportWorldHeight) {
         MistProfile profile = getMistProfile();
         double clearRadius = MIST_RADIUS_CELLS * TILE_SIZE;
         double timeSeconds = (mistTimeNanos / 1_000_000_000.0) * mistAnimationTimeScale;
         double width = grid.getWidth() * TILE_SIZE;
         double height = grid.getHeight() * TILE_SIZE;
+        int startX = alignToSampleStep(Math.max(0, (int) Math.floor(viewX) - mistSampleStep));
+        int endX = Math.min((int) width, (int) Math.ceil(viewX + viewportWorldWidth) + mistSampleStep);
+        int startY = alignToSampleStep(Math.max(0, (int) Math.floor(viewY) - mistSampleStep));
+        int endY = Math.min((int) height, (int) Math.ceil(viewY + viewportWorldHeight) + mistSampleStep);
 
-        for (int y = 0; y < height; y += mistSampleStep) {
-            for (int x = 0; x < width; x += mistSampleStep) {
+        for (int y = startY; y < endY; y += mistSampleStep) {
+            for (int x = startX; x < endX; x += mistSampleStep) {
                 double sampleX = x + mistSampleStep * 0.5;
                 double sampleY = y + mistSampleStep * 0.5;
                 double dx = sampleX - mistFocusX;
@@ -230,9 +260,16 @@ public class GamePanel extends Pane {
         }
     }
 
-    private void drawArtifacts(GraphicsContext gc, Player player) {
+    private void drawArtifacts(GraphicsContext gc, Player player, double viewX, double viewY,
+                               double viewportWorldWidth, double viewportWorldHeight) {
         for (Artifact artifact : artifacts) {
             if (artifact == null || artifact.isCollected() || artifact.getPosition() == null) {
+                continue;
+            }
+
+            double centerX = artifact.getPosition().getCol() * TILE_SIZE + TILE_SIZE / 2.0;
+            double centerY = artifact.getPosition().getRow() * TILE_SIZE + TILE_SIZE / 2.0;
+            if (!isInViewport(centerX, centerY, viewX, viewY, viewportWorldWidth, viewportWorldHeight, TILE_SIZE)) {
                 continue;
             }
 
@@ -241,8 +278,6 @@ public class GamePanel extends Pane {
                 continue;
             }
 
-            double centerX = artifact.getPosition().getCol() * TILE_SIZE + TILE_SIZE / 2.0;
-            double centerY = artifact.getPosition().getRow() * TILE_SIZE + TILE_SIZE / 2.0;
             ArtifactPalette palette = getArtifactPalette(artifact);
             ArtifactShape shape = getArtifactShape(artifact);
             double phase = artifact.getType().ordinal() * 0.78
@@ -432,5 +467,42 @@ public class GamePanel extends Pane {
 
     private double lerp(double start, double end, double progress) {
         return start + (end - start) * progress;
+    }
+
+    private void updateCamera(double targetCenterX, double targetCenterY) {
+        double viewportWorldWidth = getViewportWorldWidth();
+        double viewportWorldHeight = getViewportWorldHeight();
+        double targetCameraX = clamp(targetCenterX - viewportWorldWidth / 2.0, 0.0, Math.max(0.0, baseWidth - viewportWorldWidth));
+        double targetCameraY = clamp(targetCenterY - viewportWorldHeight / 2.0, 0.0, Math.max(0.0, baseHeight - viewportWorldHeight));
+
+        if (!cameraInitialized) {
+            cameraX = targetCameraX;
+            cameraY = targetCameraY;
+            cameraInitialized = true;
+            return;
+        }
+
+        cameraX += (targetCameraX - cameraX) * CAMERA_LERP_FACTOR;
+        cameraY += (targetCameraY - cameraY) * CAMERA_LERP_FACTOR;
+    }
+
+    private double getViewportWorldWidth() {
+        return canvas.getWidth() / VIEWPORT_ZOOM;
+    }
+
+    private double getViewportWorldHeight() {
+        return canvas.getHeight() / VIEWPORT_ZOOM;
+    }
+
+    private int alignToSampleStep(int coordinate) {
+        return coordinate - Math.floorMod(coordinate, mistSampleStep);
+    }
+
+    private boolean isInViewport(double x, double y, double viewX, double viewY,
+                                 double viewportWorldWidth, double viewportWorldHeight, double margin) {
+        return x >= viewX - margin
+                && x <= viewX + viewportWorldWidth + margin
+                && y >= viewY - margin
+                && y <= viewY + viewportWorldHeight + margin;
     }
 }
