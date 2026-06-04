@@ -17,12 +17,16 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import model.Player;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 public class MiniGameManager {
 
     private final Player player;
     private final Random random = new Random();
+    private final List<Integer> availableGames = new ArrayList<>();
 
     public MiniGameManager(Player player) {
         this.player = player;
@@ -197,7 +201,14 @@ public class MiniGameManager {
             default -> "Unknown Artifact";
         };
 
-        int gameChoice = random.nextInt(6);
+        if (availableGames.isEmpty()) {
+            for (int i = 0; i < 6; i++) {
+                availableGames.add(i);
+            }
+            Collections.shuffle(availableGames, random);
+        }
+        int gameChoice = availableGames.remove(0);
+
         Difficulty currentDiff = Difficulty.current;
 
         MiniGame game = switch (gameChoice) {
