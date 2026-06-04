@@ -39,9 +39,31 @@ public class MazeGenerator {
             }
         }
 
-//  ставимо EXIT у правий нижній кут лабіринту
-        grid.setType(rows -2, cols -2, CellType.EXIT);
+        Position exit = findExitPosition(grid, rows, cols);
+        grid.setType(exit.getRow(), exit.getCol(), CellType.EXIT);
         return grid;
+    }
+
+    private Position findExitPosition(Grid grid, int rows, int cols) {
+        Position start = new Position(1, 1);
+        List<Position> candidates = new ArrayList<>();
+
+        for (int r = 1; r < rows - 1; r++) {
+            for (int c = 1; c < cols - 1; c++) {
+                if (grid.getCell(r, c).getType() != CellType.FLOOR) continue;
+                Position p = new Position(r, c);
+                // Тільки клітинки далеко від старту
+                if (start.manhattanDistance(p) >= (rows + cols) / 2) {
+                    candidates.add(p);
+                }
+            }
+        }
+
+        if (candidates.isEmpty()) {
+            return new Position(rows - 2, cols - 2);
+        }
+
+        return candidates.get(new Random().nextInt(candidates.size()));
     }
 
     private List<Position> getUnvisitedNeighbors(Grid grid, Position p, int rows, int cols) {
