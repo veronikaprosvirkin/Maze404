@@ -15,7 +15,7 @@ import java.util.List;
 
 public class GamePanel extends Pane {
     private static final int TILE_SIZE = 32;
-    private static final double VIEWPORT_ZOOM = 1.0;
+    private static final double VIEWPORT_ZOOM = 2.2;
     private static final double CAMERA_SMOOTHING_SECONDS = 0.3;
     private static final double INTRO_CAMERA_SMOOTHING_SECONDS = 0.55;
     private static final double LEVEL_INTRO_SECONDS = 2.6;
