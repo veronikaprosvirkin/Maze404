@@ -52,43 +52,36 @@ public class ArtifactSpawner {
             }
         }
 
+        List<ArtifactType> typesToSpawn = new ArrayList<>();
+        for (int i = 0; i < crystalCount; i++) typesToSpawn.add(ArtifactType.CRYSTAL);
+        for (int i = 0; i < miniGameCount; i++) typesToSpawn.add(ArtifactType.MINI_GAME);
+        for (int i = 0; i < shieldCount; i++) typesToSpawn.add(ArtifactType.SHIELD);
+        for (int i = 0; i < radarCount; i++) typesToSpawn.add(ArtifactType.RADAR);
+        for (int i = 0; i < beaconCount; i++) typesToSpawn.add(ArtifactType.BEACON);
+        for (int i = 0; i < elixirCount; i++) typesToSpawn.add(ArtifactType.ELIXIR);
+
         List<Artifact> artifacts = new ArrayList<>();
-        int index = 0;
+        int typeIndex = 0;
 
-        //crystals
-        for (int i = 0; i < crystalCount && index < floorCells.size(); i++) {
-            artifacts.add(new Artifact(floorCells.get(index), ArtifactType.CRYSTAL));
-            index++;
-        }
+        int minDistance = 3;
 
-        //mini games
-        for (int i = 0; i < miniGameCount && index < floorCells.size(); i++) {
-            artifacts.add(new Artifact(floorCells.get(index), ArtifactType.MINI_GAME));
-            index++;
-        }
+        for (Position candidate : floorCells) {
+            if (typeIndex >= typesToSpawn.size()) {
+                break;
+            }
+            boolean isTooClose = false;
+            for (Artifact spawnedArtifact : artifacts) {
+                if (candidate.manhattanDistance(spawnedArtifact.getPosition()) < minDistance) {
+                    isTooClose = true;
+                    break;
+                }
+            }
 
-        //shields
-        for (int i = 0; i < shieldCount && index < floorCells.size(); i++) {
-            artifacts.add(new Artifact(floorCells.get(index), ArtifactType.SHIELD));
-            index++;
-        }
-
-        // radars
-        for (int i = 0; i < radarCount && index < floorCells.size(); i++) {
-            artifacts.add(new Artifact(floorCells.get(index), ArtifactType.RADAR));
-            index++;
-        }
-
-        // beacons
-        for (int i = 0; i < beaconCount && index < floorCells.size(); i++) {
-            artifacts.add(new Artifact(floorCells.get(index), ArtifactType.BEACON));
-            index++;
-        }
-
-        // elixirs
-        for (int i = 0; i < elixirCount && index < floorCells.size(); i++) {
-            artifacts.add(new Artifact(floorCells.get(index), ArtifactType.ELIXIR));
-            index++;
+            if (!isTooClose) {
+                ArtifactType typeToPlace = typesToSpawn.get(typeIndex);
+                artifacts.add(new Artifact(candidate, typeToPlace));
+                typeIndex++;
+            }
         }
 
         return artifacts;
