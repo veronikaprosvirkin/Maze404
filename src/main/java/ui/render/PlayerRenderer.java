@@ -7,7 +7,7 @@ import javafx.scene.paint.Color;
 import model.Player;
 
 public class PlayerRenderer {
-    private static final double LERP_FACTOR = 0.2;
+    private static final double MOVEMENT_SMOOTHING_SECONDS = 0.18;
     private static final Color MENU_SKIN_BASE = Color.web("#22103A");
     private static final Color MENU_SKIN_GLOW = Color.web("#8F55FF");
     private static final Color MENU_SKIN_BORDER = Color.web("#C9A7FF");
@@ -22,6 +22,11 @@ public class PlayerRenderer {
     }
 
     public void draw(GraphicsContext gc, Player player, double tileSize, Difficulty diff) {
+        update(player, tileSize, 1.0 / 60.0);
+        drawCurrent(gc, player, tileSize, diff);
+    }
+
+    public void update(Player player, double tileSize, double deltaSeconds) {
         double targetX = player.getCol() * tileSize;
         double targetY = player.getRow() * tileSize;
 
@@ -30,10 +35,13 @@ public class PlayerRenderer {
             renderY = targetY;
             initialized = true;
         } else {
-            renderX += (targetX - renderX) * LERP_FACTOR;
-            renderY += (targetY - renderY) * LERP_FACTOR;
+            double smoothingFactor = 1.0 - Math.exp(-deltaSeconds / MOVEMENT_SMOOTHING_SECONDS);
+            renderX += (targetX - renderX) * smoothingFactor;
+            renderY += (targetY - renderY) * smoothingFactor;
         }
+    }
 
+    public void drawCurrent(GraphicsContext gc, Player player, double tileSize, Difficulty diff) {
         if (diff == null) {
             diff = Difficulty.EASY;
         }
@@ -42,6 +50,14 @@ public class PlayerRenderer {
         double centerY = renderY + tileSize / 2.0;
         double radius = tileSize * 0.4;
         drawSkin(gc, player.getSkin(), diff, centerX, centerY, radius, 1.0);
+    }
+
+    public double getRenderCenterX(double tileSize) {
+        return renderX + tileSize / 2.0;
+    }
+
+    public double getRenderCenterY(double tileSize) {
+        return renderY + tileSize / 2.0;
     }
 
     public static void drawPreview(GraphicsContext gc, PlayerSkin skin, Difficulty diff, double centerX, double centerY,
