@@ -1,0 +1,13 @@
+{
+  "levelNumber": 2,
+  "gridRows": 15,
+  "gridCols": 15,
+  "trapCount": 10,
+  "minTrapDistance": 3,
+  "crystalCount": 12,
+  "droneCount": 3,
+  "miniGameTriggers": 2,
+  "fogEnabled": true,
+  "fogRadius": 2,
+  "flashlightRadius": 4
+}
