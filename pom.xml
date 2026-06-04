@@ -45,6 +45,13 @@
 			<scope>compile</scope>
 		</dependency>
 
+        <!-- Gson dependency-->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+
 		<!-- JavaFX modules (classifier for OS-specific native libs) -->
     <dependency>
         <groupId>org.openjfx</groupId>
