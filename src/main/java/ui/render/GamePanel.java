@@ -15,7 +15,7 @@ import java.util.List;
 
 public class GamePanel extends Pane {
     private static final int TILE_SIZE = 32;
-    private static final double VIEWPORT_ZOOM = 2.3;
+    private static final double VIEWPORT_ZOOM = 1.0;
     private static final double CAMERA_SMOOTHING_SECONDS = 0.3;
     private static final double INTRO_CAMERA_SMOOTHING_SECONDS = 0.55;
     private static final double LEVEL_INTRO_SECONDS = 2.6;
@@ -24,6 +24,7 @@ public class GamePanel extends Pane {
     private static final double MIST_ALPHA_CAP = 0.97;
     private static final double MIST_FOCUS_TRANSITION_SECONDS = 0.3;
     private static final double MIST_EDGE_FADE_BAND = TILE_SIZE * 2.2;
+    private static final double MIST_OUTSIDE_FADE_BAND = TILE_SIZE * 3.4;
 
     private final Canvas canvas;
     private final GridRenderer gridRenderer;
@@ -218,10 +219,10 @@ public class GamePanel extends Pane {
         double timeSeconds = (mistTimeNanos / 1_000_000_000.0) * mistAnimationTimeScale;
         double width = grid.getWidth() * TILE_SIZE;
         double height = grid.getHeight() * TILE_SIZE;
-        int startX = alignToSampleStep(Math.max(0, (int) Math.floor(viewX) - mistSampleStep));
-        int endX = Math.min((int) width, (int) Math.ceil(viewX + viewportWorldWidth) + mistSampleStep);
-        int startY = alignToSampleStep(Math.max(0, (int) Math.floor(viewY) - mistSampleStep));
-        int endY = Math.min((int) height, (int) Math.ceil(viewY + viewportWorldHeight) + mistSampleStep);
+        int startX = alignToSampleStep((int) Math.floor(viewX) - (int) MIST_OUTSIDE_FADE_BAND - mistSampleStep);
+        int endX = (int) Math.ceil(viewX + viewportWorldWidth) + (int) MIST_OUTSIDE_FADE_BAND + mistSampleStep;
+        int startY = alignToSampleStep((int) Math.floor(viewY) - (int) MIST_OUTSIDE_FADE_BAND - mistSampleStep);
+        int endY = (int) Math.ceil(viewY + viewportWorldHeight) + (int) MIST_OUTSIDE_FADE_BAND + mistSampleStep;
 
         for (int y = startY; y < endY; y += mistSampleStep) {
             for (int x = startX; x < endX; x += mistSampleStep) {
@@ -230,6 +231,10 @@ public class GamePanel extends Pane {
                 double dx = sampleX - mistFocusX;
                 double dy = sampleY - mistFocusY;
                 double dist = Math.sqrt(dx * dx + dy * dy);
+                double signedNearestWorldEdgeDistance = Math.min(
+                        Math.min(sampleX, width - sampleX),
+                        Math.min(sampleY, height - sampleY)
+                );
 
                 double distanceOpacity = clearRadius <= 0.0
                         ? 1.0
@@ -252,12 +257,17 @@ public class GamePanel extends Pane {
                         - timeSeconds * profile.driftSpeed() * 0.44);
                 double swirl = (drift1 * 0.35 + drift2 * 0.30 + drift3 * 0.20 + drift4 * 0.15) * profile.swirlAlpha();
                 double holeNoise = ((drift1 * 0.30) + (drift2 * 0.30) + (drift3 * 0.25) + (drift4 * 0.15) + 1.0) * 0.5;
+                double edgeNoise = ((drift1 * 0.28) + (drift2 * 0.24) + (drift3 * 0.28) + (drift4 * 0.20) + 1.0) * 0.5;
+                double outsideDistance = Math.max(0.0, -signedNearestWorldEdgeDistance);
+                double edgeOffset = lerp(-MIST_OUTSIDE_FADE_BAND * 0.35, MIST_OUTSIDE_FADE_BAND * 0.35, edgeNoise);
+                double adjustedOutsideDistance = Math.max(0.0, outsideDistance + edgeOffset);
+                double worldEdgeFade = 1.0 - smoothStep(0.0, MIST_OUTSIDE_FADE_BAND, adjustedOutsideDistance);
                 double holeThreshold = lerp(0.72, 0.08, mistDensity);
                 double densityMask = smoothStep(holeThreshold - 0.12, holeThreshold + 0.12, holeNoise);
                 double accentMask = smoothStep(0.55, 0.95, ((drift2 * 0.55) + (drift4 * 0.45) + 1.0) * 0.5)
                         * profile.accentStrength();
 
-                double alpha = clamp(distanceOpacity * pulse * densityMask * (profile.baseAlpha() + swirl), 0.0,
+                double alpha = clamp(distanceOpacity * worldEdgeFade * pulse * densityMask * (profile.baseAlpha() + swirl), 0.0,
                         MIST_ALPHA_CAP);
                 if (alpha > 0.01) {
                     double colorR = lerp(profile.colorR(), profile.accentR(), accentMask);
