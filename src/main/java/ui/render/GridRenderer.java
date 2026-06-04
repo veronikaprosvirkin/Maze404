@@ -16,8 +16,17 @@ public class GridRenderer {
     }
 
     public void draw(GraphicsContext gc, Grid grid) {
-        for (int row = 0; row < grid.getHeight(); row++) {
-            for (int col = 0; col < grid.getWidth(); col++) {
+        draw(gc, grid, 0, grid.getHeight(), 0, grid.getWidth());
+    }
+
+    public void draw(GraphicsContext gc, Grid grid, int startRow, int endRow, int startCol, int endCol) {
+        int clampedStartRow = Math.max(0, startRow);
+        int clampedEndRow = Math.min(grid.getHeight(), endRow);
+        int clampedStartCol = Math.max(0, startCol);
+        int clampedEndCol = Math.min(grid.getWidth(), endCol);
+
+        for (int row = clampedStartRow; row < clampedEndRow; row++) {
+            for (int col = clampedStartCol; col < clampedEndCol; col++) {
                 Cell cell = grid.getCell(row, col);
                 CellType type = cell.getType();
                 Image tile = spriteSheet.getSprite(type, row, col);

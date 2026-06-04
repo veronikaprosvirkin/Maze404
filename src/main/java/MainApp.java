@@ -91,7 +91,7 @@ public class MainApp extends Application {
 
         GamePanel gamePanel = new GamePanel(grid, player, artifacts, Difficulty.current, settings.mistSampleStep());
         boolean mistEnabled = true;
-        double mistAnimationTime = 1.2;
+        double mistAnimationTime = 2;
         double mistDensity = 1;
         gamePanel.setMistEnabled(mistEnabled);
         gamePanel.setMistAnimationTimeScale(mistAnimationTime);

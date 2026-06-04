@@ -15,11 +15,16 @@ import java.util.List;
 
 public class GamePanel extends Pane {
     private static final int TILE_SIZE = 32;
-    private static final int MIST_RADIUS_CELLS = 6;
+    private static final double VIEWPORT_ZOOM = 2.2;
+    private static final double CAMERA_SMOOTHING_SECONDS = 0.3;
+    private static final double INTRO_CAMERA_SMOOTHING_SECONDS = 0.55;
+    private static final double LEVEL_INTRO_SECONDS = 2.6;
+    private static final int MIST_RADIUS_CELLS = 5;
     private static final int DEFAULT_MIST_SAMPLE_STEP = 2;
     private static final double MIST_ALPHA_CAP = 0.97;
     private static final double MIST_FOCUS_TRANSITION_SECONDS = 0.3;
     private static final double MIST_EDGE_FADE_BAND = TILE_SIZE * 2.2;
+    private static final double MIST_OUTSIDE_FADE_BAND = TILE_SIZE * 3.4;
 
     private final Canvas canvas;
     private final GridRenderer gridRenderer;
@@ -29,6 +34,9 @@ public class GamePanel extends Pane {
     private final double baseWidth;
     private final double baseHeight;
     private final int mistSampleStep;
+    private double cameraX;
+    private double cameraY;
+    private boolean cameraInitialized = false;
     private boolean mistEnabled = false;
     private double mistAnimationTimeScale = 1.0;
     private double mistDensity = 1.0;
@@ -36,6 +44,7 @@ public class GamePanel extends Pane {
     private long mistTimeNanos = 0L;
     private long lastFrameNanos = 0L;
     private double frameDeltaSeconds = 1.0 / 60.0;
+    private double introElapsedSeconds = 0.0;
     private double mistFocusX;
     private double mistFocusY;
     private double mistFocusStartX;
@@ -99,8 +108,8 @@ public class GamePanel extends Pane {
         setPrefSize(baseWidth, baseHeight);
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         getChildren().add(canvas);
-        widthProperty().addListener((obs, oldWidth, newWidth) -> updateCanvasScale());
-        heightProperty().addListener((obs, oldHeight, newHeight) -> updateCanvasScale());
+        widthProperty().addListener((obs, oldWidth, newWidth) -> updateCanvasSize());
+        heightProperty().addListener((obs, oldHeight, newHeight) -> updateCanvasSize());
 
         AnimationTimer timer = new AnimationTimer() {
             @Override
@@ -112,38 +121,63 @@ public class GamePanel extends Pane {
                 }
                 lastFrameNanos = now;
                 mistTimeNanos = now;
+                introElapsedSeconds = Math.min(introElapsedSeconds + frameDeltaSeconds, LEVEL_INTRO_SECONDS);
                 redraw(grid, player);
             }
         };
         timer.start();
     }
 
-    private void updateCanvasScale() {
+    private void updateCanvasSize() {
         double availableWidth = getWidth();
         double availableHeight = getHeight();
         if (availableWidth <= 0.0 || availableHeight <= 0.0) {
             return;
         }
 
-        double scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight);
-        canvas.setScaleX(scale);
-        canvas.setScaleY(scale);
-        canvas.setTranslateX((availableWidth - baseWidth) / 2.0);
-        canvas.setTranslateY((availableHeight - baseHeight) / 2.0);
+        canvas.setWidth(availableWidth);
+        canvas.setHeight(availableHeight);
+        canvas.setTranslateX(0.0);
+        canvas.setTranslateY(0.0);
     }
 
     public void redraw(Grid grid, Player player) {
+        if (canvas.getWidth() <= 0.0 || canvas.getHeight() <= 0.0) {
+            updateCanvasSize();
+        }
+
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        gridRenderer.draw(gc, grid);
+        playerRenderer.update(player, TILE_SIZE, frameDeltaSeconds);
+        double currentZoom = getCurrentZoom();
+        updateCamera(playerRenderer.getRenderCenterX(TILE_SIZE), playerRenderer.getRenderCenterY(TILE_SIZE), currentZoom);
         if (mistEnabled) {
             updateMistFocus(player);
         }
-        drawArtifacts(gc, player);
+
+        double viewportWorldWidth = getViewportWorldWidth(currentZoom);
+        double viewportWorldHeight = getViewportWorldHeight(currentZoom);
+        int startCol = (int) Math.floor(cameraX / TILE_SIZE);
+        int endCol = (int) Math.ceil((cameraX + viewportWorldWidth) / TILE_SIZE) + 1;
+        int startRow = (int) Math.floor(cameraY / TILE_SIZE);
+        int endRow = (int) Math.ceil((cameraY + viewportWorldHeight) / TILE_SIZE) + 1;
+
+        gc.save();
+        double viewportOffsetX = getViewportOffsetX(currentZoom);
+        double viewportOffsetY = getViewportOffsetY(currentZoom);
+        gc.setTransform(
+                currentZoom, 0.0,
+                0.0, currentZoom,
+                viewportOffsetX - cameraX * currentZoom,
+                viewportOffsetY - cameraY * currentZoom
+        );
+        gridRenderer.draw(gc, grid, startRow, endRow, startCol, endCol);
+        drawArtifacts(gc, player, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
         if (mistEnabled) {
-            drawMist(gc, grid, player);
+            drawMist(gc, grid, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
         }
-        playerRenderer.draw(gc, player, TILE_SIZE, this.difficulty);
+        playerRenderer.drawCurrent(gc, player, TILE_SIZE, this.difficulty);
+        gc.restore();
     }
 
     public boolean isMistEnabled() {
@@ -178,22 +212,33 @@ public class GamePanel extends Pane {
         this.gameVolume = clamp(gameVolume, 0.0, 1.0);
     }
 
-    private void drawMist(GraphicsContext gc, Grid grid, Player player) {
+    private void drawMist(GraphicsContext gc, Grid grid, double viewX, double viewY,
+                          double viewportWorldWidth, double viewportWorldHeight) {
         MistProfile profile = getMistProfile();
-        double clearRadius = MIST_RADIUS_CELLS * TILE_SIZE;
+        double clearRadius = getCurrentClearRadius();
         double timeSeconds = (mistTimeNanos / 1_000_000_000.0) * mistAnimationTimeScale;
         double width = grid.getWidth() * TILE_SIZE;
         double height = grid.getHeight() * TILE_SIZE;
+        int startX = alignToSampleStep((int) Math.floor(viewX) - (int) MIST_OUTSIDE_FADE_BAND - mistSampleStep);
+        int endX = (int) Math.ceil(viewX + viewportWorldWidth) + (int) MIST_OUTSIDE_FADE_BAND + mistSampleStep;
+        int startY = alignToSampleStep((int) Math.floor(viewY) - (int) MIST_OUTSIDE_FADE_BAND - mistSampleStep);
+        int endY = (int) Math.ceil(viewY + viewportWorldHeight) + (int) MIST_OUTSIDE_FADE_BAND + mistSampleStep;
 
-        for (int y = 0; y < height; y += mistSampleStep) {
-            for (int x = 0; x < width; x += mistSampleStep) {
+        for (int y = startY; y < endY; y += mistSampleStep) {
+            for (int x = startX; x < endX; x += mistSampleStep) {
                 double sampleX = x + mistSampleStep * 0.5;
                 double sampleY = y + mistSampleStep * 0.5;
                 double dx = sampleX - mistFocusX;
                 double dy = sampleY - mistFocusY;
                 double dist = Math.sqrt(dx * dx + dy * dy);
+                double signedNearestWorldEdgeDistance = Math.min(
+                        Math.min(sampleX, width - sampleX),
+                        Math.min(sampleY, height - sampleY)
+                );
 
-                double distanceOpacity = smoothStep(clearRadius - MIST_EDGE_FADE_BAND, clearRadius + MIST_EDGE_FADE_BAND, dist);
+                double distanceOpacity = clearRadius <= 0.0
+                        ? 1.0
+                        : smoothStep(clearRadius - MIST_EDGE_FADE_BAND, clearRadius + MIST_EDGE_FADE_BAND, dist);
                 double pulse = 1.0 + Math.sin(timeSeconds * profile.pulseSpeed()) * profile.pulseStrength();
 
                 double flowX = sampleX + timeSeconds * profile.flowSpeedX()
@@ -212,12 +257,17 @@ public class GamePanel extends Pane {
                         - timeSeconds * profile.driftSpeed() * 0.44);
                 double swirl = (drift1 * 0.35 + drift2 * 0.30 + drift3 * 0.20 + drift4 * 0.15) * profile.swirlAlpha();
                 double holeNoise = ((drift1 * 0.30) + (drift2 * 0.30) + (drift3 * 0.25) + (drift4 * 0.15) + 1.0) * 0.5;
+                double edgeNoise = ((drift1 * 0.28) + (drift2 * 0.24) + (drift3 * 0.28) + (drift4 * 0.20) + 1.0) * 0.5;
+                double outsideDistance = Math.max(0.0, -signedNearestWorldEdgeDistance);
+                double edgeOffset = lerp(-MIST_OUTSIDE_FADE_BAND * 0.35, MIST_OUTSIDE_FADE_BAND * 0.35, edgeNoise);
+                double adjustedOutsideDistance = Math.max(0.0, outsideDistance + edgeOffset);
+                double worldEdgeFade = 1.0 - smoothStep(0.0, MIST_OUTSIDE_FADE_BAND, adjustedOutsideDistance);
                 double holeThreshold = lerp(0.72, 0.08, mistDensity);
                 double densityMask = smoothStep(holeThreshold - 0.12, holeThreshold + 0.12, holeNoise);
                 double accentMask = smoothStep(0.55, 0.95, ((drift2 * 0.55) + (drift4 * 0.45) + 1.0) * 0.5)
                         * profile.accentStrength();
 
-                double alpha = clamp(distanceOpacity * pulse * densityMask * (profile.baseAlpha() + swirl), 0.0,
+                double alpha = clamp(distanceOpacity * worldEdgeFade * pulse * densityMask * (profile.baseAlpha() + swirl), 0.0,
                         MIST_ALPHA_CAP);
                 if (alpha > 0.01) {
                     double colorR = lerp(profile.colorR(), profile.accentR(), accentMask);
@@ -230,9 +280,16 @@ public class GamePanel extends Pane {
         }
     }
 
-    private void drawArtifacts(GraphicsContext gc, Player player) {
+    private void drawArtifacts(GraphicsContext gc, Player player, double viewX, double viewY,
+                               double viewportWorldWidth, double viewportWorldHeight) {
         for (Artifact artifact : artifacts) {
             if (artifact == null || artifact.isCollected() || artifact.getPosition() == null) {
+                continue;
+            }
+
+            double centerX = artifact.getPosition().getCol() * TILE_SIZE + TILE_SIZE / 2.0;
+            double centerY = artifact.getPosition().getRow() * TILE_SIZE + TILE_SIZE / 2.0;
+            if (!isInViewport(centerX, centerY, viewX, viewY, viewportWorldWidth, viewportWorldHeight, TILE_SIZE)) {
                 continue;
             }
 
@@ -241,8 +298,6 @@ public class GamePanel extends Pane {
                 continue;
             }
 
-            double centerX = artifact.getPosition().getCol() * TILE_SIZE + TILE_SIZE / 2.0;
-            double centerY = artifact.getPosition().getRow() * TILE_SIZE + TILE_SIZE / 2.0;
             ArtifactPalette palette = getArtifactPalette(artifact);
             ArtifactShape shape = getArtifactShape(artifact);
             double phase = artifact.getType().ordinal() * 0.78
@@ -333,8 +388,12 @@ public class GamePanel extends Pane {
         double focusY = mistFocusInitialized ? mistFocusY : playerCenterY;
         double dx = artifactCenterX - focusX;
         double dy = artifactCenterY - focusY;
-        double visibleRadius = MIST_RADIUS_CELLS * TILE_SIZE;
+        double visibleRadius = getCurrentClearRadius();
         double distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (visibleRadius <= 0.0) {
+            return 0.0;
+        }
 
         return 1.0 - smoothStep(
                 visibleRadius - MIST_EDGE_FADE_BAND,
@@ -432,5 +491,93 @@ public class GamePanel extends Pane {
 
     private double lerp(double start, double end, double progress) {
         return start + (end - start) * progress;
+    }
+
+    private void updateCamera(double targetCenterX, double targetCenterY, double zoom) {
+        double viewportWorldWidth = getViewportWorldWidth(zoom);
+        double viewportWorldHeight = getViewportWorldHeight(zoom);
+        double targetCameraX = clamp(targetCenterX - viewportWorldWidth / 2.0, 0.0, Math.max(0.0, baseWidth - viewportWorldWidth));
+        double targetCameraY = clamp(targetCenterY - viewportWorldHeight / 2.0, 0.0, Math.max(0.0, baseHeight - viewportWorldHeight));
+
+        if (!cameraInitialized) {
+            cameraX = targetCameraX;
+            cameraY = targetCameraY;
+            cameraInitialized = true;
+            return;
+        }
+
+        double smoothingSeconds = lerp(INTRO_CAMERA_SMOOTHING_SECONDS, CAMERA_SMOOTHING_SECONDS, getIntroProgress());
+        double smoothingFactor = 1.0 - Math.exp(-frameDeltaSeconds / smoothingSeconds);
+        cameraX += (targetCameraX - cameraX) * smoothingFactor;
+        cameraY += (targetCameraY - cameraY) * smoothingFactor;
+    }
+
+    private double getViewportWorldWidth(double zoom) {
+        return canvas.getWidth() / zoom;
+    }
+
+    private double getViewportWorldHeight(double zoom) {
+        return canvas.getHeight() / zoom;
+    }
+
+    private double getViewportOffsetX(double zoom) {
+        return Math.max(0.0, (canvas.getWidth() - baseWidth * zoom) / 2.0);
+    }
+
+    private double getViewportOffsetY(double zoom) {
+        return Math.max(0.0, (canvas.getHeight() - baseHeight * zoom) / 2.0);
+    }
+
+    private double getCurrentZoom() {
+        double introProgress = getZoomIntroProgress();
+        double introZoom = getIntroZoom();
+        return lerp(introZoom, VIEWPORT_ZOOM, introProgress);
+    }
+
+    private double getIntroZoom() {
+        if (canvas.getWidth() <= 0.0 || canvas.getHeight() <= 0.0) {
+            return VIEWPORT_ZOOM;
+        }
+
+        double fitZoom = Math.min(canvas.getWidth() / baseWidth, canvas.getHeight() / baseHeight);
+        return Math.min(VIEWPORT_ZOOM, fitZoom);
+    }
+
+    private double getCurrentClearRadius() {
+        double revealProgress = smoothStep(0.30, 1.0, getIntroProgress());
+        return MIST_RADIUS_CELLS * TILE_SIZE * revealProgress;
+    }
+
+    private double getIntroProgress() {
+        if (LEVEL_INTRO_SECONDS <= 0.0) {
+            return 1.0;
+        }
+        double progress = clamp(introElapsedSeconds / LEVEL_INTRO_SECONDS, 0.0, 1.0);
+        return smoothStep(0.0, 1.0, progress);
+    }
+
+    private double getZoomIntroProgress() {
+        double progress = clamp((getIntroProgress() - 0.10) / 0.90, 0.0, 1.0);
+        return easeInOutCubic(progress);
+    }
+
+    private double easeInOutCubic(double t) {
+        double clamped = clamp(t, 0.0, 1.0);
+        if (clamped < 0.5) {
+            return 4.0 * clamped * clamped * clamped;
+        }
+        return 1.0 - Math.pow(-2.0 * clamped + 2.0, 3.0) / 2.0;
+    }
+
+    private int alignToSampleStep(int coordinate) {
+        return coordinate - Math.floorMod(coordinate, mistSampleStep);
+    }
+
+    private boolean isInViewport(double x, double y, double viewX, double viewY,
+                                 double viewportWorldWidth, double viewportWorldHeight, double margin) {
+        return x >= viewX - margin
+                && x <= viewX + viewportWorldWidth + margin
+                && y >= viewY - margin
+                && y <= viewY + viewportWorldHeight + margin;
     }
 }
