@@ -89,7 +89,7 @@ public class MainApp extends Application {
         ArtifactSystem artifactSystem = new ArtifactSystem();
         miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(player);
 
-        GamePanel gamePanel = new GamePanel(grid, player, artifacts, Difficulty.current, settings.mistSampleStep());
+        GamePanel gamePanel = new GamePanel(grid, player, artifacts, Difficulty.current, settings.mistSampleStep(), gameState.getEnemies());
         boolean mistEnabled = true;
         double mistAnimationTime = 2;
         double mistDensity = 1;
