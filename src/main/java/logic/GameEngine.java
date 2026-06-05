@@ -86,10 +86,12 @@ public class GameEngine {
 
     private void moveEnemies(){
         for (Enemy enemy : gameState.getEnemies()) {
-            IEnemyAI ai = enemyAi.get(enemy);
+
+            IEnemyAI ai = enemy.getAi();
             if (ai == null) continue;
-            Position next = ai.computeNextMove(gameState, enemy);
-            // перевіряємо що позиція в межах і не стіна
+
+            Position next = ai.computeNextMove(enemy, gameState.getGrid(), gameState.getPlayer());
+
             if (gameState.getGrid().isInBounds(next.getRow(), next.getCol()) &&
                     gameState.getGrid().getCell(next.getRow(), next.getCol()).getType() != CellType.WALL) {
                 enemy.setRow(next.getRow());
@@ -99,5 +101,4 @@ public class GameEngine {
             }
         }
     }
-
 }
