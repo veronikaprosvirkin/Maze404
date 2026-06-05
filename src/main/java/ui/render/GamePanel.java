@@ -354,6 +354,7 @@ public class GamePanel extends Pane {
             case RADAR -> new ArtifactPalette(Color.web("#65F2A0"), Color.web("#D4FFE3"));
             case BEACON -> new ArtifactPalette(Color.web("#FF8E52"), Color.web("#FFD2A8"));
             case ELIXIR -> new ArtifactPalette(Color.web("#C46BFF"), Color.web("#F0C8FF"));
+            case KEY -> new ArtifactPalette(Color.web("#FFB86C"), Color.web("#FFE8C2"));
         };
     }
 
@@ -363,6 +364,7 @@ public class GamePanel extends Pane {
             case SHIELD, BEACON -> ArtifactShape.ORB_WITH_CIRCLE;
             case RADAR, MINI_GAME -> ArtifactShape.CRYSTAL_WITH_CIRCLE;
             case ELIXIR -> ArtifactShape.ORB;
+            case KEY -> ArtifactShape.ORB_WITH_CIRCLE;
         };
     }
 
