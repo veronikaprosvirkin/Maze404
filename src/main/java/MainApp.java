@@ -85,11 +85,14 @@ public class MainApp extends Application {
                 new Position(player.getRow(), player.getCol())
         );
 
-        GameState gameState = new GameState(grid, player, List.of(), artifacts, 1);
+        logic.EnemySpawner enemySpawner = new logic.EnemySpawner();
+        List<model.Enemy> enemies = enemySpawner.spawnEnemies(grid, Difficulty.current, artifacts);
+
+        GameState gameState = new GameState(grid, player, enemies, artifacts, 1);
         ArtifactSystem artifactSystem = new ArtifactSystem();
         miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(player);
 
-        GamePanel gamePanel = new GamePanel(grid, player, artifacts, Difficulty.current, settings.mistSampleStep(), gameState.getEnemies());
+        GamePanel gamePanel = new GamePanel(grid, player, artifacts, Difficulty.current, settings.mistSampleStep(), enemies);
         boolean mistEnabled = true;
         double mistAnimationTime = 2;
         double mistDensity = 1;
