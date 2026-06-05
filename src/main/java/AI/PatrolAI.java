@@ -1,7 +1,5 @@
 package AI;
-import model.Enemy;
-import model.GameState;
-import model.Position;
+import model.*;
 
 import java.util.List;
 
@@ -9,7 +7,7 @@ public class PatrolAI implements IEnemyAI {
     private int routeIndex = 0;
 
     @Override
-    public Position computeNextMove(GameState state, Enemy enemy) {
+    public Position computeNextMove(Enemy enemy, Grid grid, Player player) {
         List<Position> route = enemy.getPatrolRoute();
         if (route == null || route.isEmpty()) return new Position(enemy.getRow(), enemy.getCol());
 

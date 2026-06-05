@@ -33,13 +33,19 @@ public class LevelLoader {
         Position startPos = new Position(1, 1);
         trapPlacer.placeTraps(grid, config, startPos);
 
+        Player player = new Player(startPos.getRow(), startPos.getCol());
 
-        // enemySpawner.spawnEnemies(grid, config)
-        // artifactSpawner.spawnArtifacts(grid, config, startPos)
-        // Зараз передається Difficulty.MEDIUM, треба узгодити інтерфейс
-        Player  player    = new Player(startPos.getRow(), startPos.getCol());
-        List<Enemy>  enemies   = enemySpawner.spawnEnemies(grid, Difficulty.MEDIUM);
-        List<Artifact> artifacts = artifactSpawner.spawnArtifacts(grid, Difficulty.MEDIUM, startPos);
+        Difficulty currentDifficulty = switch (levelNumber) {
+            case 1 -> Difficulty.EASY;
+            case 2 -> Difficulty.MEDIUM;
+            default -> Difficulty.HARD;
+        };
+
+        Difficulty.current = currentDifficulty;
+
+        List<Artifact> artifacts = artifactSpawner.spawnArtifacts(grid, currentDifficulty, startPos);
+
+        List<Enemy> enemies = enemySpawner.spawnEnemies(grid, currentDifficulty, artifacts);
 
         return new GameState(grid, player, enemies, artifacts, levelNumber);
     }
