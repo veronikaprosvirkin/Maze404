@@ -102,6 +102,8 @@ public class MainApp extends Application {
         gamePanel.setGameVolume(settings.gameVolume());
         root.getChildren().setAll(gamePanel);
 
+        int[] turnCounter = {0};
+
         InputHandler inputHandler = new InputHandler(action -> {
             int deltaRow = 0;
             int deltaCol = 0;
@@ -110,8 +112,7 @@ public class MainApp extends Application {
                 case MOVE_DOWN -> deltaRow = 1;
                 case MOVE_LEFT -> deltaCol = -1;
                 case MOVE_RIGHT -> deltaCol = 1;
-                default -> {
-                }
+                default -> { }
             }
 
             if (deltaRow != 0 || deltaCol != 0) {
@@ -122,6 +123,24 @@ public class MainApp extends Application {
                     player.setRow(targetRow);
                     player.setCol(targetCol);
                     artifactSystem.processArtifacts(gameState);
+
+                    turnCounter[0]++;
+
+                    for (model.Enemy enemy : gameState.getEnemies()) {
+                        if (enemy.getAi() != null) {
+
+                            if (enemy.getMode() == enums.EnemyMode.CHASE && turnCounter[0] % 2 != 0) {
+                                continue;
+                            }
+                            Position next = enemy.getAi().computeNextMove(enemy, grid, player);
+
+                            if (grid.isInBounds(next.getRow(), next.getCol()) &&
+                                    grid.getCell(next.getRow(), next.getCol()).getType() != CellType.WALL) {
+                                enemy.setRow(next.getRow());
+                                enemy.setCol(next.getCol());
+                            }
+                        }
+                    }
                 }
             }
         });
