@@ -1,5 +1,6 @@
 package logic;
 
+import AI.ChaseAI;
 import Utilities.Util;
 import enums.ArtifactType;
 import enums.Difficulty;
@@ -49,7 +50,7 @@ public class EnemySpawner {
                     int distToKey = cell.manhattanDistance(keyPosition);
 
                     if (distToKey > 0 && distToKey <= 2) {
-                        enemies.add(new Enemy(cell.getRow(), cell.getCol(), EnemyMode.CHASE, null));
+                        enemies.add(new Enemy(cell.getRow(), cell.getCol(), EnemyMode.CHASE, new ChaseAI()));
                         guardsSpawned++;
                     }
                 }

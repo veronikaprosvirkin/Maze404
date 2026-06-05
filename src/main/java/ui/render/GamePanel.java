@@ -92,10 +92,10 @@ public class GamePanel extends Pane {
     }
 
     public GamePanel(Grid grid, Player player, List<Artifact> artifacts, Difficulty difficulty) {
-        this(grid, player, artifacts, difficulty, DEFAULT_MIST_SAMPLE_STEP);
+        this(grid, player, artifacts, difficulty, DEFAULT_MIST_SAMPLE_STEP, List.of());
     }
 
-    public GamePanel(Grid grid, Player player, List<Artifact> artifacts, Difficulty difficulty, int mistSampleStep) {
+    public GamePanel(Grid grid, Player player, List<Artifact> artifacts, Difficulty difficulty, int mistSampleStep, List<model.Enemy> enemies) {
         this.difficulty = difficulty != null ? difficulty : Difficulty.current;
         this.artifacts = artifacts != null ? List.copyOf(artifacts) : List.of();
         this.baseWidth = grid.getWidth() * TILE_SIZE;
@@ -122,7 +122,7 @@ public class GamePanel extends Pane {
                 lastFrameNanos = now;
                 mistTimeNanos = now;
                 introElapsedSeconds = Math.min(introElapsedSeconds + frameDeltaSeconds, LEVEL_INTRO_SECONDS);
-                redraw(grid, player);
+                redraw(grid, player, enemies);
             }
         };
         timer.start();
@@ -141,7 +141,7 @@ public class GamePanel extends Pane {
         canvas.setTranslateY(0.0);
     }
 
-    public void redraw(Grid grid, Player player) {
+    public void redraw(Grid grid, Player player, List<model.Enemy> enemies) {
         if (canvas.getWidth() <= 0.0 || canvas.getHeight() <= 0.0) {
             updateCanvasSize();
         }
@@ -177,6 +177,18 @@ public class GamePanel extends Pane {
             drawMist(gc, grid, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
         }
         playerRenderer.drawCurrent(gc, player, TILE_SIZE, this.difficulty);
+
+        // test: draw enemies as colored squares
+        if (enemies != null) {
+            for (model.Enemy enemy : enemies) {
+                if (enemy.getMode() == enums.EnemyMode.CHASE) {
+                    gc.setFill(javafx.scene.paint.Color.RED);
+                } else {
+                    gc.setFill(javafx.scene.paint.Color.BLUE);
+                }
+                gc.fillRect(enemy.getCol() * TILE_SIZE, enemy.getRow() * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            }
+        }
         gc.restore();
     }
 

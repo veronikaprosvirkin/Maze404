@@ -26,10 +26,8 @@ public class GameEngine {
     private final FogOfWarSystem   fogSystem       = new FogOfWarSystem();
 
     private final ArtifactSystem artifactSystem;
-    private final Map<Enemy, IEnemyAI> enemyAi;
     public GameEngine(ArtifactSystem artifactSystem, Map<Enemy, IEnemyAI> enemyAI) {
         this.artifactSystem = artifactSystem;
-        this.enemyAi = enemyAI;
     }
     public void loadLevel(GameState newState) {
         this.gameState = newState;
