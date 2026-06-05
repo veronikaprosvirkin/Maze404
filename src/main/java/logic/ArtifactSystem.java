@@ -42,6 +42,10 @@ public class ArtifactSystem {
                     case MINI_GAME -> {
                         EventBus.getInstance().publish(new GameEvent(GameEvent.Type.MINI_GAME_TRIGGERED, playerPos));
                     }
+                    case KEY -> {
+                        player.addKey();
+                        EventBus.getInstance().publish(new GameEvent(GameEvent.Type.ARTIFACT_COLLECTED, playerPos));
+                    }
                 }
             }
         }

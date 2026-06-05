@@ -6,5 +6,6 @@ public enum ArtifactType {
     RADAR,      //shows nearby traps for a short time
     BEACON,      
     ELIXIR,
-    MINI_GAME
+    MINI_GAME,
+    KEY
 }

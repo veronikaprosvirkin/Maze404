@@ -32,6 +32,8 @@ public class Player {
     @Setter
     private PlayerSkin skin = PlayerSkin.CIRCLE;
     private boolean shieldActive = false;
+    @Getter
+    private boolean hasKey = false;
 
     public Player(int row, int col) {
         this.row = row;
@@ -46,6 +48,7 @@ public class Player {
     public void addShield(int amount)      { shieldCount += amount; }
     public void addBeacon(int amount)      { beaconCount += amount; }
     public void addElixir(int amount)      { elixirCount += amount; }
+    public void addKey()                 { hasKey = true; }
 
 
     //using artifacts

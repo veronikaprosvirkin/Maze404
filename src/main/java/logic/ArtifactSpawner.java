@@ -24,6 +24,7 @@ public class ArtifactSpawner {
         int radarCount = 0;
         int beaconCount = 0;
         int elixirCount = 0;
+        int keyCount = 0;
 
         switch (difficulty) {
             case EASY -> {
@@ -41,6 +42,7 @@ public class ArtifactSpawner {
                 radarCount = 1;
                 beaconCount = 1;
                 elixirCount = 2;
+                keyCount = 1;
             }
             case HARD -> {
                 crystalCount = 6;
@@ -49,6 +51,7 @@ public class ArtifactSpawner {
                 radarCount = 1;
                 beaconCount = 2;
                 elixirCount = 1;
+                keyCount = 1;
             }
         }
 
@@ -83,7 +86,37 @@ public class ArtifactSpawner {
                 typeIndex++;
             }
         }
+        if (difficulty == Difficulty.MEDIUM || difficulty == Difficulty.HARD) {
+
+            Position furthestCell = getFurthestPosition(playerStart, floorCells, artifacts);
+            if (furthestCell != null) {
+                artifacts.add(new Artifact(furthestCell, ArtifactType.KEY));
+            }
+        }
 
         return artifacts;
+    }
+
+    private static Position getFurthestPosition(Position playerStart, List<Position> floorCells, List<Artifact> artifacts) {
+        Position furthestCell = null;
+        int maxDistance = -1;
+
+        for (Position cell : floorCells) {
+            int dist = cell.manhattanDistance(playerStart);
+            if (dist > maxDistance) {
+                boolean cellIsFree = true;
+                for (Artifact a : artifacts) {
+                    if (a.getPosition().equals(cell)) {
+                        cellIsFree = false;
+                        break;
+                    }
+                }
+                if (cellIsFree) {
+                    maxDistance = dist;
+                    furthestCell = cell;
+                }
+            }
+        }
+        return furthestCell;
     }
 }
