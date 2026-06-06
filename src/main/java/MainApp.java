@@ -1,11 +1,14 @@
 import enums.CellType;
 import enums.Difficulty;
 import enums.PlayerSkin;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import logic.ArtifactSpawner;
 import logic.ArtifactSystem;
 import logic.generation.MazeGenerator;
@@ -123,15 +126,25 @@ public class MainApp extends Application {
                     player.setRow(targetRow);
                     player.setCol(targetCol);
                     artifactSystem.processArtifacts(gameState);
+                }
+            }
+        });
+        inputHandler.attachTo(scene);
 
-                    turnCounter[0]++;
+        Timeline enemyTimer = getEnemyTimer(gameState, grid, player);
+        enemyTimer.play();
+
+        scene.getRoot().requestFocus();
+    }
+
+    private static Timeline getEnemyTimer(GameState gameState, Grid grid, Player player) {
+        Timeline enemyTimer = new Timeline(
+                new KeyFrame(Duration.seconds(0.6), e -> {
+
+                    if (gameState.isGameOver() || gameState.isLevelComplete()) return;
 
                     for (model.Enemy enemy : gameState.getEnemies()) {
                         if (enemy.getAi() != null) {
-
-                            if (enemy.getMode() == enums.EnemyMode.CHASE && turnCounter[0] % 2 != 0) {
-                                continue;
-                            }
                             Position next = enemy.getAi().computeNextMove(enemy, grid, player);
 
                             if (grid.isInBounds(next.getRow(), next.getCol()) &&
@@ -141,11 +154,9 @@ public class MainApp extends Application {
                             }
                         }
                     }
-                }
-            }
-        });
-        inputHandler.attachTo(scene);
-
-        scene.getRoot().requestFocus();
+                })
+        );
+        enemyTimer.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        return enemyTimer;
     }
 }
