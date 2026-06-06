@@ -1,5 +1,7 @@
 package model;
 
+import enums.Difficulty;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,5 +42,9 @@ public class GameState {
     public void addScore(int points)       { score += points; }
     public void setGameOver(boolean v)     { gameOver = v; }
     public void setLevelComplete(boolean v){ levelComplete = v; }
+
+    /*public Difficulty getDifficulty() {
+        this.
+    }*/
 }
 

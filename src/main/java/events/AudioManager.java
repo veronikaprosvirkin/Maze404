@@ -12,14 +12,15 @@ public class AudioManager {
         this.enabled = enabled;
         if (!enabled) return;
 
-        // Підписуємось на всі звукові події
-        EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_MOVED,    e -> play("move.wav"));
-        EventBus.getInstance().subscribe(GameEvent.Type.TRAP_TRIGGERED,  e -> play("trap.wav"));
-        EventBus.getInstance().subscribe(GameEvent.Type.SCAN_ACTIVATED,  e -> play("scan.wav"));
-        EventBus.getInstance().subscribe(GameEvent.Type.RADAR_ACTIVATED, e -> play("radar.wav"));
-        EventBus.getInstance().subscribe(GameEvent.Type.SHIELD_BROKEN,   e -> play("shield.wav"));
-        EventBus.getInstance().subscribe(GameEvent.Type.LEVEL_COMPLETE,  e -> play("win.wav"));
-        EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_DIED,     e -> play("lose.wav"));
+        EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_MOVED, e -> {
+            play("move.wav");
+        });
+        EventBus.getInstance().subscribe(GameEvent.Type.TRAP_TRIGGERED, e -> play("trap.wav"));
+        EventBus.getInstance().subscribe(GameEvent.Type.SCAN_ACTIVATED, e -> play("scan.wav"));
+        EventBus.getInstance().subscribe(GameEvent.Type.RADAR_ACTIVATED,e -> play("radar.wav"));
+        EventBus.getInstance().subscribe(GameEvent.Type.SHIELD_BROKEN, e -> play("shield.wav"));
+        EventBus.getInstance().subscribe(GameEvent.Type.LEVEL_COMPLETE, e -> play("win.wav"));
+        EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_DIED,  e -> play("lose.wav"));
     }
 
     private void play(String filename) {
