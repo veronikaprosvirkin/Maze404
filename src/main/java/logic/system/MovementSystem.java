@@ -1,6 +1,7 @@
 package logic.system;
 
 import enums.CellType;
+import enums.Difficulty;
 import events.EventBus;
 import events.GameEvent;
 import javafx.geometry.Pos;
@@ -28,8 +29,13 @@ public class MovementSystem {
             player.takeDamage(1);
         }
         else if(target.getType() ==  CellType.EXIT){
-            state.setLevelComplete(true);
-            EventBus.getInstance().publish(new GameEvent(GameEvent.Type.LEVEL_COMPLETE));
+            // Перевіряємо, чи це середній/складний рівень і чи порожній слот ключа
+            if (state.getCurrentLevel() == 1 || state.getPlayer().hasKey()) {
+                state.setLevelComplete(true);
+                EventBus.getInstance().publish(new GameEvent(GameEvent.Type.LEVEL_COMPLETE));
+            } else {
+                EventBus.getInstance().publish(new GameEvent(GameEvent.Type.EXIT_BLOCKED));
+            }
         }
 
     }
