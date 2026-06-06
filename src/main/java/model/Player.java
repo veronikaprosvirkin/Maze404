@@ -41,6 +41,8 @@ public class Player {
     }
 
     public boolean hasShield()       { return shieldActive; }
+    public boolean hasKey() { return hasKey; }
+    public void setHasKey(boolean hasKey) { this.hasKey = hasKey; }
 
     //adding artifacts
     public void addCrystals(int amount)    { crystals += amount; }
@@ -80,4 +82,6 @@ public class Player {
     public void heal(int amount) {
         health = Math.min(MAX_HEALTH, health + amount);
     }
+
+
 }
