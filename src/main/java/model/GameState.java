@@ -1,6 +1,8 @@
 package model;
 
 import enums.Difficulty;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +19,7 @@ public class GameState {
     private int currentLevel  = 1;
     private boolean gameOver  = false;
     private boolean levelComplete = false;
+    private boolean paused = false;
 
     public GameState(Grid grid, Player player,
                      List<Enemy> enemies, List<Artifact> artifacts,
@@ -42,6 +45,9 @@ public class GameState {
     public void addScore(int points)       { score += points; }
     public void setGameOver(boolean v)     { gameOver = v; }
     public void setLevelComplete(boolean v){ levelComplete = v; }
+
+    public boolean isPaused() { return paused; }
+    public void setPaused(boolean paused) { this.paused = paused; }
 
     /*public Difficulty getDifficulty() {
         this.

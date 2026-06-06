@@ -1,7 +1,7 @@
 package miniGames;
 
 import enums.Difficulty;
-import enums.MiniGameResult;
+import model.GameState;
 import events.EventBus;
 import events.GameEvent;
 import javafx.geometry.Insets;
@@ -23,15 +23,17 @@ import java.util.List;
 import java.util.Random;
 
 public class MiniGameManager {
-
     private final Player player;
     private final Random random = new Random();
     private final List<Integer> availableGames = new ArrayList<>();
+    private final GameState gameState;
 
-    public MiniGameManager(Player player) {
+    public MiniGameManager(GameState gameState, Player player) {
+        this.gameState = gameState;
         this.player = player;
 
         EventBus.getInstance().subscribe(GameEvent.Type.MINI_GAME_TRIGGERED, event -> {
+            gameState.setPaused(true);
             askToPlay();
         });
     }
@@ -67,6 +69,7 @@ public class MiniGameManager {
                 showNoCrystalsAlert();
             }
         }
+        gameState.setPaused(false);
     }
 
     private void showNoCrystalsAlert() {
