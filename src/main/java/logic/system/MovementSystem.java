@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import model.*;
 
 public class MovementSystem {
+    private final CollisionDetector collisionDetector = new CollisionDetector();
     public void movePlayer(GameState state, int dRow, int dCol){
         Player player = state.getPlayer();
         int newRow = player.getRow() + dRow;
@@ -20,6 +21,7 @@ public class MovementSystem {
 
         player.setRow(newRow);
         player.setCol(newCol);
+        collisionDetector.checkEnemyCollisions(state);
         target.reveal();
         Position pos = new Position(newRow, newCol);
         EventBus.getInstance().publish(new GameEvent(GameEvent.Type.PLAYER_MOVED, pos));
@@ -28,12 +30,12 @@ public class MovementSystem {
             EventBus.getInstance().publish(new GameEvent(GameEvent.Type.MINI_GAME_TRIGGERED, pos));
             player.takeDamage(1);
         }
-        else if(target.getType() ==  CellType.EXIT){
-            // Перевіряємо, чи це середній/складний рівень і чи порожній слот ключа
-            if (state.getCurrentLevel() == 1 || state.getPlayer().hasKey()) {
+        else if (target.getType() == CellType.EXIT) {
+            if (state.getCurrentLevel() == 0 || state.getPlayer().hasKey()) {
                 state.setLevelComplete(true);
                 EventBus.getInstance().publish(new GameEvent(GameEvent.Type.LEVEL_COMPLETE));
             } else {
+                // Для рівнів 1 та 2, якщо ключа немає
                 EventBus.getInstance().publish(new GameEvent(GameEvent.Type.EXIT_BLOCKED));
             }
         }
