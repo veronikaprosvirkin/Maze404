@@ -1,6 +1,7 @@
 package logic;
 
 import AI.ChaseAI;
+import AI.PatrolAI;
 import Utilities.Util;
 import enums.ArtifactType;
 import enums.Difficulty;
@@ -76,7 +77,7 @@ public class EnemySpawner {
             }
 
             if (!isTooClose) {
-                Enemy enemy = new Enemy(candidate.getRow(), candidate.getCol(), EnemyMode.PATROL, null);
+                Enemy enemy = new Enemy(candidate.getRow(), candidate.getCol(), EnemyMode.PATROL, new PatrolAI());
                 enemies.add(enemy);
                 spawnedPatrols++;
             }
