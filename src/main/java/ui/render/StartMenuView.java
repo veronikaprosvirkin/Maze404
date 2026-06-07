@@ -60,6 +60,7 @@ public class StartMenuView extends StackPane {
     private static final double TITLE_FONT_SIZE = 62.0;
     private static final double LEVEL_SWITCH_ANIMATION_MS = 240.0;
     private static final double LEVEL_PALETTE_TRANSITION_MS = 420.0;
+    private static final double LEVEL_HOVER_ANIMATION_MS = 190.0;
     private static final double SKIN_SWITCH_ANIMATION_MS = 240.0;
     private static final double SKIN_CARD_WIDTH = 150.0;
     private static final double SKIN_CURRENT_CARD_WIDTH = 150.0;
@@ -567,7 +568,11 @@ public class StartMenuView extends StackPane {
         Button button = new Button();
         button.getStyleClass().add("levels-nav-button");
         button.setGraphic(createIcon(iconName, 34));
+        DropShadow buttonShadow = new DropShadow(24, currentMenuPalette.glow());
+        button.setEffect(buttonShadow);
         button.setOnAction(event -> animateLevelSwitch(levelSwitcher, direction, onSelectLevel));
+        button.setOnMouseEntered(event -> animateLevelHover(button, buttonShadow, 1.06, 32, 0.22, null, 1.0));
+        button.setOnMouseExited(event -> animateLevelHover(button, buttonShadow, 1.0, 24, 0.10, null, 1.0));
         return button;
     }
 
@@ -617,6 +622,13 @@ public class StartMenuView extends StackPane {
 
         Region frameGlow = new Region();
         frameGlow.getStyleClass().add("level-card-glow");
+        frameGlow.setOpacity(0.72);
+
+        DropShadow cardShadow = new DropShadow(28, currentMenuPalette.glow());
+        cardShadow.setSpread(0.12);
+        card.setEffect(cardShadow);
+        card.setOnMouseEntered(event -> animateLevelHover(card, cardShadow, 1.02, 40, 0.20, frameGlow, 1.0));
+        card.setOnMouseExited(event -> animateLevelHover(card, cardShadow, 1.0, 28, 0.12, frameGlow, 0.72));
 
         Region outerFrame = new Region();
         outerFrame.getStyleClass().add("level-card-frame");
@@ -668,6 +680,38 @@ public class StartMenuView extends StackPane {
                 difficultyBadge,
                 bottomPrism);
         return card;
+    }
+
+    private void animateLevelHover(
+            Node node,
+            DropShadow shadow,
+            double scale,
+            double radius,
+            double spread,
+            Node glowNode,
+            double glowOpacity) {
+        Object existingAnimation = node.getProperties().get("levelHoverAnimation");
+        if (existingAnimation instanceof Timeline timeline) {
+            timeline.stop();
+        }
+
+        Timeline animation = new Timeline(new KeyFrame(
+                Duration.millis(LEVEL_HOVER_ANIMATION_MS),
+                new KeyValue(node.scaleXProperty(), scale, Interpolator.EASE_BOTH),
+                new KeyValue(node.scaleYProperty(), scale, Interpolator.EASE_BOTH),
+                new KeyValue(shadow.radiusProperty(), radius, Interpolator.EASE_BOTH),
+                new KeyValue(shadow.spreadProperty(), spread, Interpolator.EASE_BOTH)));
+        if (glowNode != null) {
+            animation.getKeyFrames().setAll(new KeyFrame(
+                    Duration.millis(LEVEL_HOVER_ANIMATION_MS),
+                    new KeyValue(node.scaleXProperty(), scale, Interpolator.EASE_BOTH),
+                    new KeyValue(node.scaleYProperty(), scale, Interpolator.EASE_BOTH),
+                    new KeyValue(shadow.radiusProperty(), radius, Interpolator.EASE_BOTH),
+                    new KeyValue(shadow.spreadProperty(), spread, Interpolator.EASE_BOTH),
+                    new KeyValue(glowNode.opacityProperty(), glowOpacity, Interpolator.EASE_BOTH)));
+        }
+        node.getProperties().put("levelHoverAnimation", animation);
+        animation.play();
     }
 
     private VBox createSkinPreviewCard(PlayerSkin skin, boolean current) {
