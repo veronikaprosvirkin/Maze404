@@ -1,0 +1,62 @@
+.game-hud {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(10, 3, 5, 0.82), rgba(24, 8, 12, 0.74));
+    -fx-background-radius: 26;
+    -fx-border-color: rgba(212, 168, 176, 0.16);
+    -fx-border-width: 1;
+    -fx-border-radius: 26;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.58), 30, 0.22, 0, 10);
+}
+
+.hud-card {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 225, 232, 0.08), rgba(255, 205, 215, 0.03));
+    -fx-background-radius: 18;
+    -fx-border-width: 1;
+    -fx-border-radius: 18;
+}
+
+.hud-card-title {
+    -fx-text-fill: rgba(212, 168, 176, 0.82);
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+}
+
+.hud-card-value {
+    -fx-text-fill: #FFE1E6;
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+}
+
+.hud-health {
+    -fx-border-color: rgba(255, 58, 42, 0.42);
+    -fx-effect: dropshadow(gaussian, rgba(255, 58, 42, 0.18), 18, 0.15, 0, 5);
+}
+
+.hud-crystals {
+    -fx-border-color: rgba(224, 96, 128, 0.40);
+    -fx-effect: dropshadow(gaussian, rgba(224, 96, 128, 0.18), 18, 0.15, 0, 5);
+}
+
+.hud-radar {
+    -fx-border-color: rgba(200, 144, 128, 0.42);
+    -fx-effect: dropshadow(gaussian, rgba(200, 144, 128, 0.16), 18, 0.15, 0, 5);
+}
+
+.hud-shield {
+    -fx-border-color: rgba(138, 42, 56, 0.42);
+    -fx-effect: dropshadow(gaussian, rgba(138, 42, 56, 0.18), 18, 0.15, 0, 5);
+}
+
+.hud-beacon {
+    -fx-border-color: rgba(240, 144, 64, 0.42);
+    -fx-effect: dropshadow(gaussian, rgba(240, 144, 64, 0.18), 18, 0.15, 0, 5);
+}
+
+.hud-elixir {
+    -fx-border-color: rgba(176, 122, 136, 0.42);
+    -fx-effect: dropshadow(gaussian, rgba(176, 122, 136, 0.18), 18, 0.15, 0, 5);
+}
+
+.hud-key {
+    -fx-border-color: rgba(212, 168, 176, 0.42);
+    -fx-effect: dropshadow(gaussian, rgba(212, 168, 176, 0.16), 18, 0.15, 0, 5);
+}

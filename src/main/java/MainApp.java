@@ -87,7 +87,7 @@ public class MainApp extends Application {
             default -> "#111520";
         };
         root.setStyle("-fx-background-color: " + bgColor + ";");
-        scene.getStylesheets().setAll(getClass().getResource(getDifficultyStylesheet()).toExternalForm());
+        scene.getStylesheets().setAll(getClass().getResource(getGameStylesheet()).toExternalForm());
 
         Grid grid = new MazeGenerator().generate(21, 21);
 
@@ -286,11 +286,11 @@ public class MainApp extends Application {
         keyValueLabel.setText(player.hasKey() ? "Recovered" : "Missing");
     }
 
-    private String getDifficultyStylesheet() {
+    private String getGameStylesheet() {
         return switch (Difficulty.current) {
-            case MEDIUM -> "/styles/minigames-stone.css";
-            case HARD -> "/styles/minigames-inferno.css";
-            default -> "/styles/minigames-cryo.css";
+            case MEDIUM -> "/styles/game-stone.css";
+            case HARD -> "/styles/game-inferno.css";
+            default -> "/styles/game-cryo.css";
         };
     }
 
