@@ -138,15 +138,35 @@ public class MainApp extends Application {
     }
 
     private static Timeline getEnemyTimer(GameState gameState, Grid grid, Player player) {
-        Timeline enemyTimer = new Timeline(
-                new KeyFrame(Duration.seconds(0.6), e -> {
+        int[] tickCounter = {0};
 
-                    if (gameState.isGameOver() || gameState.isLevelComplete()) return;
+        Timeline enemyTimer = new Timeline(
+                new KeyFrame(Duration.seconds(0.2), e -> {
+
+                    if (gameState.isGameOver() || gameState.isLevelComplete() || gameState.isPaused()) return;
+
+                    tickCounter[0]++;
 
                     for (model.Enemy enemy : gameState.getEnemies()) {
                         if (enemy.getAi() != null) {
-                            Position next = enemy.getAi().computeNextMove(enemy, grid, player);
 
+                            int requiredTicks = 4;
+                            if (enemy.getMode() == enums.EnemyMode.PATROL) {
+                                requiredTicks = 5;
+                            } else if (enemy.getMode() == enums.EnemyMode.CHASE) {
+                                requiredTicks = switch (Difficulty.current) {
+                                    case EASY -> 4;
+                                    case MEDIUM -> 3;
+                                    case HARD -> 2;
+                                    default -> 3;
+                                };
+                            }
+
+                            if (tickCounter[0] % requiredTicks != 0) {
+                                continue;
+                            }
+
+                            Position next = enemy.getAi().computeNextMove(enemy, grid, player);
                             if (grid.isInBounds(next.getRow(), next.getCol()) &&
                                     grid.getCell(next.getRow(), next.getCol()).getType() != CellType.WALL) {
                                 enemy.setRow(next.getRow());

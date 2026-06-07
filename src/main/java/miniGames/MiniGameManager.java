@@ -33,7 +33,7 @@ public class MiniGameManager {
         this.player = player;
 
         EventBus.getInstance().subscribe(GameEvent.Type.MINI_GAME_TRIGGERED, event -> {
-            gameState.setPaused(true);
+            this.gameState.setPaused(true);
             askToPlay();
         });
     }
@@ -69,7 +69,7 @@ public class MiniGameManager {
                 showNoCrystalsAlert();
             }
         }
-        gameState.setPaused(false);
+        this.gameState.setPaused(false);
     }
 
     private void showNoCrystalsAlert() {
