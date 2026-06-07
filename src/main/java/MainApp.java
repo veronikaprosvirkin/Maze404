@@ -12,6 +12,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.scene.Node;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -26,7 +27,9 @@ import model.GameState;
 import model.Grid;
 import model.Player;
 import model.Position;
+import enums.ArtifactType;
 import ui.input.InputHandler;
+import ui.render.ArtifactVisuals;
 import ui.render.GamePanel;
 import ui.render.StartMenuView;
 
@@ -144,7 +147,7 @@ public class MainApp extends Application {
         healthHud.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
         healthHud.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
         healthHud.setPadding(new Insets(14, 18, 14, 18));
-        healthHud.getChildren().add(createHudCard("Health", hpValueLabel, "health"));
+        healthHud.getChildren().add(createHudCard("Health", createHealthIcon(), hpValueLabel, "health"));
 
         HBox inventoryHud = new HBox(10);
         inventoryHud.getStyleClass().add("game-hud");
@@ -156,12 +159,12 @@ public class MainApp extends Application {
         inventoryHud.setPadding(new Insets(14, 18, 14, 18));
 
         inventoryHud.getChildren().addAll(
-                createHudCard("Crystals", crystalsValueLabel, "crystals"),
-                createHudCard("Radar", radarValueLabel, "radar"),
-                createHudCard("Shield", shieldValueLabel, "shield"),
-                createHudCard("Beacon", beaconValueLabel, "beacon"),
-                createHudCard("Elixir", elixirsValueLabel, "elixir"),
-                createHudCard("Key", keyValueLabel, "key")
+                createHudCard("Crystals", ArtifactVisuals.createHudIcon(ArtifactType.CRYSTAL, 24), crystalsValueLabel, "crystals"),
+                createHudCard("Radar", ArtifactVisuals.createHudIcon(ArtifactType.RADAR, 24), radarValueLabel, "radar"),
+                createHudCard("Shield", ArtifactVisuals.createHudIcon(ArtifactType.SHIELD, 24), shieldValueLabel, "shield"),
+                createHudCard("Beacon", ArtifactVisuals.createHudIcon(ArtifactType.BEACON, 24), beaconValueLabel, "beacon"),
+                createHudCard("Elixir", ArtifactVisuals.createHudIcon(ArtifactType.ELIXIR, 24), elixirsValueLabel, "elixir"),
+                createHudCard("Key", ArtifactVisuals.createHudIcon(ArtifactType.KEY, 24), keyValueLabel, "key")
         );
 
         HBox hudRow = new HBox(12, healthHud, inventoryHud);
@@ -262,11 +265,15 @@ public class MainApp extends Application {
         scene.getRoot().requestFocus();
     }
 
-    private static VBox createHudCard(String title, Label valueLabel, String accentStyleClass) {
+    private static VBox createHudCard(String title, Node iconNode, Label valueLabel, String accentStyleClass) {
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("hud-card-title");
+        iconNode.getStyleClass().add("hud-card-icon");
 
-        VBox card = new VBox(5, titleLabel, valueLabel);
+        HBox valueRow = new HBox(8, iconNode, valueLabel);
+        valueRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox card = new VBox(5, titleLabel, valueRow);
         card.getStyleClass().addAll("hud-card", "hud-" + accentStyleClass);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(8, 12, 8, 12));
@@ -279,6 +286,12 @@ public class MainApp extends Application {
         Label valueLabel = new Label();
         valueLabel.getStyleClass().add("hud-card-value");
         return valueLabel;
+    }
+
+    private static Label createHealthIcon() {
+        Label iconLabel = new Label("❤");
+        iconLabel.getStyleClass().addAll("hud-card-icon", "hud-icon-health");
+        return iconLabel;
     }
 
     private static void updateHudValues(

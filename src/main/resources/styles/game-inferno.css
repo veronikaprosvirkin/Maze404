@@ -26,6 +26,39 @@
     -fx-font-weight: 800;
 }
 
+.hud-card-icon {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.hud-icon-health {
+    -fx-text-fill: #FF3A2A;
+}
+
+.hud-icon-crystals {
+    -fx-text-fill: #E06080;
+}
+
+.hud-icon-radar {
+    -fx-text-fill: #C89080;
+}
+
+.hud-icon-shield {
+    -fx-text-fill: #B07A88;
+}
+
+.hud-icon-beacon {
+    -fx-text-fill: #F09040;
+}
+
+.hud-icon-elixir {
+    -fx-text-fill: #D4A8B0;
+}
+
+.hud-icon-key {
+    -fx-text-fill: #FFD6DC;
+}
+
 .hud-health {
     -fx-border-color: rgba(255, 58, 42, 0.42);
     -fx-effect: dropshadow(gaussian, rgba(255, 58, 42, 0.18), 18, 0.15, 0, 5);
