@@ -87,6 +87,7 @@ public class MainApp extends Application {
             default -> "#111520";
         };
         root.setStyle("-fx-background-color: " + bgColor + ";");
+        scene.getStylesheets().setAll(getClass().getResource(getDifficultyStylesheet()).toExternalForm());
 
         Grid grid = new MazeGenerator().generate(21, 21);
 
@@ -118,20 +119,13 @@ public class MainApp extends Application {
 
         // --- HUD ---
         HBox hudBar = new HBox(14);
+        hudBar.getStyleClass().add("game-hud");
         hudBar.setPickOnBounds(false);
         hudBar.setMouseTransparent(true);
         hudBar.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
         hudBar.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
         hudBar.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
         hudBar.setPadding(new Insets(14, 18, 14, 18));
-        hudBar.setStyle(
-                "-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(7, 11, 21, 0.88), rgba(18, 26, 42, 0.80));" +
-                "-fx-background-radius: 26;" +
-                "-fx-border-color: rgba(210, 234, 255, 0.22);" +
-                "-fx-border-width: 1;" +
-                "-fx-border-radius: 26;" +
-                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 26, 0.2, 0, 10);"
-        );
         StackPane.setAlignment(hudBar, Pos.BOTTOM_CENTER);
         StackPane.setMargin(hudBar, new Insets(0, 0, 24, 0));
 
@@ -155,13 +149,13 @@ public class MainApp extends Application {
         );
 
         hudBar.getChildren().addAll(
-                createHudCard("Health", hpValueLabel, "#FF6B7A"),
-                createHudCard("Crystals", crystalsValueLabel, "#F0D66A"),
-                createHudCard("Radar", radarValueLabel, "#65F2A0"),
-                createHudCard("Shield", shieldValueLabel, "#7DE4FF"),
-                createHudCard("Beacon", beaconValueLabel, "#FF9A62"),
-                createHudCard("Elixir", elixirsValueLabel, "#C46BFF"),
-                createHudCard("Key", keyValueLabel, "#FFD8A0")
+                createHudCard("Health", hpValueLabel, "health"),
+                createHudCard("Crystals", crystalsValueLabel, "crystals"),
+                createHudCard("Radar", radarValueLabel, "radar"),
+                createHudCard("Shield", shieldValueLabel, "shield"),
+                createHudCard("Beacon", beaconValueLabel, "beacon"),
+                createHudCard("Elixir", elixirsValueLabel, "elixir"),
+                createHudCard("Key", keyValueLabel, "key")
         );
 
         // --- ОВЕРЛЕЙ ПЕРЕМОГИ / ПРОГРАШУ ---
@@ -254,38 +248,22 @@ public class MainApp extends Application {
         scene.getRoot().requestFocus();
     }
 
-    private static VBox createHudCard(String title, Label valueLabel, String accentColor) {
+    private static VBox createHudCard(String title, Label valueLabel, String accentStyleClass) {
         Label titleLabel = new Label(title);
-        titleLabel.setStyle(
-                "-fx-text-fill: rgba(214, 229, 255, 0.78);" +
-                "-fx-font-size: 11px;" +
-                "-fx-font-weight: 700;" +
-                "-fx-letter-spacing: 1.1px;"
-        );
+        titleLabel.getStyleClass().add("hud-card-title");
 
         VBox card = new VBox(5, titleLabel, valueLabel);
+        card.getStyleClass().addAll("hud-card", "hud-" + accentStyleClass);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(10, 16, 10, 16));
         card.setMinWidth(112);
         card.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
-        card.setStyle(
-                "-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.04));" +
-                "-fx-background-radius: 18;" +
-                "-fx-border-color: " + withOpacity(accentColor, 0.42) + ";" +
-                "-fx-border-width: 1;" +
-                "-fx-border-radius: 18;" +
-                "-fx-effect: dropshadow(gaussian, " + withOpacity(accentColor, 0.18) + ", 18, 0.15, 0, 5);"
-        );
         return card;
     }
 
     private static Label createHudValueLabel() {
         Label valueLabel = new Label();
-        valueLabel.setStyle(
-                "-fx-text-fill: white;" +
-                "-fx-font-size: 20px;" +
-                "-fx-font-weight: 800;"
-        );
+        valueLabel.getStyleClass().add("hud-card-value");
         return valueLabel;
     }
 
@@ -308,9 +286,12 @@ public class MainApp extends Application {
         keyValueLabel.setText(player.hasKey() ? "Recovered" : "Missing");
     }
 
-    private static String withOpacity(String hexColor, double opacity) {
-        int alpha = (int) Math.round(Math.max(0, Math.min(1, opacity)) * 255);
-        return hexColor + String.format("%02X", alpha);
+    private String getDifficultyStylesheet() {
+        return switch (Difficulty.current) {
+            case MEDIUM -> "/styles/minigames-stone.css";
+            case HARD -> "/styles/minigames-inferno.css";
+            default -> "/styles/minigames-cryo.css";
+        };
     }
 
     private static Timeline getEnemyTimer(GameState gameState, Grid grid, Player player) {
