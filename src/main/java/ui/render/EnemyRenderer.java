@@ -24,7 +24,8 @@ public class EnemyRenderer {
     private static final Color PATROL_MARK = Color.web("#D8F6FF");
     private final Map<Enemy, RenderState> renderStates = new IdentityHashMap<>();
 
-    public void draw(GraphicsContext gc, Enemy enemy, double tileSize, long nowNanos, Difficulty difficulty, double deltaSeconds) {
+    public void draw(GraphicsContext gc, Enemy enemy, double tileSize, long nowNanos, Difficulty difficulty, double deltaSeconds,
+                     double visibility) {
         if (enemy == null) {
             return;
         }
@@ -80,7 +81,13 @@ public class EnemyRenderer {
                 tileSize * 0.12, tileSize * 0.12);
 
         if (mode == EnemyMode.PATROL) {
-            gc.setStroke(PATROL_MARK);
+            double markAlpha = Math.max(0.0, Math.min(1.0, visibility * visibility));
+            gc.setStroke(Color.color(
+                    PATROL_MARK.getRed(),
+                    PATROL_MARK.getGreen(),
+                    PATROL_MARK.getBlue(),
+                    markAlpha
+            ));
             gc.setLineWidth(Math.max(1.3, tileSize * 0.055));
             gc.strokeLine(bodyX + tileSize * 0.10, bodyY + bodyHeight * 0.68, bodyX + bodyWidth - tileSize * 0.10, bodyY + bodyHeight * 0.68);
             gc.strokeLine(bodyX + tileSize * 0.13, bodyY + bodyHeight * 0.82, bodyX + bodyWidth - tileSize * 0.13, bodyY + bodyHeight * 0.82);
