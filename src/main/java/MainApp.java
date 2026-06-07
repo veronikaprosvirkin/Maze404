@@ -362,7 +362,7 @@ public class MainApp extends Application {
         shieldValueLabel.setText(player.hasShield() ? player.getShieldCount() + " + active" : String.valueOf(player.getShieldCount()));
         beaconValueLabel.setText(String.valueOf(player.getBeaconCount()));
         elixirsValueLabel.setText(String.valueOf(player.getElixirCount()));
-        keyValueLabel.setText(player.hasKey() ? "Recovered" : "Missing");
+        keyValueLabel.setText(player.hasKey() ? "Found" : "Empty");
     }
 
     private static void useElixir(Player player) {
