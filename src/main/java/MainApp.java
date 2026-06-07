@@ -117,18 +117,6 @@ public class MainApp extends Application {
         gamePanel.setMistDensity(mistDensity);
         gamePanel.setGameVolume(settings.gameVolume());
 
-        // --- HUD ---
-        HBox hudBar = new HBox(14);
-        hudBar.getStyleClass().add("game-hud");
-        hudBar.setPickOnBounds(false);
-        hudBar.setMouseTransparent(true);
-        hudBar.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
-        hudBar.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
-        hudBar.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
-        hudBar.setPadding(new Insets(14, 18, 14, 18));
-        StackPane.setAlignment(hudBar, Pos.BOTTOM_CENTER);
-        StackPane.setMargin(hudBar, new Insets(0, 0, 24, 0));
-
         Label hpValueLabel = createHudValueLabel();
         Label crystalsValueLabel = createHudValueLabel();
         Label radarValueLabel = createHudValueLabel();
@@ -148,8 +136,26 @@ public class MainApp extends Application {
                 keyValueLabel
         );
 
-        hudBar.getChildren().addAll(
-                createHudCard("Health", hpValueLabel, "health"),
+        HBox healthHud = new HBox();
+        healthHud.getStyleClass().add("game-hud");
+        healthHud.setPickOnBounds(false);
+        healthHud.setMouseTransparent(true);
+        healthHud.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        healthHud.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        healthHud.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+        healthHud.setPadding(new Insets(14, 18, 14, 18));
+        healthHud.getChildren().add(createHudCard("Health", hpValueLabel, "health"));
+
+        HBox inventoryHud = new HBox(14);
+        inventoryHud.getStyleClass().add("game-hud");
+        inventoryHud.setPickOnBounds(false);
+        inventoryHud.setMouseTransparent(true);
+        inventoryHud.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        inventoryHud.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        inventoryHud.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+        inventoryHud.setPadding(new Insets(14, 18, 14, 18));
+
+        inventoryHud.getChildren().addAll(
                 createHudCard("Crystals", crystalsValueLabel, "crystals"),
                 createHudCard("Radar", radarValueLabel, "radar"),
                 createHudCard("Shield", shieldValueLabel, "shield"),
@@ -157,6 +163,14 @@ public class MainApp extends Application {
                 createHudCard("Elixir", elixirsValueLabel, "elixir"),
                 createHudCard("Key", keyValueLabel, "key")
         );
+
+        HBox hudRow = new HBox(20, healthHud, inventoryHud);
+        hudRow.setPickOnBounds(false);
+        hudRow.setMouseTransparent(true);
+        hudRow.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        hudRow.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        StackPane.setAlignment(hudRow, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(hudRow, new Insets(0, 0, 24, 0));
 
         // --- ОВЕРЛЕЙ ПЕРЕМОГИ / ПРОГРАШУ ---
         StackPane winLoseOverlay = new StackPane();
@@ -244,7 +258,7 @@ public class MainApp extends Application {
         Timeline enemyTimer = getEnemyTimer(gameState, grid, player);
         enemyTimer.play();
 
-        root.getChildren().setAll(gamePanel, hudBar, winLoseOverlay);
+        root.getChildren().setAll(gamePanel, hudRow, winLoseOverlay);
         scene.getRoot().requestFocus();
     }
 
