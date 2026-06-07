@@ -326,7 +326,7 @@ public class GamePanel extends Pane {
                 double timeSeconds = mistTimeNanos / 1_000_000_000.0;
                 double floatOffset = Math.sin(timeSeconds * 3.0) * 4.0;
 
-                double imgSize = TILE_SIZE * 0.8;
+                double imgSize = TILE_SIZE * 0.6;
                 gc.drawImage(keyImage, centerX - imgSize / 2.0, centerY - imgSize / 2.0 + floatOffset, imgSize, imgSize);
 
                 gc.restore();
