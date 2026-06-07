@@ -21,7 +21,10 @@ import javafx.util.Duration;
 import logic.ArtifactSpawner;
 import logic.ArtifactSystem;
 import logic.generation.MazeGenerator;
+import logic.system.BeaconSystem;
 import logic.system.MovementSystem;
+import logic.system.RadarSystem;
+import logic.system.ShieldSystem;
 import model.Artifact;
 import model.GameState;
 import model.Grid;
@@ -110,6 +113,9 @@ public class MainApp extends Application {
         GameState gameState = new GameState(grid, player, enemies, artifacts, 1);
         ArtifactSystem artifactSystem = new ArtifactSystem();
         miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(gameState, player);
+        RadarSystem radarSystem = new RadarSystem();
+        ShieldSystem shieldSystem = new ShieldSystem();
+        BeaconSystem beaconSystem = new BeaconSystem();
 
         GamePanel gamePanel = new GamePanel(grid, player, artifacts, Difficulty.current, settings.mistSampleStep(), enemies);
         boolean mistEnabled = true;
@@ -160,10 +166,10 @@ public class MainApp extends Application {
 
         inventoryHud.getChildren().addAll(
                 createHudCard("Crystals", ArtifactVisuals.createHudIcon(ArtifactType.CRYSTAL, 24), crystalsValueLabel, "crystals"),
-                createHudCard("Radar", ArtifactVisuals.createHudIcon(ArtifactType.RADAR, 24), radarValueLabel, "radar"),
-                createHudCard("Shield", ArtifactVisuals.createHudIcon(ArtifactType.SHIELD, 24), shieldValueLabel, "shield"),
-                createHudCard("Beacon", ArtifactVisuals.createHudIcon(ArtifactType.BEACON, 24), beaconValueLabel, "beacon"),
-                createHudCard("Elixir", ArtifactVisuals.createHudIcon(ArtifactType.ELIXIR, 24), elixirsValueLabel, "elixir"),
+                createHudCard("Radar", ArtifactVisuals.createHudIcon(ArtifactType.RADAR, 24), radarValueLabel, "radar", "1"),
+                createHudCard("Shield", ArtifactVisuals.createHudIcon(ArtifactType.SHIELD, 24), shieldValueLabel, "shield", "2"),
+                createHudCard("Beacon", ArtifactVisuals.createHudIcon(ArtifactType.BEACON, 24), beaconValueLabel, "beacon", "3"),
+                createHudCard("Elixir", ArtifactVisuals.createHudIcon(ArtifactType.ELIXIR, 24), elixirsValueLabel, "elixir", "4"),
                 createHudCard("Key", ArtifactVisuals.createHudIcon(ArtifactType.KEY, 24), keyValueLabel, "key")
         );
 
@@ -228,6 +234,10 @@ public class MainApp extends Application {
                 case MOVE_DOWN  -> movementSystem.movePlayer(gameState,  1,  0);
                 case MOVE_LEFT  -> movementSystem.movePlayer(gameState,  0, -1);
                 case MOVE_RIGHT -> movementSystem.movePlayer(gameState,  0,  1);
+                case RADAR      -> radarSystem.activateRadar(gameState);
+                case SHIELD     -> shieldSystem.activateShield(gameState);
+                case BEACON     -> beaconSystem.placeBeacon(gameState);
+                case ELIXIR     -> useElixir(player);
                 default -> { }
             }
 
@@ -268,12 +278,42 @@ public class MainApp extends Application {
     private static VBox createHudCard(String title, Node iconNode, Label valueLabel, String accentStyleClass) {
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("hud-card-title");
+        Label hotkeyPlaceholder = new Label();
+        hotkeyPlaceholder.getStyleClass().add("hud-hotkey-badge");
+        hotkeyPlaceholder.setOpacity(0);
+        return createHudCard(titleLabel, hotkeyPlaceholder, iconNode, valueLabel, accentStyleClass);
+    }
+
+    private static VBox createHudCard(String title, Node iconNode, Label valueLabel, String accentStyleClass, String hotkey) {
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("hud-card-title");
+
+        Label hotkeyLabel = new Label(hotkey);
+        hotkeyLabel.getStyleClass().add("hud-hotkey-badge");
+
+        return createHudCard(titleLabel, hotkeyLabel, iconNode, valueLabel, accentStyleClass);
+    }
+
+    private static VBox createHudCard(
+            Label titleLabel,
+            Label hotkeyLabel,
+            Node iconNode,
+            Label valueLabel,
+            String accentStyleClass
+    ) {
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
+
+        StackPane titleRow = new StackPane(titleLabel, hotkeyLabel);
+        StackPane.setAlignment(titleLabel, Pos.CENTER_LEFT);
+        StackPane.setAlignment(hotkeyLabel, Pos.CENTER_RIGHT);
+        titleRow.setMaxWidth(Double.MAX_VALUE);
+
         iconNode.getStyleClass().add("hud-card-icon");
 
         HBox valueRow = new HBox(8, iconNode, valueLabel);
         valueRow.setAlignment(Pos.CENTER_LEFT);
 
-        VBox card = new VBox(5, titleLabel, valueRow);
+        VBox card = new VBox(5, titleRow, valueRow);
         card.getStyleClass().addAll("hud-card", "hud-" + accentStyleClass);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(8, 12, 8, 12));
@@ -311,6 +351,15 @@ public class MainApp extends Application {
         beaconValueLabel.setText(String.valueOf(player.getBeaconCount()));
         elixirsValueLabel.setText(String.valueOf(player.getElixirCount()));
         keyValueLabel.setText(player.hasKey() ? "Recovered" : "Missing");
+    }
+
+    private static void useElixir(Player player) {
+        if (player.getElixirCount() <= 0 || player.getHealth() >= PLAYER_MAX_HEALTH) {
+            return;
+        }
+
+        player.useElixir();
+        player.heal(1);
     }
 
     private String getGameStylesheet() {

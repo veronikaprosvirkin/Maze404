@@ -38,12 +38,11 @@ public class InputHandler {
             case A, LEFT -> GameAction.MOVE_LEFT;
             case D, RIGHT -> GameAction.MOVE_RIGHT;
             case Q -> GameAction.SCAN;
-            case B -> GameAction.BEACON;
-            case R -> GameAction.RADAR;
-            case E -> GameAction.SHIELD;
-            case H -> GameAction.ELIXIR;
+            case B, DIGIT3, NUMPAD3 -> GameAction.BEACON;
+            case R, DIGIT1, NUMPAD1 -> GameAction.RADAR;
+            case E, DIGIT2, NUMPAD2 -> GameAction.SHIELD;
+            case H, DIGIT4, NUMPAD4 -> GameAction.ELIXIR;
             default -> null;
         };
     }
 }
-
