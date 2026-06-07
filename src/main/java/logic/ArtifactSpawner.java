@@ -24,8 +24,6 @@ public class ArtifactSpawner {
         int radarCount = 0;
         int beaconCount = 0;
         int elixirCount = 0;
-        int keyCount = 0;
-
         switch (difficulty) {
             case EASY -> {
                 crystalCount = 10;
@@ -42,7 +40,6 @@ public class ArtifactSpawner {
                 radarCount = 1;
                 beaconCount = 1;
                 elixirCount = 2;
-                keyCount = 1;
             }
             case HARD -> {
                 crystalCount = 6;
@@ -51,7 +48,6 @@ public class ArtifactSpawner {
                 radarCount = 1;
                 beaconCount = 2;
                 elixirCount = 1;
-                keyCount = 1;
             }
         }
 
@@ -90,8 +86,14 @@ public class ArtifactSpawner {
             Position exitPosition = findExitPosition(grid);
             Position optimalKeyPos = getOptimalKeyPosition(playerStart, exitPosition, floorCells, artifacts);
 
+            if (optimalKeyPos == null && !floorCells.isEmpty()) {
+                optimalKeyPos = floorCells.get(0);
+            }
+
             if (optimalKeyPos != null) {
-                artifacts.add(new Artifact(optimalKeyPos, ArtifactType.KEY));
+                Position finalKeyPosition = optimalKeyPos;
+                artifacts.removeIf(artifact -> artifact.getPosition().equals(finalKeyPosition));
+                artifacts.add(new Artifact(finalKeyPosition, ArtifactType.KEY));
             }
         }
         return artifacts;
