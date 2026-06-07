@@ -103,11 +103,42 @@ public class MainApp extends Application {
         gamePanel.setMistAnimationTimeScale(mistAnimationTime);
         gamePanel.setMistDensity(mistDensity);
         gamePanel.setGameVolume(settings.gameVolume());
-        root.getChildren().setAll(gamePanel);
 
-        int[] turnCounter = {0};
+        // --- БАР (Спочатку створюємо UI, щоб InputHandler його бачив) ---
+        javafx.scene.layout.HBox hudBar = new javafx.scene.layout.HBox();
+        hudBar.setPickOnBounds(false); // Щоб кліки мишкою пролітали крізь порожні місця бару на ігрове поле
+        hudBar.setStyle("-fx-padding: 15; -fx-spacing: 20;");
+        StackPane.setAlignment(hudBar, javafx.geometry.Pos.TOP_LEFT);
 
+        javafx.scene.control.Label hpLabel = new javafx.scene.control.Label("HP: " + player.getHealth());
+        javafx.scene.control.Label crystalsLabel = new javafx.scene.control.Label("Crystals: 0");
+        javafx.scene.control.Label elixirsLabel = new javafx.scene.control.Label("Elixirs: 0");
+        javafx.scene.control.Label beaconLabel = new javafx.scene.control.Label("Beacons: 0");
+
+        String labelStyle = "-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;";
+        hpLabel.setStyle(labelStyle);
+        crystalsLabel.setStyle(labelStyle);
+        elixirsLabel.setStyle(labelStyle);
+        beaconLabel.setStyle(labelStyle);
+
+        // всі 4 мітки в контейнер статистики
+        hudBar.getChildren().addAll(hpLabel, crystalsLabel, elixirsLabel, beaconLabel);
+
+        // --- ОВЕРЛЕЙ ПЕРЕМОГИ / ПРОГРАШУ ---
+        StackPane winLoseOverlay = new StackPane();
+        winLoseOverlay.setVisible(false); // Спочатку воно повністю сховане
+        winLoseOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
+        StackPane.setAlignment(winLoseOverlay, javafx.geometry.Pos.CENTER);
+
+        javafx.scene.control.Label endGroupLabel = new javafx.scene.control.Label();
+        endGroupLabel.setStyle("-fx-text-fill: #FFD700; -fx-font-size: 36px; -fx-font-weight: bold;");
+        winLoseOverlay.getChildren().add(endGroupLabel);
+
+        // --- ОБРОБНИК ВВОДУ (Рух гравця + оновлення створеного вище UI) ---
         InputHandler inputHandler = new InputHandler(action -> {
+            // Якщо гра вже завершена, ігноруємо натискання клавіш
+            if (gameState.isGameOver() || gameState.isLevelComplete()) return;
+
             int deltaRow = 0;
             int deltaCol = 0;
             switch (action) {
@@ -118,6 +149,7 @@ public class MainApp extends Application {
                 default -> { }
             }
 
+            // ПОВЕРНЕНО: Сама логіка переміщення гравця по клітинках
             if (deltaRow != 0 || deltaCol != 0) {
                 int targetRow = player.getRow() + deltaRow;
                 int targetCol = player.getCol() + deltaCol;
@@ -128,11 +160,33 @@ public class MainApp extends Application {
                     artifactSystem.processArtifacts(gameState);
                 }
             }
+
+            // Синхронно оновлюємо значення на екрані
+            Platform.runLater(() -> {
+                hpLabel.setText("HP: " + player.getHealth());
+                crystalsLabel.setText("Crystals: " + player.getCrystals());
+                elixirsLabel.setText("Elixirs: " + player.getElixirCount());
+                beaconLabel.setText("Beacons: " + player.getBeaconCount());
+
+                if (gameState.isGameOver() || player.getHealth() <= 0) {
+                    endGroupLabel.setText("GAME OVER");
+                    endGroupLabel.setStyle("-fx-text-fill: #FF3333; -fx-font-size: 42px; -fx-font-weight: bold;");
+                    winLoseOverlay.setVisible(true);
+                }
+                else if (gameState.isLevelComplete() || grid.getCell(player.getRow(), player.getCol()).getType() == CellType.EXIT) {
+                    endGroupLabel.setText("VICTORY!");
+                    endGroupLabel.setStyle("-fx-text-fill: #33FF33; -fx-font-size: 42px; -fx-font-weight: bold;");
+                    winLoseOverlay.setVisible(true);
+                }
+            });
         });
+
         inputHandler.attachTo(scene);
 
         Timeline enemyTimer = getEnemyTimer(gameState, grid, player);
         enemyTimer.play();
+
+        root.getChildren().setAll(gamePanel, hudBar, winLoseOverlay);
 
         scene.getRoot().requestFocus();
     }
