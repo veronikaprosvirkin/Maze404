@@ -1,17 +1,21 @@
 import enums.CellType;
 import enums.Difficulty;
 import enums.PlayerSkin;
+import events.EventBus;
+import events.GameEvent;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import logic.ArtifactSpawner;
 import logic.ArtifactSystem;
 import logic.generation.MazeGenerator;
+import logic.system.MovementSystem;
 import model.Artifact;
 import model.GameState;
 import model.Grid;
@@ -33,6 +37,8 @@ public class MainApp extends Application {
     private static final double MIN_WINDOW_HEIGHT = 680;
 
     private static final CountDownLatch START_LATCH = new CountDownLatch(1);
+
+    MovementSystem movementSystem = new MovementSystem();
 
 
     @SuppressWarnings("unused")
@@ -114,15 +120,18 @@ public class MainApp extends Application {
         javafx.scene.control.Label crystalsLabel = new javafx.scene.control.Label("Crystals: 0");
         javafx.scene.control.Label elixirsLabel = new javafx.scene.control.Label("Elixirs: 0");
         javafx.scene.control.Label beaconLabel = new javafx.scene.control.Label("Beacons: 0");
+        javafx.scene.control.Label keyLabel = new javafx.scene.control.Label("Key: 0");
 
         String labelStyle = "-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;";
         hpLabel.setStyle(labelStyle);
         crystalsLabel.setStyle(labelStyle);
         elixirsLabel.setStyle(labelStyle);
         beaconLabel.setStyle(labelStyle);
+        keyLabel.setStyle(labelStyle);
+
 
         // всі 4 мітки в контейнер статистики
-        hudBar.getChildren().addAll(hpLabel, crystalsLabel, elixirsLabel, beaconLabel);
+        hudBar.getChildren().addAll(hpLabel, crystalsLabel, elixirsLabel, beaconLabel, keyLabel);
 
         // --- ОВЕРЛЕЙ ПЕРЕМОГИ / ПРОГРАШУ ---
         StackPane winLoseOverlay = new StackPane();
@@ -134,11 +143,22 @@ public class MainApp extends Application {
         endGroupLabel.setStyle("-fx-text-fill: #FFD700; -fx-font-size: 36px; -fx-font-weight: bold;");
         winLoseOverlay.getChildren().add(endGroupLabel);
 
-        // --- ОБРОБНИК ВВОДУ (Рух гравця + оновлення створеного вище UI) ---
+        // --- ОБРОБНИК ВВОДУ (Рух гравця + оновлення створеного вище UI) ---4
+
+        EventBus.getInstance().subscribe(GameEvent.Type.EXIT_BLOCKED, event -> {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Exit blocked");
+                alert.setHeaderText(null);
+                alert.setContentText("You need to find key!");
+                alert.showAndWait();
+            });
+        });
+
         InputHandler inputHandler = new InputHandler(action -> {
-            // Якщо гра вже завершена, ігноруємо натискання клавіш
             if (gameState.isGameOver() || gameState.isLevelComplete()) return;
 
+            /*
             int deltaRow = 0;
             int deltaCol = 0;
             switch (action) {
@@ -149,45 +169,52 @@ public class MainApp extends Application {
                 default -> { }
             }
 
-            // ПОВЕРНЕНО: Сама логіка переміщення гравця по клітинках
             if (deltaRow != 0 || deltaCol != 0) {
                 int targetRow = player.getRow() + deltaRow;
                 int targetCol = player.getCol() + deltaCol;
                 if (grid.isInBounds(targetRow, targetCol)
                         && grid.getCell(targetRow, targetCol).getType() != CellType.WALL) {
+
                     player.setRow(targetRow);
                     player.setCol(targetCol);
                     artifactSystem.processArtifacts(gameState);
+
                 }
+            }*/
+            switch (action) {
+                case MOVE_UP    -> movementSystem.movePlayer(gameState, -1,  0);
+                case MOVE_DOWN  -> movementSystem.movePlayer(gameState,  1,  0);
+                case MOVE_LEFT  -> movementSystem.movePlayer(gameState,  0, -1);
+                case MOVE_RIGHT -> movementSystem.movePlayer(gameState,  0,  1);
+                default -> { }
             }
 
-            // Синхронно оновлюємо значення на екрані
+            artifactSystem.processArtifacts(gameState);
+
             Platform.runLater(() -> {
                 hpLabel.setText("HP: " + player.getHealth());
                 crystalsLabel.setText("Crystals: " + player.getCrystals());
                 elixirsLabel.setText("Elixirs: " + player.getElixirCount());
                 beaconLabel.setText("Beacons: " + player.getBeaconCount());
+                keyLabel.setText("Key: " + player.hasKey());
 
                 if (gameState.isGameOver() || player.getHealth() <= 0) {
                     endGroupLabel.setText("GAME OVER");
                     endGroupLabel.setStyle("-fx-text-fill: #FF3333; -fx-font-size: 42px; -fx-font-weight: bold;");
                     winLoseOverlay.setVisible(true);
-                }
-                else if (gameState.isLevelComplete() || grid.getCell(player.getRow(), player.getCol()).getType() == CellType.EXIT) {
+                } else if (gameState.isLevelComplete()) {
                     endGroupLabel.setText("VICTORY!");
                     endGroupLabel.setStyle("-fx-text-fill: #33FF33; -fx-font-size: 42px; -fx-font-weight: bold;");
                     winLoseOverlay.setVisible(true);
                 }
             });
         });
-
         inputHandler.attachTo(scene);
 
         Timeline enemyTimer = getEnemyTimer(gameState, grid, player);
         enemyTimer.play();
 
         root.getChildren().setAll(gamePanel, hudBar, winLoseOverlay);
-
         scene.getRoot().requestFocus();
     }
 

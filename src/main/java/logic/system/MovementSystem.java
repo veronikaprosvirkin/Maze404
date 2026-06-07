@@ -35,7 +35,6 @@ public class MovementSystem {
                 state.setLevelComplete(true);
                 EventBus.getInstance().publish(new GameEvent(GameEvent.Type.LEVEL_COMPLETE));
             } else {
-                // Для рівнів 1 та 2, якщо ключа немає
                 EventBus.getInstance().publish(new GameEvent(GameEvent.Type.EXIT_BLOCKED));
             }
         }
