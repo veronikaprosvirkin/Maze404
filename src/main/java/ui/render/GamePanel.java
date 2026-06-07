@@ -5,6 +5,7 @@ import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import model.Artifact;
@@ -53,6 +54,7 @@ public class GamePanel extends Pane {
     private double mistFocusTargetY;
     private double mistFocusElapsedSeconds = MIST_FOCUS_TRANSITION_SECONDS;
     private boolean mistFocusInitialized = false;
+    private Image keyImage;
 
     private record MistProfile(
             double colorR,
@@ -104,6 +106,13 @@ public class GamePanel extends Pane {
         this.canvas = new Canvas(baseWidth, baseHeight);
         this.gridRenderer = new GridRenderer(new SpriteSheet(this.difficulty));
         this.playerRenderer = new PlayerRenderer();
+
+        try {
+            this.keyImage = new Image(getClass().getResourceAsStream("/icons/key.png"));
+        } catch (Exception e) {
+            System.out.println("Failed to load key image: " + e.getMessage());
+        }
+
         setMinSize(0, 0);
         setPrefSize(baseWidth, baseHeight);
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
@@ -310,12 +319,25 @@ public class GamePanel extends Pane {
                 continue;
             }
 
-            ArtifactPalette palette = getArtifactPalette(artifact);
-            ArtifactShape shape = getArtifactShape(artifact);
-            double phase = artifact.getType().ordinal() * 0.78
-                    + artifact.getPosition().getRow() * 0.29
-                    + artifact.getPosition().getCol() * 0.17;
-            drawMenuStyleArtifact(gc, centerX, centerY, palette, shape, phase, visibility);
+            if (artifact.getType() == enums.ArtifactType.KEY && keyImage != null) {
+                gc.save();
+                gc.setGlobalAlpha(visibility);
+
+                double timeSeconds = mistTimeNanos / 1_000_000_000.0;
+                double floatOffset = Math.sin(timeSeconds * 3.0) * 4.0;
+
+                double imgSize = TILE_SIZE * 0.6;
+                gc.drawImage(keyImage, centerX - imgSize / 2.0, centerY - imgSize / 2.0 + floatOffset, imgSize, imgSize);
+
+                gc.restore();
+            } else {
+                ArtifactPalette palette = getArtifactPalette(artifact);
+                ArtifactShape shape = getArtifactShape(artifact);
+                double phase = artifact.getType().ordinal() * 0.78
+                        + artifact.getPosition().getRow() * 0.29
+                        + artifact.getPosition().getCol() * 0.17;
+                drawMenuStyleArtifact(gc, centerX, centerY, palette, shape, phase, visibility);
+            }
         }
     }
 
