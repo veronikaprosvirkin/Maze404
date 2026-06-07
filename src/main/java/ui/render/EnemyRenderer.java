@@ -12,7 +12,8 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class EnemyRenderer {
-    private static final double MOVEMENT_SMOOTHING_SECONDS = 0.16;
+    private static final double ENEMY_TICK_SECONDS = 0.2;
+    private static final double CONTINUOUS_FLIGHT_FACTOR = 1.08;
     private static final Color CHASE_BODY = Color.web("#5A2E38");
     private static final Color CHASE_BODY_DARK = Color.web("#31141C");
     private static final Color CHASE_EDGE = Color.web("#F08996");
@@ -31,7 +32,7 @@ public class EnemyRenderer {
         DronePalette palette = paletteFor(mode, difficulty);
         RenderState state = renderStates.computeIfAbsent(enemy, key ->
                 new RenderState(enemy.getCol() * tileSize, enemy.getRow() * tileSize));
-        updateRenderState(state, enemy, tileSize, deltaSeconds);
+        updateRenderState(state, enemy, tileSize, nowNanos, mode, difficulty);
         double x = state.renderX();
         double y = state.renderY();
         double centerX = x + tileSize / 2.0;
@@ -157,21 +158,40 @@ public class EnemyRenderer {
         };
     }
 
-    private void updateRenderState(RenderState state, Enemy enemy, double tileSize, double deltaSeconds) {
+    private void updateRenderState(RenderState state, Enemy enemy, double tileSize, long nowNanos,
+                                   EnemyMode mode, Difficulty difficulty) {
         double targetX = enemy.getCol() * tileSize;
         double targetY = enemy.getRow() * tileSize;
+        state.updateInterpolatedPosition(nowNanos);
         double distance = Math.abs(targetX - state.renderX()) + Math.abs(targetY - state.renderY());
 
         if (distance > tileSize * 2.5) {
-            state.renderX(targetX);
-            state.renderY(targetY);
+            state.snapTo(targetX, targetY, nowNanos);
             return;
         }
 
-        double safeDelta = Math.max(1.0 / 240.0, deltaSeconds);
-        double smoothingFactor = 1.0 - Math.exp(-safeDelta / MOVEMENT_SMOOTHING_SECONDS);
-        state.renderX(state.renderX() + (targetX - state.renderX()) * smoothingFactor);
-        state.renderY(state.renderY() + (targetY - state.renderY()) * smoothingFactor);
+        if (state.targetChanged(targetX, targetY)) {
+            long durationNanos = moveDurationNanos(mode, difficulty);
+            state.beginSegment(targetX, targetY, nowNanos, durationNanos);
+        } else {
+            state.updateInterpolatedPosition(nowNanos);
+        }
+    }
+
+    private long moveDurationNanos(EnemyMode mode, Difficulty difficulty) {
+        int requiredTicks = 4;
+        if (mode == EnemyMode.PATROL) {
+            requiredTicks = 5;
+        } else if (mode == EnemyMode.CHASE) {
+            Difficulty effectiveDifficulty = difficulty != null ? difficulty : Difficulty.current;
+            requiredTicks = switch (effectiveDifficulty != null ? effectiveDifficulty : Difficulty.EASY) {
+                case EASY -> 4;
+                case MEDIUM -> 3;
+                case HARD -> 2;
+            };
+        }
+        double seconds = requiredTicks * ENEMY_TICK_SECONDS * CONTINUOUS_FLIGHT_FACTOR;
+        return (long) (seconds * 1_000_000_000L);
     }
 
     private double enemyPhase(Enemy enemy) {
@@ -184,10 +204,22 @@ public class EnemyRenderer {
     private static final class RenderState {
         private double renderX;
         private double renderY;
+        private double startX;
+        private double startY;
+        private double targetX;
+        private double targetY;
+        private long segmentStartNanos;
+        private long segmentDurationNanos;
 
         private RenderState(double renderX, double renderY) {
             this.renderX = renderX;
             this.renderY = renderY;
+            this.startX = renderX;
+            this.startY = renderY;
+            this.targetX = renderX;
+            this.targetY = renderY;
+            this.segmentStartNanos = 0L;
+            this.segmentDurationNanos = 1L;
         }
 
         private double renderX() {
@@ -204,6 +236,44 @@ public class EnemyRenderer {
 
         private void renderY(double renderY) {
             this.renderY = renderY;
+        }
+
+        private boolean targetChanged(double nextTargetX, double nextTargetY) {
+            return Math.abs(targetX - nextTargetX) > 0.001 || Math.abs(targetY - nextTargetY) > 0.001;
+        }
+
+        private void beginSegment(double nextTargetX, double nextTargetY, long nowNanos, long durationNanos) {
+            updateInterpolatedPosition(nowNanos);
+            this.startX = this.renderX;
+            this.startY = this.renderY;
+            this.targetX = nextTargetX;
+            this.targetY = nextTargetY;
+            this.segmentStartNanos = nowNanos;
+            this.segmentDurationNanos = Math.max(1L, durationNanos);
+        }
+
+        private void updateInterpolatedPosition(long nowNanos) {
+            if (segmentDurationNanos <= 0L) {
+                renderX = targetX;
+                renderY = targetY;
+                return;
+            }
+
+            double progress = (nowNanos - segmentStartNanos) / (double) segmentDurationNanos;
+            double clampedProgress = Math.max(0.0, Math.min(1.0, progress));
+            renderX = startX + (targetX - startX) * clampedProgress;
+            renderY = startY + (targetY - startY) * clampedProgress;
+        }
+
+        private void snapTo(double nextTargetX, double nextTargetY, long nowNanos) {
+            this.renderX = nextTargetX;
+            this.renderY = nextTargetY;
+            this.startX = nextTargetX;
+            this.startY = nextTargetY;
+            this.targetX = nextTargetX;
+            this.targetY = nextTargetY;
+            this.segmentStartNanos = nowNanos;
+            this.segmentDurationNanos = 1L;
         }
     }
 }
