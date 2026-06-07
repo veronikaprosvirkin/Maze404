@@ -14,6 +14,7 @@ import java.util.Map;
 public class EnemyRenderer {
     private static final double ENEMY_TICK_SECONDS = 0.2;
     private static final double CONTINUOUS_FLIGHT_FACTOR = 1.08;
+    private static final long PATROL_TURNAROUND_PAUSE_NANOS = 1_000_000_000L;
     private static final Color CHASE_BODY = Color.web("#5A2E38");
     private static final Color CHASE_BODY_DARK = Color.web("#31141C");
     private static final Color CHASE_EDGE = Color.web("#F08996");
@@ -170,9 +171,13 @@ public class EnemyRenderer {
             return;
         }
 
-        if (state.targetChanged(targetX, targetY)) {
+        if (!state.isTrackingTarget(targetX, targetY)) {
             long durationNanos = moveDurationNanos(mode, difficulty);
-            state.beginSegment(targetX, targetY, nowNanos, durationNanos);
+            if (shouldPauseBeforeSegment(state, targetX, targetY, mode)) {
+                state.scheduleTurnaround(targetX, targetY, nowNanos, durationNanos, PATROL_TURNAROUND_PAUSE_NANOS);
+            } else {
+                state.beginSegment(targetX, targetY, nowNanos, durationNanos, 0L, SegmentMotion.LINEAR);
+            }
         } else {
             state.updateInterpolatedPosition(nowNanos);
         }
@@ -194,11 +199,38 @@ public class EnemyRenderer {
         return (long) (seconds * 1_000_000_000L);
     }
 
+    private boolean shouldPauseBeforeSegment(RenderState state, double nextTargetX, double nextTargetY, EnemyMode mode) {
+        if (mode != EnemyMode.PATROL || !state.hasDirectionHistory()) {
+            return false;
+        }
+
+        double currentDx = nextTargetX - state.targetX();
+        double currentDy = nextTargetY - state.targetY();
+        double previousDx = state.targetX() - state.startX();
+        double previousDy = state.targetY() - state.startY();
+        double currentLength = Math.hypot(currentDx, currentDy);
+        double previousLength = Math.hypot(previousDx, previousDy);
+
+        if (currentLength < 0.001 || previousLength < 0.001) {
+            return false;
+        }
+
+        double dot = ((previousDx / previousLength) * (currentDx / currentLength))
+                + ((previousDy / previousLength) * (currentDy / currentLength));
+        return dot < -0.85;
+    }
+
     private double enemyPhase(Enemy enemy) {
         return (enemy.getRow() * 0.73) + (enemy.getCol() * 1.17);
     }
 
     private record DronePalette(Color body, Color bodyDark, Color edge, Color glow, Color sensor) {
+    }
+
+    private enum SegmentMotion {
+        LINEAR,
+        EASE_IN,
+        EASE_OUT
     }
 
     private static final class RenderState {
@@ -210,6 +242,13 @@ public class EnemyRenderer {
         private double targetY;
         private long segmentStartNanos;
         private long segmentDurationNanos;
+        private long pauseUntilNanos;
+        private SegmentMotion segmentMotion;
+        private boolean queuedSegment;
+        private double queuedTargetX;
+        private double queuedTargetY;
+        private long queuedDurationNanos;
+        private SegmentMotion queuedMotion;
 
         private RenderState(double renderX, double renderY) {
             this.renderX = renderX;
@@ -220,6 +259,13 @@ public class EnemyRenderer {
             this.targetY = renderY;
             this.segmentStartNanos = 0L;
             this.segmentDurationNanos = 1L;
+            this.pauseUntilNanos = 0L;
+            this.segmentMotion = SegmentMotion.LINEAR;
+            this.queuedSegment = false;
+            this.queuedTargetX = renderX;
+            this.queuedTargetY = renderY;
+            this.queuedDurationNanos = 1L;
+            this.queuedMotion = SegmentMotion.LINEAR;
         }
 
         private double renderX() {
@@ -238,21 +284,68 @@ public class EnemyRenderer {
             this.renderY = renderY;
         }
 
-        private boolean targetChanged(double nextTargetX, double nextTargetY) {
-            return Math.abs(targetX - nextTargetX) > 0.001 || Math.abs(targetY - nextTargetY) > 0.001;
+        private boolean isTrackingTarget(double nextTargetX, double nextTargetY) {
+            boolean currentTargetMatches = Math.abs(targetX - nextTargetX) <= 0.001
+                    && Math.abs(targetY - nextTargetY) <= 0.001;
+            boolean queuedTargetMatches = queuedSegment
+                    && Math.abs(queuedTargetX - nextTargetX) <= 0.001
+                    && Math.abs(queuedTargetY - nextTargetY) <= 0.001;
+            return currentTargetMatches || queuedTargetMatches;
         }
 
-        private void beginSegment(double nextTargetX, double nextTargetY, long nowNanos, long durationNanos) {
+        private void beginSegment(double nextTargetX, double nextTargetY, long nowNanos, long durationNanos,
+                                  long pauseNanos, SegmentMotion motion) {
             updateInterpolatedPosition(nowNanos);
             this.startX = this.renderX;
             this.startY = this.renderY;
             this.targetX = nextTargetX;
             this.targetY = nextTargetY;
-            this.segmentStartNanos = nowNanos;
+            this.pauseUntilNanos = nowNanos + Math.max(0L, pauseNanos);
+            this.segmentStartNanos = this.pauseUntilNanos;
             this.segmentDurationNanos = Math.max(1L, durationNanos);
+            this.segmentMotion = motion;
+            this.queuedSegment = false;
         }
 
         private void updateInterpolatedPosition(long nowNanos) {
+            if (queuedSegment) {
+                long segmentEndNanos = segmentStartNanos + segmentDurationNanos;
+                if (nowNanos < segmentEndNanos) {
+                    double progress = (nowNanos - segmentStartNanos) / (double) segmentDurationNanos;
+                    double clampedProgress = Math.max(0.0, Math.min(1.0, progress));
+                    double easedProgress = applyMotion(clampedProgress, segmentMotion);
+                    renderX = startX + (targetX - startX) * easedProgress;
+                    renderY = startY + (targetY - startY) * easedProgress;
+                    return;
+                }
+
+                renderX = targetX;
+                renderY = targetY;
+                if (nowNanos < pauseUntilNanos) {
+                    return;
+                }
+
+                if (nowNanos >= segmentEndNanos) {
+                    renderX = targetX;
+                    renderY = targetY;
+                    startX = targetX;
+                    startY = targetY;
+                    targetX = queuedTargetX;
+                    targetY = queuedTargetY;
+                    segmentStartNanos = pauseUntilNanos;
+                    segmentDurationNanos = Math.max(1L, queuedDurationNanos);
+                    segmentMotion = queuedMotion;
+                    pauseUntilNanos = segmentStartNanos;
+                    queuedSegment = false;
+                }
+            }
+
+            if (nowNanos < pauseUntilNanos) {
+                renderX = startX;
+                renderY = startY;
+                return;
+            }
+
             if (segmentDurationNanos <= 0L) {
                 renderX = targetX;
                 renderY = targetY;
@@ -261,8 +354,21 @@ public class EnemyRenderer {
 
             double progress = (nowNanos - segmentStartNanos) / (double) segmentDurationNanos;
             double clampedProgress = Math.max(0.0, Math.min(1.0, progress));
-            renderX = startX + (targetX - startX) * clampedProgress;
-            renderY = startY + (targetY - startY) * clampedProgress;
+            double easedProgress = applyMotion(clampedProgress, segmentMotion);
+            renderX = startX + (targetX - startX) * easedProgress;
+            renderY = startY + (targetY - startY) * easedProgress;
+        }
+
+        private void scheduleTurnaround(double nextTargetX, double nextTargetY, long nowNanos,
+                                        long durationNanos, long pauseNanos) {
+            updateInterpolatedPosition(nowNanos);
+            this.segmentMotion = SegmentMotion.EASE_OUT;
+            this.pauseUntilNanos = this.segmentStartNanos + this.segmentDurationNanos + Math.max(0L, pauseNanos);
+            this.queuedTargetX = nextTargetX;
+            this.queuedTargetY = nextTargetY;
+            this.queuedDurationNanos = Math.max(1L, durationNanos);
+            this.queuedMotion = SegmentMotion.EASE_IN;
+            this.queuedSegment = true;
         }
 
         private void snapTo(double nextTargetX, double nextTargetY, long nowNanos) {
@@ -274,6 +380,37 @@ public class EnemyRenderer {
             this.targetY = nextTargetY;
             this.segmentStartNanos = nowNanos;
             this.segmentDurationNanos = 1L;
+            this.pauseUntilNanos = nowNanos;
+            this.segmentMotion = SegmentMotion.LINEAR;
+            this.queuedSegment = false;
+        }
+
+        private boolean hasDirectionHistory() {
+            return Math.abs(targetX - startX) > 0.001 || Math.abs(targetY - startY) > 0.001;
+        }
+
+        private double startX() {
+            return startX;
+        }
+
+        private double startY() {
+            return startY;
+        }
+
+        private double targetX() {
+            return targetX;
+        }
+
+        private double targetY() {
+            return targetY;
+        }
+
+        private double applyMotion(double progress, SegmentMotion motion) {
+            return switch (motion) {
+                case EASE_IN -> progress * progress;
+                case EASE_OUT -> 1.0 - Math.pow(1.0 - progress, 2.0);
+                case LINEAR -> progress;
+            };
         }
     }
 }
