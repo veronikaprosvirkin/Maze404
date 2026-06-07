@@ -230,23 +230,26 @@
 }
 
 .levels-nav-button {
-    -fx-min-width: 64px;
-    -fx-min-height: 64px;
-    -fx-pref-width: 64px;
-    -fx-pref-height: 64px;
-    -fx-max-width: 64px;
-    -fx-max-height: 64px;
-    -fx-background-color: -menu-button-bg;
-    -fx-background-radius: 999;
-    -fx-border-color: -menu-accent-soft;
-    -fx-border-width: 2;
-    -fx-border-radius: 999;
+    -fx-min-width: 82px;
+    -fx-min-height: 108px;
+    -fx-pref-width: 82px;
+    -fx-pref-height: 108px;
+    -fx-max-width: 82px;
+    -fx-max-height: 108px;
+    -fx-background-color:
+        linear-gradient(to bottom, -menu-text-soft, -menu-accent-soft 38%, -menu-button-bg);
+    -fx-background-radius: 28;
+    -fx-border-color: -menu-text-soft, -menu-accent-soft;
+    -fx-border-width: 2, 4;
+    -fx-border-radius: 28, 24;
+    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 24, 0.26, 0, 0);
     -fx-cursor: hand;
 }
 
 .levels-nav-button:hover {
-    -fx-background-color: -menu-button-hover-bg;
-    -fx-border-color: -menu-text;
+    -fx-background-color:
+        linear-gradient(to bottom, -menu-text, -menu-accent 36%, -menu-button-hover-bg);
+    -fx-border-color: -menu-text, -menu-text;
 }
 
 .levels-nav-button:focused {
@@ -256,41 +259,143 @@
 }
 
 .level-card {
-    -fx-background-radius: 22;
-    -fx-border-width: 3;
-    -fx-border-radius: 22;
     -fx-cursor: hand;
 }
 
 .level-card:hover {
-    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 30, 0.12, 0, 0);
+    -fx-scale-x: 1.012;
+    -fx-scale-y: 1.012;
+}
+
+.level-card-glow {
+    -fx-min-width: 560px;
+    -fx-pref-width: 560px;
+    -fx-max-width: 560px;
+    -fx-min-height: 308px;
+    -fx-pref-height: 308px;
+    -fx-max-height: 308px;
+    -fx-background-color: radial-gradient(center 50% 48%, radius 68%, -menu-accent-soft, transparent 78%);
+    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 44, 0.22, 0, 0);
+}
+
+.level-card-frame {
+    -fx-min-width: 520px;
+    -fx-pref-width: 520px;
+    -fx-max-width: 520px;
+    -fx-min-height: 286px;
+    -fx-pref-height: 286px;
+    -fx-max-height: 286px;
+    -fx-background-color:
+        linear-gradient(to bottom, -menu-text-soft, -menu-border-soft 12%, -menu-panel-bg 18%, -menu-accent-soft 25%, -menu-bg 46%, -menu-border-soft 78%, -menu-panel-bg);
+    -fx-background-radius: 40;
+    -fx-border-color: -menu-text-soft, -menu-bg;
+    -fx-border-width: 2, 5;
+    -fx-border-radius: 40, 35;
+}
+
+.level-card-panel {
+    -fx-min-width: 462px;
+    -fx-pref-width: 462px;
+    -fx-max-width: 462px;
+    -fx-min-height: 194px;
+    -fx-pref-height: 194px;
+    -fx-max-height: 194px;
+    -fx-padding: 22 30 26 30;
+    -fx-background-color:
+        linear-gradient(to bottom, -menu-text-muted, -menu-border-soft 16%, -menu-card-current-bg 100%),
+        linear-gradient(to bottom right, -menu-text-soft, transparent 28%, -menu-accent-soft 62%, -menu-text-muted);
+    -fx-background-radius: 26;
+    -fx-border-color: -menu-text-soft, -menu-border;
+    -fx-border-width: 2, 4;
+    -fx-border-radius: 26, 22;
+    -fx-effect: innershadow(gaussian, -menu-text-soft, 30, 0.16, 0, 0);
+}
+
+.level-difficulty-badge {
+    -fx-min-width: 178px;
+    -fx-pref-width: 178px;
+    -fx-max-width: 178px;
+    -fx-min-height: 70px;
+    -fx-pref-height: 70px;
+    -fx-max-height: 70px;
+    -fx-background-color:
+        linear-gradient(to bottom, -menu-text, -menu-accent-soft 34%, -menu-button-bg 72%, -menu-text-soft),
+        linear-gradient(to bottom right, -menu-text-soft, transparent 38%, -menu-accent-soft);
+    -fx-background-radius: 24;
+    -fx-border-color: -menu-text, -menu-bg;
+    -fx-border-width: 2, 4;
+    -fx-border-radius: 24, 20;
+    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 24, 0.18, 0, 2);
+}
+
+.level-card-side-bracket {
+    -fx-min-width: 28px;
+    -fx-pref-width: 28px;
+    -fx-max-width: 28px;
+    -fx-min-height: 118px;
+    -fx-pref-height: 118px;
+    -fx-max-height: 118px;
+    -fx-background-color:
+        linear-gradient(to bottom, -menu-text-soft, -menu-border-soft 12%, -menu-panel-bg 44%, -menu-accent-soft 100%);
+    -fx-background-radius: 14;
+    -fx-border-color: -menu-text-muted, -menu-bg;
+    -fx-border-width: 2, 3;
+    -fx-border-radius: 14, 11;
+}
+
+.level-card-side-bracket.left {
+    -fx-translate-x: 8px;
+}
+
+.level-card-side-bracket.right {
+    -fx-translate-x: -8px;
+}
+
+.level-card-footer-prism {
+    -fx-min-width: 170px;
+    -fx-pref-width: 170px;
+    -fx-max-width: 170px;
+    -fx-min-height: 20px;
+    -fx-pref-height: 20px;
+    -fx-max-height: 20px;
+    -fx-background-color:
+        linear-gradient(to right, -menu-border-soft, -menu-accent-soft, -menu-border-soft);
+    -fx-background-radius: 0 0 18 18;
+    -fx-border-color: -menu-text-soft;
+    -fx-border-width: 2 2 0 2;
+    -fx-border-radius: 0 0 18 18;
+    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 20, 0.18, 0, 1);
 }
 
 .level-card-cryo {
-    -fx-background-color: linear-gradient(to bottom, rgba(21, 58, 82, 0.86), rgba(14, 18, 36, 0.92));
-    -fx-border-color: rgba(125, 228, 255, 0.90);
+    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 28, 0.16, 0, 0);
 }
 
 .level-card-stone {
-    -fx-background-color: linear-gradient(to bottom, rgba(82, 72, 62, 0.88), rgba(29, 27, 29, 0.94));
-    -fx-border-color: rgba(224, 199, 155, 0.86);
+    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 28, 0.15, 0, 0);
 }
 
 .level-card-inferno {
-    -fx-background-color: linear-gradient(to bottom, rgba(112, 25, 31, 0.88), rgba(24, 7, 13, 0.95));
-    -fx-border-color: rgba(255, 116, 91, 0.90);
+    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 28, 0.16, 0, 0);
 }
 
 .level-difficulty {
-    -fx-fill: -menu-text-soft;
-    -fx-font-size: 28px;
-    -fx-font-weight: 700;
+    -fx-fill: -menu-bg;
+    -fx-font-size: 26px;
+    -fx-font-weight: 800;
 }
 
 .level-name {
     -fx-fill: -menu-text;
-    -fx-font-size: 44px;
+    -fx-font-size: 46px;
     -fx-font-weight: 300;
+    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 18, 0.18, 0, 0);
+}
+
+.level-card-prompt {
+    -fx-fill: -menu-text-soft;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
 }
 
 .skins-frame {
