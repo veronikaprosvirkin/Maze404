@@ -15,6 +15,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -346,6 +347,8 @@ public class StartMenuView extends StackPane {
 
         Button leftButton = createLevelNavButton("left.png", -1, levelSwitcher, onSelectLevel);
         Button rightButton = createLevelNavButton("right.png", 1, levelSwitcher, onSelectLevel);
+        leftButton.setViewOrder(-1);
+        rightButton.setViewOrder(-1);
         levelSwitcher.getChildren().setAll(
                 leftButton,
                 createLevelCard(getSelectedLevel(), onSelectLevel),
@@ -618,7 +621,6 @@ public class StartMenuView extends StackPane {
         card.setMinSize(LEVEL_CARD_WIDTH, LEVEL_CARD_HEIGHT);
         card.setPrefSize(LEVEL_CARD_WIDTH, LEVEL_CARD_HEIGHT);
         card.setMaxSize(LEVEL_CARD_WIDTH, LEVEL_CARD_HEIGHT);
-        card.setOnMouseClicked(event -> onSelectLevel.run());
 
         Region frameGlow = new Region();
         frameGlow.getStyleClass().add("level-card-glow");
@@ -627,8 +629,6 @@ public class StartMenuView extends StackPane {
         DropShadow cardShadow = new DropShadow(28, currentMenuPalette.glow());
         cardShadow.setSpread(0.12);
         card.setEffect(cardShadow);
-        card.setOnMouseEntered(event -> animateLevelHover(card, cardShadow, 1.02, 40, 0.20, frameGlow, 1.0));
-        card.setOnMouseExited(event -> animateLevelHover(card, cardShadow, 1.0, 28, 0.12, frameGlow, 0.72));
 
         Region outerFrame = new Region();
         outerFrame.getStyleClass().add("level-card-frame");
@@ -652,6 +652,10 @@ public class StartMenuView extends StackPane {
 
         StackPane crystalPanel = new StackPane();
         crystalPanel.getStyleClass().add("level-card-panel");
+        crystalPanel.setCursor(Cursor.HAND);
+        crystalPanel.setOnMouseClicked(event -> onSelectLevel.run());
+        crystalPanel.setOnMouseEntered(event -> animateLevelHover(card, cardShadow, 1.02, 40, 0.20, frameGlow, 1.0));
+        crystalPanel.setOnMouseExited(event -> animateLevelHover(card, cardShadow, 1.0, 28, 0.12, frameGlow, 0.72));
 
         VBox copy = new VBox(12);
         copy.setAlignment(Pos.CENTER);
