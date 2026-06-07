@@ -14,6 +14,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.Node;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -175,17 +176,20 @@ public class MainApp extends Application {
                 createHudCard("Elixir", ArtifactVisuals.createHudIcon(ArtifactType.ELIXIR, 24), elixirsValueLabel, "elixir", "4")
         );
 
-        HBox keyHud = new HBox();
-        keyHud.getStyleClass().add("game-hud");
-        keyHud.setPickOnBounds(false);
-        keyHud.setMouseTransparent(true);
-        keyHud.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
-        keyHud.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
-        keyHud.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
-        keyHud.setPadding(new Insets(14, 18, 14, 18));
-        keyHud.getChildren().add(createHudCard("Key", ArtifactVisuals.createHudIcon(ArtifactType.KEY, 24), keyValueLabel, "key"));
+        HBox hudRow = new HBox(12, healthHud, inventoryHud);
+        if (Difficulty.current != Difficulty.EASY) {
+            HBox keyHud = new HBox();
+            keyHud.getStyleClass().add("game-hud");
+            keyHud.setPickOnBounds(false);
+            keyHud.setMouseTransparent(true);
+            keyHud.setMaxWidth(Region.USE_PREF_SIZE);
+            keyHud.setMaxHeight(Region.USE_PREF_SIZE);
+            keyHud.setPrefHeight(Region.USE_COMPUTED_SIZE);
+            keyHud.setPadding(new Insets(14, 18, 14, 18));
+            keyHud.getChildren().add(createHudCard("Key", ArtifactVisuals.createHudIcon(ArtifactType.KEY, 24), keyValueLabel, "key"));
+            hudRow.getChildren().add(keyHud);
+        }
 
-        HBox hudRow = new HBox(12, healthHud, inventoryHud, keyHud);
         hudRow.setPickOnBounds(false);
         hudRow.setMouseTransparent(true);
         hudRow.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
