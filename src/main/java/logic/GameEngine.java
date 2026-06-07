@@ -18,7 +18,7 @@ public class GameEngine {
     private boolean paused = false;
 
     private final MovementSystem movementSystem = new MovementSystem();
-    private final logic.system.CollisionDetector collisionSystem = new logic.system.CollisionDetector();
+    private final logic.system.CollisionDetector collisionDetector = new logic.system.CollisionDetector();
     private final ScanSystem scanSystem      = new ScanSystem();
     private final RadarSystem      radarSystem     = new RadarSystem();
     private final ShieldSystem     shieldSystem    = new ShieldSystem();
@@ -67,18 +67,21 @@ public class GameEngine {
     //--------------- PRIVATE METHODS -------------
     private void checkWinLoseConditions()
     {
-        if(gameState.getPlayer().getHealth() <= 0 ){
+        if (gameState.getPlayer().getHealth() <= 0) {
             gameState.setGameOver(true);
+            EventBus.getInstance().publish(new GameEvent(GameEvent.Type.LEVEL_COMPLETE));
         }
     }
-    private void doMove(int row, int col)
-    {
+    private void doMove(int row, int col) {
         movementSystem.movePlayer(gameState, row, col);
+
         fogSystem.updateVisibility(gameState);
         artifactSystem.processArtifacts(gameState);
 
+        collisionDetector.checkEnemyCollisions(gameState);
         moveEnemies();
-        collisionSystem.checkEnemyCollisions(gameState);
+        collisionDetector.checkEnemyCollisions(gameState);
+
         radarSystem.onPlayerTurn(gameState);
     }
 
