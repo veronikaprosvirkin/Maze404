@@ -146,7 +146,7 @@ public class MainApp extends Application {
         healthHud.setPadding(new Insets(14, 18, 14, 18));
         healthHud.getChildren().add(createHudCard("Health", hpValueLabel, "health"));
 
-        HBox inventoryHud = new HBox(14);
+        HBox inventoryHud = new HBox(10);
         inventoryHud.getStyleClass().add("game-hud");
         inventoryHud.setPickOnBounds(false);
         inventoryHud.setMouseTransparent(true);
@@ -164,7 +164,7 @@ public class MainApp extends Application {
                 createHudCard("Key", keyValueLabel, "key")
         );
 
-        HBox hudRow = new HBox(20, healthHud, inventoryHud);
+        HBox hudRow = new HBox(12, healthHud, inventoryHud);
         hudRow.setPickOnBounds(false);
         hudRow.setMouseTransparent(true);
         hudRow.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
@@ -269,8 +269,8 @@ public class MainApp extends Application {
         VBox card = new VBox(5, titleLabel, valueLabel);
         card.getStyleClass().addAll("hud-card", "hud-" + accentStyleClass);
         card.setAlignment(Pos.CENTER_LEFT);
-        card.setPadding(new Insets(10, 16, 10, 16));
-        card.setMinWidth(112);
+        card.setPadding(new Insets(8, 12, 8, 12));
+        card.setMinWidth(96);
         card.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
         return card;
     }
