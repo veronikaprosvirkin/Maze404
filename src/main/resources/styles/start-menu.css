@@ -262,11 +262,6 @@
     -fx-cursor: hand;
 }
 
-.level-card:hover {
-    -fx-scale-x: 1.012;
-    -fx-scale-y: 1.012;
-}
-
 .level-card-glow {
     -fx-min-width: 560px;
     -fx-pref-width: 560px;
