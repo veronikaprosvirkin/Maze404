@@ -1,5 +1,6 @@
 package ui.render;
 
+import enums.Difficulty;
 import enums.EnemyMode;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.DropShadow;
@@ -8,25 +9,21 @@ import javafx.scene.shape.ArcType;
 import model.Enemy;
 
 public class EnemyRenderer {
-    private static final Color PATROL_BODY = Color.web("#3B4E68");
-    private static final Color PATROL_BODY_DARK = Color.web("#243245");
-    private static final Color PATROL_EDGE = Color.web("#90B8E8");
-    private static final Color PATROL_GLOW = Color.rgb(117, 177, 255, 0.28);
-    private static final Color PATROL_SENSOR = Color.web("#9BE7FF");
-
     private static final Color CHASE_BODY = Color.web("#5A2E38");
     private static final Color CHASE_BODY_DARK = Color.web("#31141C");
     private static final Color CHASE_EDGE = Color.web("#F08996");
     private static final Color CHASE_GLOW = Color.rgb(255, 91, 123, 0.30);
     private static final Color CHASE_SENSOR = Color.web("#FFB1A1");
+    private static final Color PATROL_SENSOR = Color.web("#9BE7FF");
+    private static final Color PATROL_MARK = Color.web("#D8F6FF");
 
-    public void draw(GraphicsContext gc, Enemy enemy, double tileSize, long nowNanos) {
+    public void draw(GraphicsContext gc, Enemy enemy, double tileSize, long nowNanos, Difficulty difficulty) {
         if (enemy == null) {
             return;
         }
 
         EnemyMode mode = enemy.getMode() != null ? enemy.getMode() : EnemyMode.PATROL;
-        DronePalette palette = paletteFor(mode);
+        DronePalette palette = paletteFor(mode, difficulty);
         double x = enemy.getCol() * tileSize;
         double y = enemy.getRow() * tileSize;
         double centerX = x + tileSize / 2.0;
@@ -72,6 +69,13 @@ public class EnemyRenderer {
         gc.fillRoundRect(bodyX + tileSize * 0.05, bodyY + tileSize * 0.05, bodyWidth * 0.55, bodyHeight * 0.22,
                 tileSize * 0.12, tileSize * 0.12);
 
+        if (mode == EnemyMode.PATROL) {
+            gc.setStroke(PATROL_MARK);
+            gc.setLineWidth(Math.max(1.3, tileSize * 0.055));
+            gc.strokeLine(bodyX + tileSize * 0.10, bodyY + bodyHeight * 0.68, bodyX + bodyWidth - tileSize * 0.10, bodyY + bodyHeight * 0.68);
+            gc.strokeLine(bodyX + tileSize * 0.13, bodyY + bodyHeight * 0.82, bodyX + bodyWidth - tileSize * 0.13, bodyY + bodyHeight * 0.82);
+        }
+
         gc.save();
         gc.setEffect(new DropShadow(tileSize * 0.10, palette.sensor()));
         gc.setFill(palette.sensor());
@@ -112,11 +116,37 @@ public class EnemyRenderer {
         gc.fillOval(centerX - tileSize * 0.05, centerY - tileSize * 0.05, tileSize * 0.10, tileSize * 0.10);
     }
 
-    private DronePalette paletteFor(EnemyMode mode) {
+    private DronePalette paletteFor(EnemyMode mode, Difficulty difficulty) {
         if (mode == EnemyMode.CHASE) {
             return new DronePalette(CHASE_BODY, CHASE_BODY_DARK, CHASE_EDGE, CHASE_GLOW, CHASE_SENSOR);
         }
-        return new DronePalette(PATROL_BODY, PATROL_BODY_DARK, PATROL_EDGE, PATROL_GLOW, PATROL_SENSOR);
+        return patrolPaletteFor(difficulty != null ? difficulty : Difficulty.EASY);
+    }
+
+    private DronePalette patrolPaletteFor(Difficulty difficulty) {
+        return switch (difficulty) {
+            case MEDIUM -> new DronePalette(
+                    Color.web("#5D503E"),
+                    Color.web("#342B21"),
+                    Color.web("#E0C79B"),
+                    Color.rgb(224, 199, 155, 0.22),
+                    PATROL_SENSOR
+            );
+            case HARD -> new DronePalette(
+                    Color.web("#6A3640"),
+                    Color.web("#38161E"),
+                    Color.web("#FF9A86"),
+                    Color.rgb(255, 116, 91, 0.24),
+                    PATROL_SENSOR
+            );
+            default -> new DronePalette(
+                    Color.web("#3B4E68"),
+                    Color.web("#243245"),
+                    Color.web("#90B8E8"),
+                    Color.rgb(117, 177, 255, 0.28),
+                    PATROL_SENSOR
+            );
+        };
     }
 
     private double enemyPhase(Enemy enemy) {
