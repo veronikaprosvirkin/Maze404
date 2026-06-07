@@ -7,9 +7,14 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import logic.ArtifactSpawner;
@@ -35,6 +40,7 @@ import java.util.concurrent.CountDownLatch;
 public class MainApp extends Application {
     private static final double MIN_WINDOW_WIDTH = 1024;
     private static final double MIN_WINDOW_HEIGHT = 680;
+    private static final int PLAYER_MAX_HEALTH = 3;
 
     private static final CountDownLatch START_LATCH = new CountDownLatch(1);
 
@@ -110,28 +116,53 @@ public class MainApp extends Application {
         gamePanel.setMistDensity(mistDensity);
         gamePanel.setGameVolume(settings.gameVolume());
 
-        // --- БАР (Спочатку створюємо UI, щоб InputHandler його бачив) ---
-        javafx.scene.layout.HBox hudBar = new javafx.scene.layout.HBox();
-        hudBar.setPickOnBounds(false); // Щоб кліки мишкою пролітали крізь порожні місця бару на ігрове поле
-        hudBar.setStyle("-fx-padding: 15; -fx-spacing: 20;");
-        StackPane.setAlignment(hudBar, javafx.geometry.Pos.TOP_LEFT);
+        // --- HUD ---
+        HBox hudBar = new HBox(14);
+        hudBar.setPickOnBounds(false);
+        hudBar.setMouseTransparent(true);
+        hudBar.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        hudBar.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        hudBar.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+        hudBar.setPadding(new Insets(14, 18, 14, 18));
+        hudBar.setStyle(
+                "-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(7, 11, 21, 0.88), rgba(18, 26, 42, 0.80));" +
+                "-fx-background-radius: 26;" +
+                "-fx-border-color: rgba(210, 234, 255, 0.22);" +
+                "-fx-border-width: 1;" +
+                "-fx-border-radius: 26;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 26, 0.2, 0, 10);"
+        );
+        StackPane.setAlignment(hudBar, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(hudBar, new Insets(0, 0, 24, 0));
 
-        javafx.scene.control.Label hpLabel = new javafx.scene.control.Label("HP: " + player.getHealth());
-        javafx.scene.control.Label crystalsLabel = new javafx.scene.control.Label("Crystals: 0");
-        javafx.scene.control.Label elixirsLabel = new javafx.scene.control.Label("Elixirs: 0");
-        javafx.scene.control.Label beaconLabel = new javafx.scene.control.Label("Beacons: 0");
-        javafx.scene.control.Label keyLabel = new javafx.scene.control.Label("Key: 0");
+        Label hpValueLabel = createHudValueLabel();
+        Label crystalsValueLabel = createHudValueLabel();
+        Label radarValueLabel = createHudValueLabel();
+        Label shieldValueLabel = createHudValueLabel();
+        Label beaconValueLabel = createHudValueLabel();
+        Label elixirsValueLabel = createHudValueLabel();
+        Label keyValueLabel = createHudValueLabel();
 
-        String labelStyle = "-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;";
-        hpLabel.setStyle(labelStyle);
-        crystalsLabel.setStyle(labelStyle);
-        elixirsLabel.setStyle(labelStyle);
-        beaconLabel.setStyle(labelStyle);
-        keyLabel.setStyle(labelStyle);
+        updateHudValues(
+                player,
+                hpValueLabel,
+                crystalsValueLabel,
+                radarValueLabel,
+                shieldValueLabel,
+                beaconValueLabel,
+                elixirsValueLabel,
+                keyValueLabel
+        );
 
-
-        // всі 4 мітки в контейнер статистики
-        hudBar.getChildren().addAll(hpLabel, crystalsLabel, elixirsLabel, beaconLabel, keyLabel);
+        hudBar.getChildren().addAll(
+                createHudCard("Health", hpValueLabel, "#FF6B7A"),
+                createHudCard("Crystals", crystalsValueLabel, "#F0D66A"),
+                createHudCard("Radar", radarValueLabel, "#65F2A0"),
+                createHudCard("Shield", shieldValueLabel, "#7DE4FF"),
+                createHudCard("Beacon", beaconValueLabel, "#FF9A62"),
+                createHudCard("Elixir", elixirsValueLabel, "#C46BFF"),
+                createHudCard("Key", keyValueLabel, "#FFD8A0")
+        );
 
         // --- ОВЕРЛЕЙ ПЕРЕМОГИ / ПРОГРАШУ ---
         StackPane winLoseOverlay = new StackPane();
@@ -192,11 +223,16 @@ public class MainApp extends Application {
             artifactSystem.processArtifacts(gameState);
 
             Platform.runLater(() -> {
-                hpLabel.setText("HP: " + player.getHealth());
-                crystalsLabel.setText("Crystals: " + player.getCrystals());
-                elixirsLabel.setText("Elixirs: " + player.getElixirCount());
-                beaconLabel.setText("Beacons: " + player.getBeaconCount());
-                keyLabel.setText("Key: " + player.hasKey());
+                updateHudValues(
+                        player,
+                        hpValueLabel,
+                        crystalsValueLabel,
+                        radarValueLabel,
+                        shieldValueLabel,
+                        beaconValueLabel,
+                        elixirsValueLabel,
+                        keyValueLabel
+                );
 
                 if (gameState.isGameOver() || player.getHealth() <= 0) {
                     endGroupLabel.setText("GAME OVER");
@@ -216,6 +252,65 @@ public class MainApp extends Application {
 
         root.getChildren().setAll(gamePanel, hudBar, winLoseOverlay);
         scene.getRoot().requestFocus();
+    }
+
+    private static VBox createHudCard(String title, Label valueLabel, String accentColor) {
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle(
+                "-fx-text-fill: rgba(214, 229, 255, 0.78);" +
+                "-fx-font-size: 11px;" +
+                "-fx-font-weight: 700;" +
+                "-fx-letter-spacing: 1.1px;"
+        );
+
+        VBox card = new VBox(5, titleLabel, valueLabel);
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setPadding(new Insets(10, 16, 10, 16));
+        card.setMinWidth(112);
+        card.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        card.setStyle(
+                "-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.04));" +
+                "-fx-background-radius: 18;" +
+                "-fx-border-color: " + withOpacity(accentColor, 0.42) + ";" +
+                "-fx-border-width: 1;" +
+                "-fx-border-radius: 18;" +
+                "-fx-effect: dropshadow(gaussian, " + withOpacity(accentColor, 0.18) + ", 18, 0.15, 0, 5);"
+        );
+        return card;
+    }
+
+    private static Label createHudValueLabel() {
+        Label valueLabel = new Label();
+        valueLabel.setStyle(
+                "-fx-text-fill: white;" +
+                "-fx-font-size: 20px;" +
+                "-fx-font-weight: 800;"
+        );
+        return valueLabel;
+    }
+
+    private static void updateHudValues(
+            Player player,
+            Label hpValueLabel,
+            Label crystalsValueLabel,
+            Label radarValueLabel,
+            Label shieldValueLabel,
+            Label beaconValueLabel,
+            Label elixirsValueLabel,
+            Label keyValueLabel
+    ) {
+        hpValueLabel.setText(player.getHealth() + " / " + PLAYER_MAX_HEALTH);
+        crystalsValueLabel.setText(String.valueOf(player.getCrystals()));
+        radarValueLabel.setText(String.valueOf(player.getRadarCharges()));
+        shieldValueLabel.setText(player.hasShield() ? player.getShieldCount() + " + active" : String.valueOf(player.getShieldCount()));
+        beaconValueLabel.setText(String.valueOf(player.getBeaconCount()));
+        elixirsValueLabel.setText(String.valueOf(player.getElixirCount()));
+        keyValueLabel.setText(player.hasKey() ? "Recovered" : "Missing");
+    }
+
+    private static String withOpacity(String hexColor, double opacity) {
+        int alpha = (int) Math.round(Math.max(0, Math.min(1, opacity)) * 255);
+        return hexColor + String.format("%02X", alpha);
     }
 
     private static Timeline getEnemyTimer(GameState gameState, Grid grid, Player player) {
