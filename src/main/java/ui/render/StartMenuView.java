@@ -615,17 +615,58 @@ public class StartMenuView extends StackPane {
         card.setMaxSize(LEVEL_CARD_WIDTH, LEVEL_CARD_HEIGHT);
         card.setOnMouseClicked(event -> onSelectLevel.run());
 
-        VBox copy = new VBox(18);
-        copy.setAlignment(Pos.CENTER);
+        Region frameGlow = new Region();
+        frameGlow.getStyleClass().add("level-card-glow");
+
+        Region outerFrame = new Region();
+        outerFrame.getStyleClass().add("level-card-frame");
+
+        Region leftBracket = new Region();
+        leftBracket.getStyleClass().addAll("level-card-side-bracket", "left");
+        StackPane.setAlignment(leftBracket, Pos.CENTER_LEFT);
+
+        Region rightBracket = new Region();
+        rightBracket.getStyleClass().addAll("level-card-side-bracket", "right");
+        StackPane.setAlignment(rightBracket, Pos.CENTER_RIGHT);
+
+        StackPane difficultyBadge = new StackPane();
+        difficultyBadge.getStyleClass().add("level-difficulty-badge");
+        StackPane.setAlignment(difficultyBadge, Pos.TOP_CENTER);
+        StackPane.setMargin(difficultyBadge, new Insets(16, 0, 0, 0));
 
         Text difficulty = new Text(level.difficulty().name());
         difficulty.getStyleClass().add("level-difficulty");
+        difficultyBadge.getChildren().add(difficulty);
+
+        StackPane crystalPanel = new StackPane();
+        crystalPanel.getStyleClass().add("level-card-panel");
+
+        VBox copy = new VBox(12);
+        copy.setAlignment(Pos.CENTER);
+        copy.setMouseTransparent(true);
 
         Text name = new Text(level.levelName());
         name.getStyleClass().add("level-name");
 
-        copy.getChildren().addAll(difficulty, name);
-        card.getChildren().add(copy);
+        Text prompt = new Text("Tap to enter");
+        prompt.getStyleClass().add("level-card-prompt");
+
+        copy.getChildren().addAll(name, prompt);
+        crystalPanel.getChildren().add(copy);
+
+        Region bottomPrism = new Region();
+        bottomPrism.getStyleClass().add("level-card-footer-prism");
+        StackPane.setAlignment(bottomPrism, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(bottomPrism, new Insets(0, 0, 16, 0));
+
+        card.getChildren().addAll(
+                frameGlow,
+                outerFrame,
+                leftBracket,
+                rightBracket,
+                crystalPanel,
+                difficultyBadge,
+                bottomPrism);
         return card;
     }
 
