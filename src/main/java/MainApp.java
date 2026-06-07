@@ -153,7 +153,11 @@ public class MainApp extends Application {
         healthHud.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
         healthHud.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
         healthHud.setPadding(new Insets(14, 18, 14, 18));
-        healthHud.getChildren().add(createHudCard("Health", createHealthIcon(), hpValueLabel, "health"));
+        healthHud.setSpacing(10);
+        healthHud.getChildren().addAll(
+                createHudCard("Health", createHealthIcon(), hpValueLabel, "health"),
+                createHudCard("Crystals", ArtifactVisuals.createHudIcon(ArtifactType.CRYSTAL, 24), crystalsValueLabel, "crystals")
+        );
 
         HBox inventoryHud = new HBox(10);
         inventoryHud.getStyleClass().add("game-hud");
@@ -165,15 +169,23 @@ public class MainApp extends Application {
         inventoryHud.setPadding(new Insets(14, 18, 14, 18));
 
         inventoryHud.getChildren().addAll(
-                createHudCard("Crystals", ArtifactVisuals.createHudIcon(ArtifactType.CRYSTAL, 24), crystalsValueLabel, "crystals"),
                 createHudCard("Radar", ArtifactVisuals.createHudIcon(ArtifactType.RADAR, 24), radarValueLabel, "radar", "1"),
                 createHudCard("Shield", ArtifactVisuals.createHudIcon(ArtifactType.SHIELD, 24), shieldValueLabel, "shield", "2"),
                 createHudCard("Beacon", ArtifactVisuals.createHudIcon(ArtifactType.BEACON, 24), beaconValueLabel, "beacon", "3"),
-                createHudCard("Elixir", ArtifactVisuals.createHudIcon(ArtifactType.ELIXIR, 24), elixirsValueLabel, "elixir", "4"),
-                createHudCard("Key", ArtifactVisuals.createHudIcon(ArtifactType.KEY, 24), keyValueLabel, "key")
+                createHudCard("Elixir", ArtifactVisuals.createHudIcon(ArtifactType.ELIXIR, 24), elixirsValueLabel, "elixir", "4")
         );
 
-        HBox hudRow = new HBox(12, healthHud, inventoryHud);
+        HBox keyHud = new HBox();
+        keyHud.getStyleClass().add("game-hud");
+        keyHud.setPickOnBounds(false);
+        keyHud.setMouseTransparent(true);
+        keyHud.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        keyHud.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        keyHud.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+        keyHud.setPadding(new Insets(14, 18, 14, 18));
+        keyHud.getChildren().add(createHudCard("Key", ArtifactVisuals.createHudIcon(ArtifactType.KEY, 24), keyValueLabel, "key"));
+
+        HBox hudRow = new HBox(12, healthHud, inventoryHud, keyHud);
         hudRow.setPickOnBounds(false);
         hudRow.setMouseTransparent(true);
         hudRow.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
