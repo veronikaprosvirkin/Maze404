@@ -170,7 +170,29 @@ public class GamePanel extends Pane {
 
         if (enemies != null) {
             for (model.Enemy enemy : enemies) {
-                enemyRenderer.draw(gc, enemy, TILE_SIZE, mistTimeNanos, this.difficulty, frameDeltaSeconds);
+                if (enemy == null) {
+                    continue;
+                }
+
+                double centerX = enemy.getCol() * TILE_SIZE + TILE_SIZE / 2.0;
+                double centerY = enemy.getRow() * TILE_SIZE + TILE_SIZE / 2.0;
+                if (!isInViewport(centerX, centerY, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight, TILE_SIZE)) {
+                    continue;
+                }
+
+                double visibility = getWorldVisibility(
+                        player,
+                        centerX,
+                        centerY
+                );
+                if (visibility <= 0.01) {
+                    continue;
+                }
+
+                gc.save();
+                gc.setGlobalAlpha(visibility);
+                enemyRenderer.draw(gc, enemy, TILE_SIZE, mistTimeNanos, this.difficulty, frameDeltaSeconds, visibility);
+                gc.restore();
             }
         }
         gc.restore();
@@ -289,7 +311,7 @@ public class GamePanel extends Pane {
                 continue;
             }
 
-            double visibility = getArtifactVisibility(player, artifact);
+            double visibility = getWorldVisibility(player, centerX, centerY);
             if (visibility <= 0.01) {
                 continue;
             }
@@ -303,19 +325,17 @@ public class GamePanel extends Pane {
         }
     }
 
-    private double getArtifactVisibility(Player player, Artifact artifact) {
+    private double getWorldVisibility(Player player, double targetCenterX, double targetCenterY) {
         if (!mistEnabled) {
             return 1.0;
         }
 
         double playerCenterX = (player.getCol() + 0.5) * TILE_SIZE;
         double playerCenterY = (player.getRow() + 0.5) * TILE_SIZE;
-        double artifactCenterX = artifact.getPosition().getCol() * TILE_SIZE + TILE_SIZE / 2.0;
-        double artifactCenterY = artifact.getPosition().getRow() * TILE_SIZE + TILE_SIZE / 2.0;
         double focusX = mistFocusInitialized ? mistFocusX : playerCenterX;
         double focusY = mistFocusInitialized ? mistFocusY : playerCenterY;
-        double dx = artifactCenterX - focusX;
-        double dy = artifactCenterY - focusY;
+        double dx = targetCenterX - focusX;
+        double dy = targetCenterY - focusY;
         double visibleRadius = getCurrentClearRadius();
         double distance = Math.sqrt(dx * dx + dy * dy);
 
