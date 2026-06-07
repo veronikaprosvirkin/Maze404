@@ -8,7 +8,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.ArcType;
 import model.Enemy;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 public class EnemyRenderer {
+    private static final double MOVEMENT_SMOOTHING_SECONDS = 0.16;
     private static final Color CHASE_BODY = Color.web("#5A2E38");
     private static final Color CHASE_BODY_DARK = Color.web("#31141C");
     private static final Color CHASE_EDGE = Color.web("#F08996");
@@ -16,16 +20,20 @@ public class EnemyRenderer {
     private static final Color CHASE_SENSOR = Color.web("#FFB1A1");
     private static final Color PATROL_SENSOR = Color.web("#9BE7FF");
     private static final Color PATROL_MARK = Color.web("#D8F6FF");
+    private final Map<Enemy, RenderState> renderStates = new IdentityHashMap<>();
 
-    public void draw(GraphicsContext gc, Enemy enemy, double tileSize, long nowNanos, Difficulty difficulty) {
+    public void draw(GraphicsContext gc, Enemy enemy, double tileSize, long nowNanos, Difficulty difficulty, double deltaSeconds) {
         if (enemy == null) {
             return;
         }
 
         EnemyMode mode = enemy.getMode() != null ? enemy.getMode() : EnemyMode.PATROL;
         DronePalette palette = paletteFor(mode, difficulty);
-        double x = enemy.getCol() * tileSize;
-        double y = enemy.getRow() * tileSize;
+        RenderState state = renderStates.computeIfAbsent(enemy, key ->
+                new RenderState(enemy.getCol() * tileSize, enemy.getRow() * tileSize));
+        updateRenderState(state, enemy, tileSize, deltaSeconds);
+        double x = state.renderX();
+        double y = state.renderY();
         double centerX = x + tileSize / 2.0;
         double centerY = y + tileSize / 2.0;
         double time = nowNanos / 1_000_000_000.0;
@@ -149,10 +157,53 @@ public class EnemyRenderer {
         };
     }
 
+    private void updateRenderState(RenderState state, Enemy enemy, double tileSize, double deltaSeconds) {
+        double targetX = enemy.getCol() * tileSize;
+        double targetY = enemy.getRow() * tileSize;
+        double distance = Math.abs(targetX - state.renderX()) + Math.abs(targetY - state.renderY());
+
+        if (distance > tileSize * 2.5) {
+            state.renderX(targetX);
+            state.renderY(targetY);
+            return;
+        }
+
+        double safeDelta = Math.max(1.0 / 240.0, deltaSeconds);
+        double smoothingFactor = 1.0 - Math.exp(-safeDelta / MOVEMENT_SMOOTHING_SECONDS);
+        state.renderX(state.renderX() + (targetX - state.renderX()) * smoothingFactor);
+        state.renderY(state.renderY() + (targetY - state.renderY()) * smoothingFactor);
+    }
+
     private double enemyPhase(Enemy enemy) {
         return (enemy.getRow() * 0.73) + (enemy.getCol() * 1.17);
     }
 
     private record DronePalette(Color body, Color bodyDark, Color edge, Color glow, Color sensor) {
+    }
+
+    private static final class RenderState {
+        private double renderX;
+        private double renderY;
+
+        private RenderState(double renderX, double renderY) {
+            this.renderX = renderX;
+            this.renderY = renderY;
+        }
+
+        private double renderX() {
+            return renderX;
+        }
+
+        private void renderX(double renderX) {
+            this.renderX = renderX;
+        }
+
+        private double renderY() {
+            return renderY;
+        }
+
+        private void renderY(double renderY) {
+            this.renderY = renderY;
+        }
     }
 }

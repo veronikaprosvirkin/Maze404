@@ -191,7 +191,7 @@ public class GamePanel extends Pane {
 
         if (enemies != null) {
             for (model.Enemy enemy : enemies) {
-                enemyRenderer.draw(gc, enemy, TILE_SIZE, mistTimeNanos, this.difficulty);
+                enemyRenderer.draw(gc, enemy, TILE_SIZE, mistTimeNanos, this.difficulty, frameDeltaSeconds);
             }
         }
         gc.restore();
