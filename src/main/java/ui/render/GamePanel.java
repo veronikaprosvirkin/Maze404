@@ -30,6 +30,7 @@ public class GamePanel extends Pane {
     private final Canvas canvas;
     private final GridRenderer gridRenderer;
     private final PlayerRenderer playerRenderer;
+    private final EnemyRenderer enemyRenderer;
     private final Difficulty difficulty;
     private final List<Artifact> artifacts;
     private final double baseWidth;
@@ -106,6 +107,7 @@ public class GamePanel extends Pane {
         this.canvas = new Canvas(baseWidth, baseHeight);
         this.gridRenderer = new GridRenderer(new SpriteSheet(this.difficulty));
         this.playerRenderer = new PlayerRenderer();
+        this.enemyRenderer = new EnemyRenderer();
 
         try {
             this.keyImage = new Image(getClass().getResourceAsStream("/icons/key.png"));
@@ -187,15 +189,9 @@ public class GamePanel extends Pane {
         }
         playerRenderer.drawCurrent(gc, player, TILE_SIZE, this.difficulty);
 
-        // test: draw enemies as colored squares
         if (enemies != null) {
             for (model.Enemy enemy : enemies) {
-                if (enemy.getMode() == enums.EnemyMode.CHASE) {
-                    gc.setFill(javafx.scene.paint.Color.RED);
-                } else {
-                    gc.setFill(javafx.scene.paint.Color.BLUE);
-                }
-                gc.fillRect(enemy.getCol() * TILE_SIZE, enemy.getRow() * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                enemyRenderer.draw(gc, enemy, TILE_SIZE, mistTimeNanos);
             }
         }
         gc.restore();
