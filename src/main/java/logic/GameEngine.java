@@ -69,7 +69,8 @@ public class GameEngine {
     {
         if (gameState.getPlayer().getHealth() <= 0) {
             gameState.setGameOver(true);
-            EventBus.getInstance().publish(new GameEvent(GameEvent.Type.LEVEL_COMPLETE));
+            // Виправлено: тепер публікуємо правильну подію смерті гравця
+            EventBus.getInstance().publish(new GameEvent(GameEvent.Type.PLAYER_DIED));
         }
     }
     private void doMove(int row, int col) {
