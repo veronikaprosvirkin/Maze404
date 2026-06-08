@@ -38,6 +38,7 @@ import model.Grid;
 import model.Player;
 import model.Position;
 import enums.ArtifactType;
+import ui.GameWindows;
 import ui.input.InputHandler;
 import ui.render.ArtifactVisuals;
 import ui.render.GameAlerts;
@@ -76,6 +77,7 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        GameWindows.setPrimaryStage(primaryStage);
         StackPane root = new StackPane();
         Scene scene = new Scene(root, 1024, 680);
         showStartMenu(root, scene);
