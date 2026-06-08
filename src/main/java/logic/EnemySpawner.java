@@ -17,7 +17,7 @@ import java.util.List;
 
 public class EnemySpawner {
 
-    public List<Enemy> spawnEnemies(Grid grid, Difficulty difficulty, List<Artifact> artifacts) {
+    public List<Enemy> spawnEnemies(Grid grid, Difficulty difficulty, List<Artifact> artifacts, Position playerStart) {
         int patrolEnemyCount = 0;
 
         switch (difficulty) {
@@ -27,6 +27,10 @@ public class EnemySpawner {
         }
 
         List<Position> floorCells = Util.getFloorCells(grid);
+
+        if (playerStart != null) {
+            floorCells.removeIf(p -> p.manhattanDistance(playerStart) < 4);
+        }
         Collections.shuffle(floorCells);
 
         List<Enemy> enemies = new ArrayList<>();
@@ -50,9 +54,21 @@ public class EnemySpawner {
 
                     int distToKey = cell.manhattanDistance(keyPosition);
 
-                    if (distToKey > 0 && distToKey <= 2) {
-                        enemies.add(new Enemy(cell.getRow(), cell.getCol(), EnemyMode.CHASE, new ChaseAI()));
-                        guardsSpawned++;
+                    if (distToKey > 0 && distToKey <= 3) {
+                        boolean isTooClose = false;
+
+                        for (Enemy e : enemies) {
+                            Position existingEnemyPos = new Position(e.getRow(), e.getCol());
+                            if (cell.manhattanDistance(existingEnemyPos) < 2) {
+                                isTooClose = true;
+                                break;
+                            }
+                        }
+
+                        if (!isTooClose) {
+                            enemies.add(new Enemy(cell.getRow(), cell.getCol(), EnemyMode.CHASE, new ChaseAI()));
+                            guardsSpawned++;
+                        }
                     }
                 }
             }

@@ -35,6 +35,7 @@ public class LevelLoader {
 
         Player player = new Player(startPos.getRow(), startPos.getCol());
 
+
         Difficulty currentDifficulty = switch (levelNumber) {
             case 1 -> Difficulty.EASY;
             case 2 -> Difficulty.MEDIUM;
@@ -45,7 +46,7 @@ public class LevelLoader {
 
         List<Artifact> artifacts = artifactSpawner.spawnArtifacts(grid, currentDifficulty, startPos);
 
-        List<Enemy> enemies = enemySpawner.spawnEnemies(grid, currentDifficulty, artifacts);
+        List<Enemy> enemies = enemySpawner.spawnEnemies(grid, currentDifficulty, artifacts, startPos);
 
         return new GameState(grid, player, enemies, artifacts, levelNumber);
     }

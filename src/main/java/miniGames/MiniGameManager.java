@@ -20,6 +20,9 @@ import javafx.scene.layout.VBox;
 import model.Player;
 import ui.GameWindows;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 
@@ -28,6 +31,7 @@ public class MiniGameManager {
     private final Random random = new Random();
     private final GameState gameState;
     private final Consumer<GameEvent> miniGameTriggerListener;
+    private final List<Integer> availableGames = new ArrayList<>();
 
     public MiniGameManager(GameState gameState, Player player) {
         this.gameState = gameState;
@@ -235,7 +239,13 @@ public class MiniGameManager {
             default -> "Unknown Artifact";
         };
 
-        int gameChoice = random.nextInt(6);
+        if (availableGames.isEmpty()) {
+            for (int i = 0; i < 6; i++) {
+                availableGames.add(i);
+            }
+            Collections.shuffle(availableGames, random);
+        }
+        int gameChoice = availableGames.remove(0);
 
         Difficulty currentDiff = Difficulty.current;
 
