@@ -5,6 +5,7 @@ import events.EventBus;
 import events.GameEvent;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
+import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.animation.Interpolator;
 import javafx.application.Application;
@@ -54,6 +55,7 @@ public class MainApp extends Application {
     private static final double MIN_WINDOW_WIDTH = 1024;
     private static final double MIN_WINDOW_HEIGHT = 680;
     private static final int PLAYER_MAX_HEALTH = 3;
+    private static final Duration RADAR_REVEAL_DURATION = Duration.seconds(10);
 
     private static final CountDownLatch START_LATCH = new CountDownLatch(1);
 
@@ -137,6 +139,8 @@ public class MainApp extends Application {
         gamePanel.setMistAnimationTimeScale(mistAnimationTime);
         gamePanel.setMistDensity(mistDensity);
         gamePanel.setGameVolume(settings.gameVolume());
+        PauseTransition radarMistRestoreTimer = new PauseTransition(RADAR_REVEAL_DURATION);
+        radarMistRestoreTimer.setOnFinished(event -> gamePanel.setMistEnabled(mistEnabled));
 
         Label hpValueLabel = createHudValueLabel();
         Label crystalsValueLabel = createHudValueLabel();
@@ -322,7 +326,15 @@ public class MainApp extends Application {
                 case MOVE_DOWN  -> movementSystem.movePlayer(gameState,  1,  0);
                 case MOVE_LEFT  -> movementSystem.movePlayer(gameState,  0, -1);
                 case MOVE_RIGHT -> movementSystem.movePlayer(gameState,  0,  1);
-                case RADAR      -> radarSystem.activateRadar(gameState);
+                case RADAR      -> {
+                    int radarChargesBeforeUse = player.getRadarCharges();
+                    radarSystem.activateRadar(gameState);
+                    if (player.getRadarCharges() < radarChargesBeforeUse) {
+                        gamePanel.setMistEnabled(false);
+                        radarMistRestoreTimer.stop();
+                        radarMistRestoreTimer.playFromStart();
+                    }
+                }
                 case SHIELD     -> shieldSystem.activateShield(gameState);
                 case BEACON     -> beaconSystem.placeBeacon(gameState);
                 case ELIXIR     -> useElixir(player);
