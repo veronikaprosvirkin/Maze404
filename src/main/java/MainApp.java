@@ -204,7 +204,7 @@ public class MainApp extends Application {
         StackPane.setAlignment(hudRow, Pos.BOTTOM_CENTER);
         StackPane.setMargin(hudRow, new Insets(0, 0, 24, 0));
 
-        Label levelTitle = new Label(getLevelTitle(Difficulty.current, gameState.getCurrentLevel()));
+        Label levelTitle = new Label(getLevelTitle(Difficulty.current));
         levelTitle.getStyleClass().add("pause-title-label");
         HBox levelTitleBox = new HBox(levelTitle);
         levelTitleBox.getStyleClass().add("game-hud");
@@ -384,7 +384,13 @@ public class MainApp extends Application {
         scene.getRoot().requestFocus();
     }
 
-    private static String getLevelTitle(Difficulty difficulty, int levelNumber) {
+    private static String getLevelTitle(Difficulty difficulty) {
+        String levelNumber = switch (difficulty) {
+            case MEDIUM -> "2";
+            case HARD -> "3";
+            default -> "1";
+        };
+
         String difficultyLabel = switch (difficulty) {
             case MEDIUM -> "Medium";
             case HARD -> "Hard";

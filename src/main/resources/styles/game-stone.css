@@ -132,9 +132,9 @@
     -fx-min-width: 156px;
     -fx-pref-width: 156px;
     -fx-max-width: 156px;
-    -fx-min-height: 54px;
-    -fx-pref-height: 54px;
-    -fx-max-height: 54px;
+    -fx-min-height: 46px;
+    -fx-pref-height: 46px;
+    -fx-max-height: 46px;
 }
 
 .pause-hud-button {
@@ -145,4 +145,10 @@
     -fx-text-alignment: left;
     -fx-text-fill: #FFF8E6;
     -fx-padding: 0 20 0 20;
+}
+
+.pause-title-label {
+    -fx-text-fill: rgba(245, 251, 255, 0.8);
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
 }
