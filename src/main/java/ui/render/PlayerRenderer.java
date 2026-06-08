@@ -89,12 +89,14 @@ public class PlayerRenderer {
     }
 
     private PlayerPalette getCurrentPalette(Difficulty diff) {
+        PlayerPalette basePalette = paletteFor(diff != null ? diff : Difficulty.EASY, 1.0);
         long now = System.nanoTime();
         if (now < damageFlashUntilNanos) {
-            double progress = (double) (damageFlashUntilNanos - now) / DAMAGE_FLASH_DURATION_NANOS;
-            return damagePalette(0.72 + 0.28 * progress);
+            double elapsed = 1.0 - (double) (damageFlashUntilNanos - now) / DAMAGE_FLASH_DURATION_NANOS;
+            double blend = Math.sin(Math.PI * clamp(elapsed, 0.0, 1.0));
+            return blendPalettes(basePalette, damagePalette(1.0), blend);
         }
-        return paletteFor(diff != null ? diff : Difficulty.EASY, 1.0);
+        return basePalette;
     }
 
     private static void drawSkin(GraphicsContext gc, PlayerSkin skin, PlayerPalette palette, double centerX,
@@ -261,6 +263,26 @@ public class PlayerRenderer {
         );
     }
 
+    private static PlayerPalette blendPalettes(PlayerPalette from, PlayerPalette to, double t) {
+        double blend = clamp(t, 0.0, 1.0);
+        return new PlayerPalette(
+                blendColor(from.base(), to.base(), blend),
+                blendColor(from.innerGlow(), to.innerGlow(), blend),
+                blendColor(from.outerAura(), to.outerAura(), blend),
+                blendColor(from.border(), to.border(), blend),
+                blendColor(from.highlight(), to.highlight(), blend)
+        );
+    }
+
+    private static Color blendColor(Color from, Color to, double t) {
+        return Color.color(
+                lerp(from.getRed(), to.getRed(), t),
+                lerp(from.getGreen(), to.getGreen(), t),
+                lerp(from.getBlue(), to.getBlue(), t),
+                lerp(from.getOpacity(), to.getOpacity(), t)
+        );
+    }
+
     private static void drawShieldRing(GraphicsContext gc, Difficulty diff, double centerX, double centerY, double radius) {
         long nowNanos = System.nanoTime();
         double timeSeconds = nowNanos / 1_000_000_000.0;
@@ -286,6 +308,14 @@ public class PlayerRenderer {
 
     private static Color withOpacity(Color color, double opacity) {
         return Color.color(color.getRed(), color.getGreen(), color.getBlue(), opacity);
+    }
+
+    private static double lerp(double start, double end, double t) {
+        return start + (end - start) * t;
+    }
+
+    private static double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     private static void drawHexaStarFill(GraphicsContext gc, double centerX, double centerY,
