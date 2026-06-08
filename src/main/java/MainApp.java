@@ -4,7 +4,9 @@ import enums.PlayerSkin;
 import events.EventBus;
 import events.GameEvent;
 import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.animation.Interpolator;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -14,10 +16,12 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.Node;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import logic.ArtifactSpawner;
@@ -255,6 +259,8 @@ public class MainApp extends Application {
         resumeButton.getStyleClass().addAll("hud-card", "pause-menu-button", "pause-menu-primary");
         Button exitButton = new Button("Exit");
         exitButton.getStyleClass().addAll("hud-card", "pause-menu-button", "pause-menu-secondary");
+        attachPauseButtonHover(resumeButton, getPausePrimaryGlowColor(Difficulty.current));
+        attachPauseButtonHover(exitButton, Color.rgb(255, 96, 96, 0.92));
 
         VBox pauseMenu = new VBox(14, pauseOverlayTitle, pausedLabel, resumeButton, exitButton);
         pauseMenu.getStyleClass().addAll("game-hud", "pause-overlay-panel");
@@ -402,6 +408,36 @@ public class MainApp extends Application {
             default -> "Cryo Dungeon";
         };
         return "Level " + levelNumber + " • " + difficultyLabel + " • " + levelName;
+    }
+
+    private static void attachPauseButtonHover(Button button, Color glowColor) {
+        DropShadow glow = new DropShadow();
+        glow.setColor(glowColor);
+        glow.setRadius(14);
+        glow.setSpread(0.08);
+        button.setEffect(glow);
+
+        button.setOnMouseEntered(event -> animatePauseButton(button, glow, 24, 0.24, 1.03));
+        button.setOnMouseExited(event -> animatePauseButton(button, glow, 14, 0.08, 1.0));
+    }
+
+    private static void animatePauseButton(Button button, DropShadow glow, double radius, double spread, double scale) {
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.millis(180),
+                        new KeyValue(glow.radiusProperty(), radius, Interpolator.EASE_BOTH),
+                        new KeyValue(glow.spreadProperty(), spread, Interpolator.EASE_BOTH),
+                        new KeyValue(button.scaleXProperty(), scale, Interpolator.EASE_BOTH),
+                        new KeyValue(button.scaleYProperty(), scale, Interpolator.EASE_BOTH))
+        );
+        timeline.play();
+    }
+
+    private static Color getPausePrimaryGlowColor(Difficulty difficulty) {
+        return switch (difficulty) {
+            case MEDIUM -> Color.rgb(240, 176, 48, 0.92);
+            case HARD -> Color.rgb(240, 144, 64, 0.92);
+            default -> Color.rgb(101, 242, 160, 0.92);
+        };
     }
 
     private static VBox createHudCard(String title, Node iconNode, Label valueLabel, String accentStyleClass) {
