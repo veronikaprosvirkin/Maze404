@@ -358,6 +358,7 @@ public class GameSession {
         exitButton.setOnAction(event -> {
             pauseController.resume();
             enemyTimer.stop();
+            miniGameManager.dispose();
             exitToMenu.run();
         });
 

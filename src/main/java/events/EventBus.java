@@ -29,4 +29,11 @@ public class EventBus {
         listeners.computeIfAbsent(type, k -> new ArrayList<>());
         listeners.get(type).add(listener);
     }
+
+    public void unsubscribe(GameEvent.Type type, Consumer<GameEvent> listener) {
+        List<Consumer<GameEvent>> eventListeners = listeners.get(type);
+        if (eventListeners != null) {
+            eventListeners.remove(listener);
+        }
+    }
 }
