@@ -11,6 +11,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -60,6 +62,7 @@ public class MiniGameManager {
         Button leaveItButton = createAlertButton(alert, ButtonType.CANCEL, "Leave It", "artifact-cancel-button");
         setAlertActions(alert, leaveItButton, enterChallengeButton);
         configureWindowClose(alert, ButtonType.CANCEL, ButtonType.OK);
+        installChallengeShortcuts(alert, enterChallengeButton, leaveItButton);
         GameWindows.configureDialog(alert);
 
         alert.showAndWait();
@@ -90,6 +93,28 @@ public class MiniGameManager {
         GameWindows.configureDialog(errorAlert);
 
         errorAlert.showAndWait();
+    }
+
+    private void installChallengeShortcuts(Alert alert, Button acceptButton, Button rejectButton) {
+        acceptButton.setDefaultButton(true);
+        rejectButton.setCancelButton(true);
+
+        alert.setOnShown(event -> {
+            if (alert.getDialogPane().getScene() == null) {
+                return;
+            }
+
+            alert.getDialogPane().getScene().addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
+                if (keyEvent.getCode() == KeyCode.ENTER) {
+                    acceptButton.fire();
+                    keyEvent.consume();
+                } else if (keyEvent.getCode() == KeyCode.ESCAPE) {
+                    rejectButton.fire();
+                    keyEvent.consume();
+                }
+            });
+            alert.getDialogPane().requestFocus();
+        });
     }
 
     private void styleAlert(Alert alert, String variantClass, String emblem, String title, String message) {
