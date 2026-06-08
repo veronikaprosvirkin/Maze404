@@ -218,7 +218,15 @@ public class GameSession {
 
         Label endGroupLabel = new Label();
         endGroupLabel.setStyle("-fx-text-fill: #FFD700; -fx-font-size: 36px; -fx-font-weight: bold;");
-        winLoseOverlay.getChildren().add(endGroupLabel);
+
+        Button returnToMenuBtn = new Button("Main Menu");
+        returnToMenuBtn.getStyleClass().addAll("hud-card", "pause-menu-button", "pause-menu-secondary");
+        attachPauseButtonHover(returnToMenuBtn, Color.rgb(255, 96, 96, 0.92));
+
+        VBox endScreenBox = new VBox(24, endGroupLabel, returnToMenuBtn);
+        endScreenBox.setAlignment(Pos.CENTER);
+
+        winLoseOverlay.getChildren().add(endScreenBox);
 
         Label pauseOverlayTitle = new Label(levelTitle.getText());
         pauseOverlayTitle.getStyleClass().add("pause-title-label");
@@ -356,6 +364,12 @@ public class GameSession {
             scene.getRoot().requestFocus();
         });
         exitButton.setOnAction(event -> {
+            pauseController.resume();
+            enemyTimer.stop();
+            miniGameManager.dispose();
+            exitToMenu.run();
+        });
+        returnToMenuBtn.setOnAction(event -> {
             pauseController.resume();
             enemyTimer.stop();
             miniGameManager.dispose();
