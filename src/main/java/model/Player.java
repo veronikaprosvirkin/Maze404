@@ -19,7 +19,7 @@ public class Player {
     @Getter
     private int health = MAX_HEALTH;
     @Getter
-    private int crystals = 1000;
+    private int crystals = 0;
     @Getter
     private int radarCharges = 0;
     @Getter
