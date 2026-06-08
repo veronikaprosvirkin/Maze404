@@ -37,6 +37,7 @@ public class InputHandler {
             case S, DOWN -> GameAction.MOVE_DOWN;
             case A, LEFT -> GameAction.MOVE_LEFT;
             case D, RIGHT -> GameAction.MOVE_RIGHT;
+            case ESCAPE -> GameAction.TOGGLE_PAUSE;
             case Q -> GameAction.SCAN;
             case B, DIGIT3, NUMPAD3 -> GameAction.BEACON;
             case R, DIGIT1, NUMPAD1 -> GameAction.RADAR;

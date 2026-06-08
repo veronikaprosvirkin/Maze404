@@ -94,6 +94,12 @@
     -fx-effect: dropshadow(gaussian, rgba(194, 180, 154, 0.16), 18, 0.15, 0, 5);
 }
 
+.hud-shield.hud-card-active {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(194, 180, 154, 0.24), rgba(255, 241, 200, 0.10));
+    -fx-border-color: rgba(240, 176, 48, 0.78);
+    -fx-effect: dropshadow(gaussian, rgba(240, 176, 48, 0.34), 24, 0.25, 0, 0);
+}
+
 .hud-beacon {
     -fx-border-color: rgba(212, 120, 10, 0.42);
     -fx-effect: dropshadow(gaussian, rgba(212, 120, 10, 0.18), 18, 0.15, 0, 5);
@@ -107,4 +113,36 @@
 .hud-key {
     -fx-border-color: rgba(217, 201, 168, 0.42);
     -fx-effect: dropshadow(gaussian, rgba(217, 201, 168, 0.16), 18, 0.15, 0, 5);
+}
+
+.pause-hotkey-badge {
+    -fx-min-width: 34px;
+    -fx-pref-width: 34px;
+    -fx-max-width: 34px;
+    -fx-min-height: 22px;
+    -fx-pref-height: 22px;
+    -fx-max-height: 22px;
+    -fx-padding: 0;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+    -fx-content-display: center;
+}
+
+.pause-button-wrapper {
+    -fx-min-width: 156px;
+    -fx-pref-width: 156px;
+    -fx-max-width: 156px;
+    -fx-min-height: 54px;
+    -fx-pref-height: 54px;
+    -fx-max-height: 54px;
+}
+
+.pause-hud-button {
+    -fx-min-height: 26px;
+    -fx-pref-height: 26px;
+    -fx-max-height: 26px;
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
+    -fx-text-fill: #FFF8E6;
+    -fx-padding: 0 20 0 20;
 }
