@@ -163,7 +163,7 @@ public class GamePanel extends Pane {
                 viewportOffsetX - cameraX * currentZoom,
                 viewportOffsetY - cameraY * currentZoom
         );
-        gridRenderer.draw(gc, grid, startRow, endRow, startCol, endCol);
+        gridRenderer.draw(gc, grid, startRow, endRow, startCol, endCol, mistTimeNanos / 1_000_000_000.0);
         drawArtifacts(gc, player, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
         if (mistEnabled) {
             drawMist(gc, grid, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
