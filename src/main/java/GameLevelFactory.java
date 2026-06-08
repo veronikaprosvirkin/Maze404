@@ -18,13 +18,14 @@ public class GameLevelFactory {
 
         Player player = new Player(7, 7);
         player.setSkin(playerSkin != null ? playerSkin : PlayerSkin.CIRCLE);
+        Position dynamicPlayerPos = new Position(player.getRow(), player.getCol());
 
         List<Artifact> artifacts = new ArtifactSpawner().spawnArtifacts(
                 grid,
                 difficulty,
-                new Position(player.getRow(), player.getCol())
+                dynamicPlayerPos
         );
-        List<Enemy> enemies = new EnemySpawner().spawnEnemies(grid, difficulty, artifacts);
+        List<Enemy> enemies = new EnemySpawner().spawnEnemies(grid, difficulty, artifacts, dynamicPlayerPos);
         GameState gameState = new GameState(grid, player, enemies, artifacts, 1);
 
         return new LevelContext(gameState, grid, player, artifacts, enemies);
