@@ -11,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.Node;
 import javafx.scene.layout.HBox;
@@ -21,6 +22,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import logic.ArtifactSpawner;
 import logic.ArtifactSystem;
+import logic.PauseController;
 import logic.generation.MazeGenerator;
 import logic.system.BeaconSystem;
 import logic.system.MovementSystem;
@@ -67,12 +69,7 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) {
         StackPane root = new StackPane();
         Scene scene = new Scene(root, 1024, 680);
-        StartMenuView startMenu = new StartMenuView(
-                settings -> startGame(root, scene, settings),
-                Platform::exit
-        );
-
-        root.getChildren().setAll(startMenu);
+        showStartMenu(root, scene);
         primaryStage.setTitle("Maze404");
         primaryStage.setScene(scene);
         primaryStage.setResizable(true);
@@ -83,6 +80,15 @@ public class MainApp extends Application {
         primaryStage.requestFocus();
 
         START_LATCH.countDown();
+    }
+
+    private void showStartMenu(StackPane root, Scene scene) {
+        StartMenuView startMenu = new StartMenuView(
+                settings -> startGame(root, scene, settings),
+                Platform::exit
+        );
+        root.getChildren().setAll(startMenu);
+        scene.getRoot().requestFocus();
     }
 
     private void startGame(StackPane root, Scene scene, StartMenuView.MenuSettings settings) {
@@ -112,6 +118,7 @@ public class MainApp extends Application {
         List<model.Enemy> enemies = enemySpawner.spawnEnemies(grid, Difficulty.current, artifacts);
 
         GameState gameState = new GameState(grid, player, enemies, artifacts, 1);
+        PauseController pauseController = new PauseController(gameState);
         ArtifactSystem artifactSystem = new ArtifactSystem();
         miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(gameState, player);
         RadarSystem radarSystem = new RadarSystem();
@@ -169,12 +176,12 @@ public class MainApp extends Application {
         inventoryHud.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
         inventoryHud.setPadding(new Insets(14, 18, 14, 18));
 
-        inventoryHud.getChildren().addAll(
-                createHudCard("Radar", ArtifactVisuals.createHudIcon(ArtifactType.RADAR, 24), radarValueLabel, "radar", "1"),
-                createHudCard("Shield", ArtifactVisuals.createHudIcon(ArtifactType.SHIELD, 24), shieldValueLabel, "shield", "2"),
-                createHudCard("Beacon", ArtifactVisuals.createHudIcon(ArtifactType.BEACON, 24), beaconValueLabel, "beacon", "3"),
-                createHudCard("Elixir", ArtifactVisuals.createHudIcon(ArtifactType.ELIXIR, 24), elixirsValueLabel, "elixir", "4")
-        );
+        VBox radarCard = createHudCard("Radar", ArtifactVisuals.createHudIcon(ArtifactType.RADAR, 24), radarValueLabel, "radar", "1");
+        VBox shieldCard = createHudCard("Shield", ArtifactVisuals.createHudIcon(ArtifactType.SHIELD, 24), shieldValueLabel, "shield", "2");
+        VBox beaconCard = createHudCard("Beacon", ArtifactVisuals.createHudIcon(ArtifactType.BEACON, 24), beaconValueLabel, "beacon", "3");
+        VBox elixirCard = createHudCard("Elixir", ArtifactVisuals.createHudIcon(ArtifactType.ELIXIR, 24), elixirsValueLabel, "elixir", "4");
+        inventoryHud.getChildren().addAll(radarCard, shieldCard, beaconCard, elixirCard);
+        updateShieldHudState(shieldCard, player);
 
         HBox hudRow = new HBox(12, healthHud, inventoryHud);
         if (Difficulty.current != Difficulty.EASY) {
@@ -197,15 +204,68 @@ public class MainApp extends Application {
         StackPane.setAlignment(hudRow, Pos.BOTTOM_CENTER);
         StackPane.setMargin(hudRow, new Insets(0, 0, 24, 0));
 
+        Label levelTitle = new Label(getLevelTitle(Difficulty.current, gameState.getCurrentLevel()));
+        levelTitle.getStyleClass().add("pause-title-label");
+        HBox levelTitleBox = new HBox(levelTitle);
+        levelTitleBox.getStyleClass().add("game-hud");
+        levelTitleBox.setAlignment(Pos.CENTER);
+        levelTitleBox.setPadding(new Insets(14, 22, 14, 22));
+        levelTitleBox.setPickOnBounds(false);
+        levelTitleBox.setMaxWidth(Region.USE_PREF_SIZE);
+        levelTitleBox.setMaxHeight(Region.USE_PREF_SIZE);
+        StackPane.setAlignment(levelTitleBox, Pos.TOP_CENTER);
+        StackPane.setMargin(levelTitleBox, new Insets(24, 0, 0, 0));
+
+        Button pauseButton = new Button("Pause");
+        pauseButton.getStyleClass().addAll("hud-card", "pause-hud-button");
+        pauseButton.setFocusTraversable(false);
+
+        Label pauseHint = new Label("Esc");
+        pauseHint.getStyleClass().add("hud-hotkey-badge");
+        pauseHint.getStyleClass().add("pause-hotkey-badge");
+
+        StackPane pauseButtonWrapper = new StackPane(pauseButton, pauseHint);
+        pauseButtonWrapper.getStyleClass().addAll("game-hud", "pause-button-wrapper");
+        pauseButtonWrapper.setPadding(new Insets(8, 8, 8, 8));
+        pauseButtonWrapper.setMaxWidth(Region.USE_PREF_SIZE);
+        pauseButtonWrapper.setMaxHeight(Region.USE_PREF_SIZE);
+        StackPane.setAlignment(pauseButton, Pos.CENTER_LEFT);
+        StackPane.setAlignment(pauseHint, Pos.BOTTOM_CENTER);
+        pauseHint.setTranslateX(40);
+        pauseHint.setTranslateY(-3);
+        StackPane.setAlignment(pauseButtonWrapper, Pos.TOP_LEFT);
+        StackPane.setMargin(pauseButtonWrapper, new Insets(24, 0, 0, 24));
+
         // --- ОВЕРЛЕЙ ПЕРЕМОГИ / ПРОГРАШУ ---
         StackPane winLoseOverlay = new StackPane();
-        winLoseOverlay.setVisible(false); // Спочатку воно повністю сховане
+        winLoseOverlay.setVisible(false);
         winLoseOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
         StackPane.setAlignment(winLoseOverlay, javafx.geometry.Pos.CENTER);
 
         javafx.scene.control.Label endGroupLabel = new javafx.scene.control.Label();
         endGroupLabel.setStyle("-fx-text-fill: #FFD700; -fx-font-size: 36px; -fx-font-weight: bold;");
         winLoseOverlay.getChildren().add(endGroupLabel);
+
+        Label pauseOverlayTitle = new Label(levelTitle.getText());
+        pauseOverlayTitle.getStyleClass().add("pause-title-label");
+        Label pausedLabel = new Label("Paused");
+        pausedLabel.getStyleClass().add("pause-overlay-heading");
+
+        Button resumeButton = new Button("Resume");
+        resumeButton.getStyleClass().addAll("hud-card", "pause-menu-button", "pause-menu-primary");
+        Button exitButton = new Button("Exit");
+        exitButton.getStyleClass().addAll("hud-card", "pause-menu-button", "pause-menu-secondary");
+
+        VBox pauseMenu = new VBox(14, pauseOverlayTitle, pausedLabel, resumeButton, exitButton);
+        pauseMenu.getStyleClass().addAll("game-hud", "pause-overlay-panel");
+        pauseMenu.setAlignment(Pos.CENTER);
+        pauseMenu.setMaxWidth(Region.USE_PREF_SIZE);
+        pauseMenu.setMaxHeight(Region.USE_PREF_SIZE);
+        pauseMenu.setPadding(new Insets(24, 28, 24, 28));
+
+        StackPane pauseOverlay = new StackPane(pauseMenu);
+        pauseOverlay.getStyleClass().add("pause-overlay");
+        pauseOverlay.setVisible(false);
 
         // --- ОБРОБНИК ВВОДУ (Рух гравця + оновлення створеного вище UI) ---4
 
@@ -220,7 +280,13 @@ public class MainApp extends Application {
         });
 
         InputHandler inputHandler = new InputHandler(action -> {
-            if (gameState.isGameOver() || gameState.isLevelComplete()) return;
+            if (action == ui.input.GameAction.TOGGLE_PAUSE) {
+                pauseController.toggle();
+                pauseOverlay.setVisible(pauseController.isPaused());
+                return;
+            }
+
+            if (gameState.isGameOver() || gameState.isLevelComplete() || gameState.isPaused()) return;
 
             /*
             int deltaRow = 0;
@@ -270,12 +336,17 @@ public class MainApp extends Application {
                         elixirsValueLabel,
                         keyValueLabel
                 );
+                updateShieldHudState(shieldCard, player);
 
                 if (gameState.isGameOver() || player.getHealth() <= 0) {
+                    pauseController.resume();
+                    pauseOverlay.setVisible(false);
                     endGroupLabel.setText("GAME OVER");
                     endGroupLabel.setStyle("-fx-text-fill: #FF3333; -fx-font-size: 42px; -fx-font-weight: bold;");
                     winLoseOverlay.setVisible(true);
                 } else if (gameState.isLevelComplete()) {
+                    pauseController.resume();
+                    pauseOverlay.setVisible(false);
                     endGroupLabel.setText("VICTORY!");
                     endGroupLabel.setStyle("-fx-text-fill: #33FF33; -fx-font-size: 42px; -fx-font-weight: bold;");
                     winLoseOverlay.setVisible(true);
@@ -287,8 +358,44 @@ public class MainApp extends Application {
         Timeline enemyTimer = getEnemyTimer(gameState, grid, player);
         enemyTimer.play();
 
-        root.getChildren().setAll(gamePanel, hudRow, winLoseOverlay);
+        Runnable syncPauseUi = () -> {
+            boolean paused = pauseController.isPaused();
+            pauseOverlay.setVisible(paused);
+            pauseOverlayTitle.setText(levelTitle.getText());
+        };
+
+        pauseButton.setOnAction(event -> {
+            pauseController.pause();
+            syncPauseUi.run();
+            scene.getRoot().requestFocus();
+        });
+        resumeButton.setOnAction(event -> {
+            pauseController.resume();
+            syncPauseUi.run();
+            scene.getRoot().requestFocus();
+        });
+        exitButton.setOnAction(event -> {
+            pauseController.resume();
+            enemyTimer.stop();
+            showStartMenu(root, scene);
+        });
+
+        root.getChildren().setAll(gamePanel, levelTitleBox, pauseButtonWrapper, hudRow, pauseOverlay, winLoseOverlay);
         scene.getRoot().requestFocus();
+    }
+
+    private static String getLevelTitle(Difficulty difficulty, int levelNumber) {
+        String difficultyLabel = switch (difficulty) {
+            case MEDIUM -> "Medium";
+            case HARD -> "Hard";
+            default -> "Easy";
+        };
+        String levelName = switch (difficulty) {
+            case MEDIUM -> "Stone Desert";
+            case HARD -> "Inferno Hell";
+            default -> "Cryo Dungeon";
+        };
+        return "Level " + levelNumber + " • " + difficultyLabel + " • " + levelName;
     }
 
     private static VBox createHudCard(String title, Node iconNode, Label valueLabel, String accentStyleClass) {
@@ -363,7 +470,7 @@ public class MainApp extends Application {
         hpValueLabel.setText(player.getHealth() + " / " + PLAYER_MAX_HEALTH);
         crystalsValueLabel.setText(String.valueOf(player.getCrystals()));
         radarValueLabel.setText(String.valueOf(player.getRadarCharges()));
-        shieldValueLabel.setText(player.hasShield() ? player.getShieldCount() + " + active" : String.valueOf(player.getShieldCount()));
+        shieldValueLabel.setText(String.valueOf(player.getShieldCount()));
         beaconValueLabel.setText(String.valueOf(player.getBeaconCount()));
         elixirsValueLabel.setText(String.valueOf(player.getElixirCount()));
         keyValueLabel.setText(player.hasKey() ? "Found" : "Empty");
@@ -376,6 +483,17 @@ public class MainApp extends Application {
 
         player.useElixir();
         player.heal(1);
+    }
+
+    private static void updateShieldHudState(VBox shieldCard, Player player) {
+        boolean active = player.hasShield();
+        if (active) {
+            if (!shieldCard.getStyleClass().contains("hud-card-active")) {
+                shieldCard.getStyleClass().add("hud-card-active");
+            }
+        } else {
+            shieldCard.getStyleClass().remove("hud-card-active");
+        }
     }
 
     private String getGameStylesheet() {
