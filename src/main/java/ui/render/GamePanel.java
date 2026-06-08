@@ -16,6 +16,8 @@ public class GamePanel extends Pane {
     private static final int TILE_SIZE = 32;
     private static final int BEACON_MIST_RADIUS_CELLS = 5;
     private static final double VIEWPORT_ZOOM = 2.2;
+    private static final double RADAR_VIEWPORT_ZOOM = 1.7;
+    private static final double ZOOM_TOGGLE_TRANSITION_SECONDS = 0.55;
     private static final double CAMERA_SMOOTHING_SECONDS = 0.3;
     private static final double INTRO_CAMERA_SMOOTHING_SECONDS = 0.55;
     private static final double LEVEL_INTRO_SECONDS = 2.6;
@@ -25,6 +27,7 @@ public class GamePanel extends Pane {
     private static final int DEFAULT_MIST_SAMPLE_STEP = 2;
     private static final double MIST_ALPHA_CAP = 0.97;
     private static final double MIST_FOCUS_TRANSITION_SECONDS = 0.3;
+    private static final double MIST_TOGGLE_TRANSITION_SECONDS = 0.55;
     private static final double MIST_EDGE_FADE_BAND = TILE_SIZE * 2.2;
     private static final double MIST_OUTSIDE_FADE_BAND = TILE_SIZE * 3.4;
 
@@ -41,6 +44,10 @@ public class GamePanel extends Pane {
     private double cameraY;
     private boolean cameraInitialized = false;
     private boolean mistEnabled = false;
+    private double mistOpacity = 0.0;
+    private double mistOpacityStart = 0.0;
+    private double mistOpacityTarget = 0.0;
+    private double mistOpacityElapsedSeconds = MIST_TOGGLE_TRANSITION_SECONDS;
     private double mistAnimationTimeScale = 1.0;
     private double mistDensity = 1.0;
     private double gameVolume = 1.0;
@@ -48,6 +55,10 @@ public class GamePanel extends Pane {
     private long lastFrameNanos = 0L;
     private double frameDeltaSeconds = 1.0 / 60.0;
     private double introElapsedSeconds = 0.0;
+    private double viewportZoom = VIEWPORT_ZOOM;
+    private double viewportZoomStart = VIEWPORT_ZOOM;
+    private double viewportZoomTarget = VIEWPORT_ZOOM;
+    private double viewportZoomElapsedSeconds = ZOOM_TOGGLE_TRANSITION_SECONDS;
     private double mistFocusX;
     private double mistFocusY;
     private double mistFocusStartX;
@@ -142,9 +153,10 @@ public class GamePanel extends Pane {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         playerRenderer.update(player, TILE_SIZE, frameDeltaSeconds);
+        updateMistTransition();
         double currentZoom = getCurrentZoom();
         updateCamera(playerRenderer.getRenderCenterX(TILE_SIZE), playerRenderer.getRenderCenterY(TILE_SIZE), currentZoom);
-        if (mistEnabled) {
+        if (mistOpacity > 0.0 || mistOpacityTarget > 0.0) {
             updateMistFocus(player);
         }
 
@@ -166,7 +178,7 @@ public class GamePanel extends Pane {
         );
         gridRenderer.draw(gc, grid, startRow, endRow, startCol, endCol, mistTimeNanos / 1_000_000_000.0);
         drawArtifacts(gc, grid, player, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
-        if (mistEnabled) {
+        if (mistOpacity > 0.01) {
             drawMist(gc, grid, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
         }
         playerRenderer.drawCurrent(gc, player, TILE_SIZE, this.difficulty);
@@ -203,6 +215,22 @@ public class GamePanel extends Pane {
 
     public void setMistEnabled(boolean mistEnabled) {
         this.mistEnabled = mistEnabled;
+        double nextTargetOpacity = mistEnabled ? 1.0 : 0.0;
+        if (lastFrameNanos == 0L) {
+            mistOpacity = nextTargetOpacity;
+            mistOpacityStart = nextTargetOpacity;
+            mistOpacityTarget = nextTargetOpacity;
+            mistOpacityElapsedSeconds = MIST_TOGGLE_TRANSITION_SECONDS;
+            return;
+        }
+
+        if (mistOpacityTarget == nextTargetOpacity) {
+            return;
+        }
+
+        mistOpacityStart = mistOpacity;
+        mistOpacityTarget = nextTargetOpacity;
+        mistOpacityElapsedSeconds = 0.0;
     }
 
     public double getMistAnimationTimeScale() {
@@ -227,6 +255,10 @@ public class GamePanel extends Pane {
 
     public void setGameVolume(double gameVolume) {
         this.gameVolume = clamp(gameVolume, 0.0, 1.0);
+    }
+
+    public void setRadarActive(boolean radarActive) {
+        setTargetViewportZoom(radarActive ? RADAR_VIEWPORT_ZOOM : VIEWPORT_ZOOM);
     }
 
     private void drawMist(GraphicsContext gc, Grid grid, double viewX, double viewY,
@@ -279,7 +311,7 @@ public class GamePanel extends Pane {
                 double accentMask = smoothStep(0.55, 0.95, ((drift2 * 0.55) + (drift4 * 0.45) + 1.0) * 0.5)
                         * profile.accentStrength();
 
-                double alpha = clamp(distanceOpacity * worldEdgeFade * pulse * densityMask * (profile.baseAlpha() + swirl), 0.0,
+                double alpha = clamp(distanceOpacity * worldEdgeFade * pulse * densityMask * (profile.baseAlpha() + swirl) * mistOpacity, 0.0,
                         MIST_ALPHA_CAP);
                 if (alpha > 0.01) {
                     double colorR = lerp(profile.colorR(), profile.accentR(), accentMask);
@@ -320,7 +352,7 @@ public class GamePanel extends Pane {
     }
 
     private double getWorldVisibility(Grid grid, Player player, double targetCenterX, double targetCenterY) {
-        if (!mistEnabled) {
+        if (mistOpacity <= 0.01) {
             return 1.0;
         }
 
@@ -329,7 +361,7 @@ public class GamePanel extends Pane {
             return 0.0;
         }
 
-        return 1.0 - getMistOpacityAt(grid, targetCenterX, targetCenterY, visibleRadius);
+        return 1.0 - getMistOpacityAt(grid, targetCenterX, targetCenterY, visibleRadius) * mistOpacity;
     }
 
     private double getMistOpacityAt(Grid grid, double targetX, double targetY, double visibleRadius) {
@@ -412,6 +444,53 @@ public class GamePanel extends Pane {
             mistFocusX = mistFocusTargetX;
             mistFocusY = mistFocusTargetY;
         }
+    }
+
+    private void updateMistTransition() {
+        if (mistOpacityElapsedSeconds >= MIST_TOGGLE_TRANSITION_SECONDS) {
+            mistOpacity = mistOpacityTarget;
+            return;
+        }
+
+        mistOpacityElapsedSeconds = Math.min(
+                mistOpacityElapsedSeconds + frameDeltaSeconds,
+                MIST_TOGGLE_TRANSITION_SECONDS
+        );
+        double progress = smoothStep(0.0, 1.0, mistOpacityElapsedSeconds / MIST_TOGGLE_TRANSITION_SECONDS);
+        mistOpacity = lerp(mistOpacityStart, mistOpacityTarget, progress);
+    }
+
+    private void setTargetViewportZoom(double targetZoom) {
+        double clampedTargetZoom = Math.max(0.1, targetZoom);
+        if (lastFrameNanos == 0L) {
+            viewportZoom = clampedTargetZoom;
+            viewportZoomStart = clampedTargetZoom;
+            viewportZoomTarget = clampedTargetZoom;
+            viewportZoomElapsedSeconds = ZOOM_TOGGLE_TRANSITION_SECONDS;
+            return;
+        }
+
+        if (Math.abs(viewportZoomTarget - clampedTargetZoom) < 0.0001) {
+            return;
+        }
+
+        viewportZoomStart = viewportZoom;
+        viewportZoomTarget = clampedTargetZoom;
+        viewportZoomElapsedSeconds = 0.0;
+    }
+
+    private void updateViewportZoomTransition() {
+        if (viewportZoomElapsedSeconds >= ZOOM_TOGGLE_TRANSITION_SECONDS) {
+            viewportZoom = viewportZoomTarget;
+            return;
+        }
+
+        viewportZoomElapsedSeconds = Math.min(
+                viewportZoomElapsedSeconds + frameDeltaSeconds,
+                ZOOM_TOGGLE_TRANSITION_SECONDS
+        );
+        double progress = easeInOutCubic(viewportZoomElapsedSeconds / ZOOM_TOGGLE_TRANSITION_SECONDS);
+        viewportZoom = lerp(viewportZoomStart, viewportZoomTarget, progress);
     }
 
     private MistProfile getMistProfile() {
@@ -502,9 +581,10 @@ public class GamePanel extends Pane {
     }
 
     private double getCurrentZoom() {
+        updateViewportZoomTransition();
         double introProgress = getZoomIntroProgress();
         double introZoom = getIntroZoom();
-        return lerp(introZoom, VIEWPORT_ZOOM, introProgress);
+        return lerp(introZoom, viewportZoom, introProgress);
     }
 
     private double getIntroZoom() {
