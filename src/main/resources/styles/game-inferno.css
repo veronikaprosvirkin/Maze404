@@ -89,6 +89,18 @@
     -fx-effect: dropshadow(gaussian, rgba(200, 144, 128, 0.16), 18, 0.15, 0, 5);
 }
 
+.hud-radar.hud-card-active {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(200, 144, 128, 0.24), rgba(255, 214, 220, 0.10));
+    -fx-border-color: rgba(255, 160, 174, 0.88);
+    -fx-effect: dropshadow(gaussian, rgba(255, 160, 174, 0.38), 24, 0.25, 0, 0);
+}
+
+.hud-radar.hud-card-warning {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(240, 64, 64, 0.28), rgba(68, 24, 12, 0.18));
+    -fx-border-color: rgba(240, 64, 64, 0.96);
+    -fx-effect: dropshadow(gaussian, rgba(240, 64, 64, 0.5), 28, 0.32, 0, 0);
+}
+
 .hud-shield {
     -fx-border-color: rgba(138, 42, 56, 0.42);
     -fx-effect: dropshadow(gaussian, rgba(138, 42, 56, 0.18), 18, 0.15, 0, 5);

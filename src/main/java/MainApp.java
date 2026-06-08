@@ -56,6 +56,8 @@ public class MainApp extends Application {
     private static final double MIN_WINDOW_HEIGHT = 680;
     private static final int PLAYER_MAX_HEALTH = 3;
     private static final Duration RADAR_REVEAL_DURATION = Duration.seconds(10);
+    private static final Duration RADAR_WARNING_START_DELAY = Duration.seconds(7);
+    private static final Duration RADAR_BLINK_INTERVAL = Duration.seconds(0.35);
 
     private static final CountDownLatch START_LATCH = new CountDownLatch(1);
 
@@ -139,11 +141,6 @@ public class MainApp extends Application {
         gamePanel.setMistAnimationTimeScale(mistAnimationTime);
         gamePanel.setMistDensity(mistDensity);
         gamePanel.setGameVolume(settings.gameVolume());
-        PauseTransition radarMistRestoreTimer = new PauseTransition(RADAR_REVEAL_DURATION);
-        radarMistRestoreTimer.setOnFinished(event -> {
-            gamePanel.setMistEnabled(mistEnabled);
-            gamePanel.setRadarActive(false);
-        });
 
         Label hpValueLabel = createHudValueLabel();
         Label crystalsValueLabel = createHudValueLabel();
@@ -193,6 +190,25 @@ public class MainApp extends Application {
         VBox elixirCard = createHudCard("Elixir", ArtifactVisuals.createHudIcon(ArtifactType.ELIXIR, 24), elixirsValueLabel, "elixir", "4");
         inventoryHud.getChildren().addAll(radarCard, shieldCard, beaconCard, elixirCard);
         updateShieldHudState(shieldCard, player);
+
+        PauseTransition radarMistRestoreTimer = new PauseTransition(RADAR_REVEAL_DURATION);
+        PauseTransition radarBlinkStartTimer = new PauseTransition(RADAR_WARNING_START_DELAY);
+        Timeline radarBlinkTimeline = new Timeline(
+                new KeyFrame(RADAR_BLINK_INTERVAL, event -> toggleHudCardState(radarCard, "hud-card-warning"))
+        );
+        radarBlinkTimeline.setCycleCount(Timeline.INDEFINITE);
+        radarBlinkStartTimer.setOnFinished(event -> {
+            setHudCardState(radarCard, "hud-card-warning", true);
+            radarBlinkTimeline.playFromStart();
+        });
+        radarMistRestoreTimer.setOnFinished(event -> {
+            gamePanel.setMistEnabled(mistEnabled);
+            gamePanel.setRadarActive(false);
+            radarBlinkStartTimer.stop();
+            radarBlinkTimeline.stop();
+            setHudCardState(radarCard, "hud-card-active", false);
+            setHudCardState(radarCard, "hud-card-warning", false);
+        });
 
         HBox hudRow = new HBox(12, healthHud, inventoryHud);
         if (Difficulty.current != Difficulty.EASY) {
@@ -335,6 +351,11 @@ public class MainApp extends Application {
                     if (player.getRadarCharges() < radarChargesBeforeUse) {
                         gamePanel.setMistEnabled(false);
                         gamePanel.setRadarActive(true);
+                        radarBlinkStartTimer.stop();
+                        radarBlinkTimeline.stop();
+                        setHudCardState(radarCard, "hud-card-active", true);
+                        setHudCardState(radarCard, "hud-card-warning", false);
+                        radarBlinkStartTimer.playFromStart();
                         radarMistRestoreTimer.stop();
                         radarMistRestoreTimer.playFromStart();
                     }
@@ -545,13 +566,21 @@ public class MainApp extends Application {
 
     private static void updateShieldHudState(VBox shieldCard, Player player) {
         boolean active = player.hasShield();
+        setHudCardState(shieldCard, "hud-card-active", active);
+    }
+
+    private static void toggleHudCardState(VBox card, String styleClass) {
+        setHudCardState(card, styleClass, !card.getStyleClass().contains(styleClass));
+    }
+
+    private static void setHudCardState(VBox card, String styleClass, boolean active) {
         if (active) {
-            if (!shieldCard.getStyleClass().contains("hud-card-active")) {
-                shieldCard.getStyleClass().add("hud-card-active");
+            if (!card.getStyleClass().contains(styleClass)) {
+                card.getStyleClass().add(styleClass);
             }
-        } else {
-            shieldCard.getStyleClass().remove("hud-card-active");
+            return;
         }
+        card.getStyleClass().remove(styleClass);
     }
 
     private String getGameStylesheet() {
