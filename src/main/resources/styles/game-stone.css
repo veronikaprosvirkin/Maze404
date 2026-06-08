@@ -79,6 +79,12 @@
     -fx-effect: dropshadow(gaussian, rgba(196, 68, 42, 0.16), 18, 0.15, 0, 5);
 }
 
+.hud-health.hud-card-active {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(196, 68, 42, 0.24), rgba(255, 241, 200, 0.10));
+    -fx-border-color: rgba(240, 176, 48, 0.92);
+    -fx-effect: dropshadow(gaussian, rgba(240, 176, 48, 0.40), 28, 0.30, 0, 0);
+}
+
 .hud-crystals {
     -fx-border-color: rgba(240, 176, 48, 0.42);
     -fx-effect: dropshadow(gaussian, rgba(240, 176, 48, 0.16), 18, 0.15, 0, 5);
