@@ -47,7 +47,7 @@ public class ArtifactSpawner {
                 shieldCount = 2;
                 radarCount = 1;
                 beaconCount = 2;
-                elixirCount = 1;
+                elixirCount = 2;
             }
         }
 
@@ -62,7 +62,7 @@ public class ArtifactSpawner {
         List<Artifact> artifacts = new ArrayList<>();
         int typeIndex = 0;
 
-        int minDistance = 3;
+        int minDistance = 2;
 
         for (Position candidate : floorCells) {
             if (typeIndex >= typesToSpawn.size()) {

@@ -33,7 +33,7 @@ public class MovementSystem {
             player.takeDamage(1);
         }
         else if (target.getType() == CellType.EXIT) {
-            if (state.getCurrentLevel() == 0 || state.getPlayer().hasKey()) {
+            if (Difficulty.current == Difficulty.EASY || state.getCurrentLevel() == 0 || state.getPlayer().hasKey()) {
                 state.setLevelComplete(true);
                 EventBus.getInstance().publish(new GameEvent(GameEvent.Type.LEVEL_COMPLETE));
             } else {
