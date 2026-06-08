@@ -1,3 +1,4 @@
+import events.AudioManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -16,6 +17,7 @@ public class MainApp extends Application {
     private static final double MIN_WINDOW_WIDTH = 1024;
     private static final double MIN_WINDOW_HEIGHT = 680;
     private static final CountDownLatch START_LATCH = new CountDownLatch(1);
+    AudioManager audioManager = new AudioManager(true);
 
     @SuppressWarnings("unused")
     public static void waitForStart() {

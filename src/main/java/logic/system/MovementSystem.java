@@ -28,6 +28,8 @@ public class MovementSystem {
 
         if(target.getType() == CellType.TRAP){
             EventBus.getInstance().publish(new GameEvent(GameEvent.Type.MINI_GAME_TRIGGERED, pos));
+            EventBus.getInstance().publish(new GameEvent(GameEvent.Type.TRAP_TRIGGERED, pos));
+
             player.takeDamage(1);
         }
         else if (target.getType() == CellType.EXIT) {
