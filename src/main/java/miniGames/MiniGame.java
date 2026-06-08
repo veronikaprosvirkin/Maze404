@@ -12,6 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import ui.GameWindows;
 
 public abstract class MiniGame {
     protected int width = 450;
@@ -32,6 +33,7 @@ public abstract class MiniGame {
         stage.setHeight(height);
         stage.setResizable(false);
         stage.setScene(scene);
+        GameWindows.configureChildStage(stage);
         stage.showAndWait();
     }
 

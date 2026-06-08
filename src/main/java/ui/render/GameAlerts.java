@@ -12,6 +12,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import ui.GameWindows;
 
 public final class GameAlerts {
     private GameAlerts() {
@@ -31,6 +32,7 @@ public final class GameAlerts {
         Button continueButton = createAlertButton(alert, ButtonType.OK, "Find the Key", "artifact-confirm-button");
         setAlertActions(alert, continueButton);
         configureWindowClose(alert, ButtonType.OK);
+        GameWindows.configureDialog(alert);
         alert.showAndWait();
     }
 
