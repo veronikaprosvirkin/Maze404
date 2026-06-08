@@ -52,6 +52,11 @@
             <version>2.10.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>21</version> </dependency>
+
 		<!-- JavaFX modules (classifier for OS-specific native libs) -->
     <dependency>
         <groupId>org.openjfx</groupId>
