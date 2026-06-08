@@ -47,7 +47,7 @@ public class ArtifactSpawner {
                 shieldCount = 2;
                 radarCount = 1;
                 beaconCount = 2;
-                elixirCount = 1;
+                elixirCount = 2;
             }
         }
 
