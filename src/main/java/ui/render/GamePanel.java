@@ -14,6 +14,7 @@ import java.util.List;
 
 public class GamePanel extends Pane {
     private static final int TILE_SIZE = 32;
+    private static final int BEACON_MIST_RADIUS_CELLS = 5;
     private static final double VIEWPORT_ZOOM = 2.2;
     private static final double CAMERA_SMOOTHING_SECONDS = 0.3;
     private static final double INTRO_CAMERA_SMOOTHING_SECONDS = 0.55;
@@ -164,7 +165,7 @@ public class GamePanel extends Pane {
                 viewportOffsetY - cameraY * currentZoom
         );
         gridRenderer.draw(gc, grid, startRow, endRow, startCol, endCol, mistTimeNanos / 1_000_000_000.0);
-        drawArtifacts(gc, player, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
+        drawArtifacts(gc, grid, player, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
         if (mistEnabled) {
             drawMist(gc, grid, cameraX, cameraY, viewportWorldWidth, viewportWorldHeight);
         }
@@ -182,11 +183,7 @@ public class GamePanel extends Pane {
                     continue;
                 }
 
-                double visibility = getWorldVisibility(
-                        player,
-                        centerX,
-                        centerY
-                );
+                double visibility = getWorldVisibility(grid, player, centerX, centerY);
                 if (visibility <= 0.01) {
                     continue;
                 }
@@ -248,17 +245,12 @@ public class GamePanel extends Pane {
             for (int x = startX; x < endX; x += mistSampleStep) {
                 double sampleX = x + mistSampleStep * 0.5;
                 double sampleY = y + mistSampleStep * 0.5;
-                double dx = sampleX - mistFocusX;
-                double dy = sampleY - mistFocusY;
-                double dist = Math.sqrt(dx * dx + dy * dy);
                 double signedNearestWorldEdgeDistance = Math.min(
                         Math.min(sampleX, width - sampleX),
                         Math.min(sampleY, height - sampleY)
                 );
 
-                double distanceOpacity = clearRadius <= 0.0
-                        ? 1.0
-                        : smoothStep(clearRadius - MIST_EDGE_FADE_BAND, clearRadius + MIST_EDGE_FADE_BAND, dist);
+                double distanceOpacity = getMistOpacityAt(grid, sampleX, sampleY, clearRadius);
                 double pulse = 1.0 + Math.sin(timeSeconds * profile.pulseSpeed()) * profile.pulseStrength();
 
                 double flowX = sampleX + timeSeconds * profile.flowSpeedX()
@@ -300,7 +292,7 @@ public class GamePanel extends Pane {
         }
     }
 
-    private void drawArtifacts(GraphicsContext gc, Player player, double viewX, double viewY,
+    private void drawArtifacts(GraphicsContext gc, Grid grid, Player player, double viewX, double viewY,
                                double viewportWorldWidth, double viewportWorldHeight) {
         for (Artifact artifact : artifacts) {
             if (artifact == null || artifact.isCollected() || artifact.getPosition() == null) {
@@ -313,7 +305,7 @@ public class GamePanel extends Pane {
                 continue;
             }
 
-            double visibility = getWorldVisibility(player, centerX, centerY);
+            double visibility = getWorldVisibility(grid, player, centerX, centerY);
             if (visibility <= 0.01) {
                 continue;
             }
@@ -327,29 +319,60 @@ public class GamePanel extends Pane {
         }
     }
 
-    private double getWorldVisibility(Player player, double targetCenterX, double targetCenterY) {
+    private double getWorldVisibility(Grid grid, Player player, double targetCenterX, double targetCenterY) {
         if (!mistEnabled) {
             return 1.0;
         }
 
-        double playerCenterX = (player.getCol() + 0.5) * TILE_SIZE;
-        double playerCenterY = (player.getRow() + 0.5) * TILE_SIZE;
-        double focusX = mistFocusInitialized ? mistFocusX : playerCenterX;
-        double focusY = mistFocusInitialized ? mistFocusY : playerCenterY;
-        double dx = targetCenterX - focusX;
-        double dy = targetCenterY - focusY;
         double visibleRadius = getCurrentClearRadius();
-        double distance = Math.sqrt(dx * dx + dy * dy);
-
         if (visibleRadius <= 0.0) {
             return 0.0;
         }
 
-        return 1.0 - smoothStep(
-                visibleRadius - MIST_EDGE_FADE_BAND,
-                visibleRadius + MIST_EDGE_FADE_BAND,
-                distance
-        );
+        return 1.0 - getMistOpacityAt(grid, targetCenterX, targetCenterY, visibleRadius);
+    }
+
+    private double getMistOpacityAt(Grid grid, double targetX, double targetY, double visibleRadius) {
+        double bestOpacity = getOpacityForFocus(getPlayerFocusX(), getPlayerFocusY(), targetX, targetY, visibleRadius);
+        if (grid == null) {
+            return bestOpacity;
+        }
+
+        double beaconRadius = BEACON_MIST_RADIUS_CELLS * TILE_SIZE;
+        for (int row = 0; row < grid.getHeight(); row++) {
+            for (int col = 0; col < grid.getWidth(); col++) {
+                if (!grid.getCell(row, col).isFlagged()) {
+                    continue;
+                }
+
+                double beaconCenterX = (col + 0.5) * TILE_SIZE;
+                double beaconCenterY = (row + 0.5) * TILE_SIZE;
+                double beaconOpacity = getOpacityForFocus(beaconCenterX, beaconCenterY, targetX, targetY, beaconRadius);
+                bestOpacity = Math.min(bestOpacity, beaconOpacity);
+                if (bestOpacity <= 0.0) {
+                    return 0.0;
+                }
+            }
+        }
+
+        return bestOpacity;
+    }
+
+    private double getOpacityForFocus(double focusX, double focusY, double targetX, double targetY, double visibleRadius) {
+        double dx = targetX - focusX;
+        double dy = targetY - focusY;
+        double distance = Math.sqrt(dx * dx + dy * dy);
+        return visibleRadius <= 0.0
+                ? 1.0
+                : smoothStep(visibleRadius - MIST_EDGE_FADE_BAND, visibleRadius + MIST_EDGE_FADE_BAND, distance);
+    }
+
+    private double getPlayerFocusX() {
+        return mistFocusInitialized ? mistFocusX : mistFocusTargetX;
+    }
+
+    private double getPlayerFocusY() {
+        return mistFocusInitialized ? mistFocusY : mistFocusTargetY;
     }
 
     private void updateMistFocus(Player player) {
