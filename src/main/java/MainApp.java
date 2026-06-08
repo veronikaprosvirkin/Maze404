@@ -140,7 +140,10 @@ public class MainApp extends Application {
         gamePanel.setMistDensity(mistDensity);
         gamePanel.setGameVolume(settings.gameVolume());
         PauseTransition radarMistRestoreTimer = new PauseTransition(RADAR_REVEAL_DURATION);
-        radarMistRestoreTimer.setOnFinished(event -> gamePanel.setMistEnabled(mistEnabled));
+        radarMistRestoreTimer.setOnFinished(event -> {
+            gamePanel.setMistEnabled(mistEnabled);
+            gamePanel.setRadarActive(false);
+        });
 
         Label hpValueLabel = createHudValueLabel();
         Label crystalsValueLabel = createHudValueLabel();
@@ -331,6 +334,7 @@ public class MainApp extends Application {
                     radarSystem.activateRadar(gameState);
                     if (player.getRadarCharges() < radarChargesBeforeUse) {
                         gamePanel.setMistEnabled(false);
+                        gamePanel.setRadarActive(true);
                         radarMistRestoreTimer.stop();
                         radarMistRestoreTimer.playFromStart();
                     }
