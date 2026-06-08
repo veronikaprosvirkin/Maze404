@@ -229,6 +229,10 @@
     -fx-padding: 10 22 10 18;
 }
 
+.main-menu-exit-button {
+    -fx-padding: 10 24 10 18;
+}
+
 .levels-nav-button {
     -fx-min-width: 82px;
     -fx-min-height: 108px;

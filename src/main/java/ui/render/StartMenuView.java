@@ -279,7 +279,12 @@ public class StartMenuView extends StackPane {
         });
     }
 
-    private VBox createMainMenuContent(Consumer<MenuSettings> onPlay, Runnable onExit, StackPane contentFrame) {
+    private StackPane createMainMenuContent(Consumer<MenuSettings> onPlay, Runnable onExit, StackPane contentFrame) {
+        StackPane root = new StackPane();
+        root.setMinSize(BASE_WIDTH, BASE_HEIGHT);
+        root.setPrefSize(BASE_WIDTH, BASE_HEIGHT);
+        root.setMaxSize(BASE_WIDTH, BASE_HEIGHT);
+
         VBox content = new VBox();
         content.setAlignment(Pos.TOP_CENTER);
         content.setFillWidth(true);
@@ -300,8 +305,16 @@ public class StartMenuView extends StackPane {
         menuSlot.setMaxSize(LEVELS_FRAME_WIDTH, LEVELS_FRAME_HEIGHT);
         menuSlot.getChildren().setAll(createMainMenuActions(onPlay, onExit, menuSlot, contentFrame));
 
+        Button exitButton = new Button("Exit");
+        exitButton.getStyleClass().addAll("settings-exit-button", "main-menu-exit-button");
+        exitButton.setGraphic(createIcon("exit.png", 22));
+        exitButton.setOnAction(event -> onExit.run());
+
         content.getChildren().addAll(title, menuSlot);
-        return content;
+        StackPane.setAlignment(exitButton, Pos.TOP_LEFT);
+        StackPane.setMargin(exitButton, new Insets(0, 0, 0, 24));
+        root.getChildren().addAll(content, exitButton);
+        return root;
     }
 
     private HBox createMainMenuActions(
