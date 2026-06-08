@@ -13,7 +13,6 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.Node;
@@ -41,6 +40,7 @@ import model.Position;
 import enums.ArtifactType;
 import ui.input.InputHandler;
 import ui.render.ArtifactVisuals;
+import ui.render.GameAlerts;
 import ui.render.GamePanel;
 import ui.render.StartMenuView;
 
@@ -305,13 +305,7 @@ public class MainApp extends Application {
         // --- ОБРОБНИК ВВОДУ (Рух гравця + оновлення створеного вище UI) ---4
 
         EventBus.getInstance().subscribe(GameEvent.Type.EXIT_BLOCKED, event -> {
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Exit blocked");
-                alert.setHeaderText(null);
-                alert.setContentText("You need to find key!");
-                alert.showAndWait();
-            });
+            Platform.runLater(GameAlerts::showExitBlockedAlert);
         });
 
         EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_DAMAGED, event -> {

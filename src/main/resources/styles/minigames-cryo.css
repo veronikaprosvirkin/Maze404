@@ -826,3 +826,35 @@
     -fx-text-fill: #B03878;
     -fx-effect: dropshadow(gaussian, rgba(176, 56, 120, 0.5), 20, 0.5, 0, 0);
 }
+
+.exit-blocked-alert.dialog-pane {
+    -fx-background-color:
+        linear-gradient(from 0% 0% to 100% 100%, rgba(74, 136, 176, 0.12), rgba(8, 12, 18, 0.96)),
+        #06080C;
+    -fx-border-color: #2C4B62;
+    -fx-effect: dropshadow(gaussian, rgba(122, 180, 208, 0.28), 30, 0.32, 0, 10);
+}
+
+.exit-blocked-alert #artifact-alert-emblem {
+    -fx-text-fill: #9AB8C8;
+    -fx-font-family: "IBM Plex Mono", monospace;
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+    -fx-effect: dropshadow(gaussian, rgba(122, 180, 208, 0.42), 18, 0.45, 0, 0);
+}
+
+.exit-blocked-alert #artifact-alert-difficulty {
+    -fx-background-color: rgba(74, 136, 176, 0.16);
+    -fx-border-color: rgba(122, 180, 208, 0.34);
+}
+
+.exit-blocked-alert .artifact-confirm-button {
+    -fx-border-color: #4A88B0;
+    -fx-text-fill: #D2DCE8;
+    -fx-effect: dropshadow(gaussian, rgba(74, 136, 176, 0.30), 12, 0.36, 0, 0);
+}
+
+.exit-blocked-alert .artifact-confirm-button:hover {
+    -fx-border-color: #7AB4D0;
+    -fx-effect: dropshadow(gaussian, rgba(122, 180, 208, 0.40), 14, 0.42, 0, 0);
+}
