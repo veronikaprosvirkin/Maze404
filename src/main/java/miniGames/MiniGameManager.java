@@ -16,6 +16,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import model.Player;
+import ui.GameWindows;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +60,7 @@ public class MiniGameManager {
         Button leaveItButton = createAlertButton(alert, ButtonType.CANCEL, "Leave It", "artifact-cancel-button");
         setAlertActions(alert, leaveItButton, enterChallengeButton);
         configureWindowClose(alert, ButtonType.CANCEL, ButtonType.OK);
+        GameWindows.configureDialog(alert);
 
         alert.showAndWait();
 
@@ -85,6 +87,7 @@ public class MiniGameManager {
         Button continueButton = createAlertButton(errorAlert, ButtonType.OK, "Continue Exploring", "artifact-warning-button");
         setAlertActions(errorAlert, continueButton);
         configureWindowClose(errorAlert, ButtonType.OK);
+        GameWindows.configureDialog(errorAlert);
 
         errorAlert.showAndWait();
     }
