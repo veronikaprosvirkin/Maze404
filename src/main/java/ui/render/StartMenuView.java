@@ -2,6 +2,7 @@ package ui.render;
 
 import enums.Difficulty;
 import enums.PlayerSkin;
+import javafx.application.Platform;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -23,6 +24,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -361,6 +363,25 @@ public class StartMenuView extends StackPane {
             applyDefaultMenuPalette();
             onBack.run();
         });
+
+        levelFrame.setFocusTraversable(true);
+        levelFrame.setOnMouseClicked(event -> levelFrame.requestFocus());
+        levelFrame.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.LEFT) {
+                animateLevelSwitch(levelSwitcher, -1, onSelectLevel);
+                event.consume();
+            } else if (event.getCode() == KeyCode.RIGHT) {
+                animateLevelSwitch(levelSwitcher, 1, onSelectLevel);
+                event.consume();
+            } else if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) {
+                onSelectLevel.run();
+                event.consume();
+            } else if (event.getCode() == KeyCode.ESCAPE || event.getCode() == KeyCode.BACK_SPACE) {
+                backButton.fire();
+                event.consume();
+            }
+        });
+        Platform.runLater(levelFrame::requestFocus);
 
         StackPane.setAlignment(backButton, Pos.TOP_LEFT);
         StackPane.setMargin(backButton, new Insets(0, 0, 0, 24));
