@@ -58,6 +58,7 @@ public class MainApp extends Application {
     private static final Duration RADAR_REVEAL_DURATION = Duration.seconds(10);
     private static final Duration RADAR_WARNING_START_DELAY = Duration.seconds(7);
     private static final Duration RADAR_BLINK_INTERVAL = Duration.seconds(0.35);
+    private static final Duration HUD_DAMAGE_HIGHLIGHT_DURATION = Duration.seconds(1);
 
     private static final CountDownLatch START_LATCH = new CountDownLatch(1);
 
@@ -170,8 +171,9 @@ public class MainApp extends Application {
         healthHud.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
         healthHud.setPadding(new Insets(14, 18, 14, 18));
         healthHud.setSpacing(10);
+        VBox healthCard = createHudCard("Health", createHealthIcon(), hpValueLabel, "health");
         healthHud.getChildren().addAll(
-                createHudCard("Health", createHealthIcon(), hpValueLabel, "health"),
+                healthCard,
                 createHudCard("Crystals", ArtifactVisuals.createHudIcon(ArtifactType.CRYSTAL, 24), crystalsValueLabel, "crystals")
         );
 
@@ -209,6 +211,10 @@ public class MainApp extends Application {
             setHudCardState(radarCard, "hud-card-active", false);
             setHudCardState(radarCard, "hud-card-warning", false);
         });
+
+        PauseTransition healthDamageHighlightTimer = new PauseTransition(HUD_DAMAGE_HIGHLIGHT_DURATION);
+        healthDamageHighlightTimer.setOnFinished(event -> setHudCardState(healthCard, "hud-card-active", false));
+        int[] lastRenderedHealth = {player.getHealth()};
 
         HBox hudRow = new HBox(12, healthHud, inventoryHud);
         if (Difficulty.current != Difficulty.EASY) {
@@ -308,6 +314,24 @@ public class MainApp extends Application {
             });
         });
 
+        EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_DAMAGED, event -> {
+            Platform.runLater(() -> {
+                syncHudValues(
+                        player,
+                        hpValueLabel,
+                        crystalsValueLabel,
+                        radarValueLabel,
+                        shieldValueLabel,
+                        beaconValueLabel,
+                        elixirsValueLabel,
+                        keyValueLabel,
+                        healthCard,
+                        healthDamageHighlightTimer,
+                        lastRenderedHealth
+                );
+            });
+        });
+
         InputHandler inputHandler = new InputHandler(action -> {
             if (action == ui.input.GameAction.TOGGLE_PAUSE) {
                 pauseController.toggle();
@@ -369,7 +393,7 @@ public class MainApp extends Application {
             artifactSystem.processArtifacts(gameState);
 
             Platform.runLater(() -> {
-                updateHudValues(
+                syncHudValues(
                         player,
                         hpValueLabel,
                         crystalsValueLabel,
@@ -377,7 +401,10 @@ public class MainApp extends Application {
                         shieldValueLabel,
                         beaconValueLabel,
                         elixirsValueLabel,
-                        keyValueLabel
+                        keyValueLabel,
+                        healthCard,
+                        healthDamageHighlightTimer,
+                        lastRenderedHealth
                 );
                 updateShieldHudState(shieldCard, player);
 
@@ -553,6 +580,41 @@ public class MainApp extends Application {
         beaconValueLabel.setText(String.valueOf(player.getBeaconCount()));
         elixirsValueLabel.setText(String.valueOf(player.getElixirCount()));
         keyValueLabel.setText(player.hasKey() ? "Found" : "Empty");
+    }
+
+    private static void syncHudValues(
+            Player player,
+            Label hpValueLabel,
+            Label crystalsValueLabel,
+            Label radarValueLabel,
+            Label shieldValueLabel,
+            Label beaconValueLabel,
+            Label elixirsValueLabel,
+            Label keyValueLabel,
+            VBox healthCard,
+            PauseTransition healthDamageHighlightTimer,
+            int[] lastRenderedHealth
+    ) {
+        int currentHealth = player.getHealth();
+        boolean tookDamage = currentHealth < lastRenderedHealth[0];
+        lastRenderedHealth[0] = currentHealth;
+
+        updateHudValues(
+                player,
+                hpValueLabel,
+                crystalsValueLabel,
+                radarValueLabel,
+                shieldValueLabel,
+                beaconValueLabel,
+                elixirsValueLabel,
+                keyValueLabel
+        );
+
+        if (tookDamage) {
+            setHudCardState(healthCard, "hud-card-active", true);
+            healthDamageHighlightTimer.stop();
+            healthDamageHighlightTimer.playFromStart();
+        }
     }
 
     private static void useElixir(Player player) {

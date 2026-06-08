@@ -75,6 +75,7 @@ public class Player {
             return;
         }
         health = Math.max(0, health - amount);
+        EventBus.getInstance().publish(new GameEvent(GameEvent.Type.PLAYER_DAMAGED));
         if (health == 0)
             EventBus.getInstance().publish(new GameEvent(GameEvent.Type.PLAYER_DIED));
     }
