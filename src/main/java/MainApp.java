@@ -596,7 +596,7 @@ public class MainApp extends Application {
             int[] lastRenderedHealth
     ) {
         int currentHealth = player.getHealth();
-        boolean tookDamage = currentHealth < lastRenderedHealth[0];
+        boolean healthChanged = currentHealth != lastRenderedHealth[0];
         lastRenderedHealth[0] = currentHealth;
 
         updateHudValues(
@@ -610,7 +610,7 @@ public class MainApp extends Application {
                 keyValueLabel
         );
 
-        if (tookDamage) {
+        if (healthChanged) {
             setHudCardState(healthCard, "hud-card-active", true);
             healthDamageHighlightTimer.stop();
             healthDamageHighlightTimer.playFromStart();
