@@ -18,9 +18,9 @@ public class GamePanel extends Pane {
     private static final double CAMERA_SMOOTHING_SECONDS = 0.3;
     private static final double INTRO_CAMERA_SMOOTHING_SECONDS = 0.55;
     private static final double LEVEL_INTRO_SECONDS = 2.6;
-    private static final int EASY_MIST_RADIUS_CELLS = 10;
-    private static final int MEDIUM_MIST_RADIUS_CELLS = 7;
-    private static final int HARD_MIST_RADIUS_CELLS = 5;
+    private static final int EASY_MIST_RADIUS_CELLS = 6;
+    private static final int MEDIUM_MIST_RADIUS_CELLS = 5;
+    private static final int HARD_MIST_RADIUS_CELLS = 3;
     private static final int DEFAULT_MIST_SAMPLE_STEP = 2;
     private static final double MIST_ALPHA_CAP = 0.97;
     private static final double MIST_FOCUS_TRANSITION_SECONDS = 0.3;
