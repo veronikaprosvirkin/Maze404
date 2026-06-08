@@ -92,6 +92,58 @@ public final class ArtifactVisuals {
         }
     }
 
+    public static void drawPlacedBeacon(
+            GraphicsContext gc,
+            double centerX,
+            double centerY,
+            double size,
+            double phase,
+            double visibility
+    ) {
+        if (gc == null || visibility <= 0.0 || size <= 0.0) {
+            return;
+        }
+
+        ArtifactPalette palette = getArtifactPalette(ArtifactType.BEACON);
+        double pulse = 0.5 + 0.5 * Math.sin(phase);
+        double ringPulse = 0.5 + 0.5 * Math.sin(phase * 1.8 + 0.7);
+        double baseRadius = size * 0.28;
+        double mastHeight = size * (0.28 + pulse * 0.06);
+        double mastWidth = Math.max(2.0, size * 0.08);
+        double coreRadius = size * (0.12 + pulse * 0.03);
+        double beaconY = centerY - size * 0.06;
+
+        gc.save();
+        gc.setGlobalAlpha(visibility);
+
+        gc.setFill(Color.rgb(255, 182, 120, (0.18 + pulse * 0.10) * visibility));
+        gc.fillOval(centerX - baseRadius * 1.15, centerY - baseRadius * 0.92, baseRadius * 2.3, baseRadius * 1.84);
+
+        gc.setStroke(withOpacity(palette.accent(), (0.30 + ringPulse * 0.26) * visibility));
+        gc.setLineWidth(Math.max(1.2, size * 0.045));
+        double outerRingRadius = size * (0.32 + ringPulse * 0.08);
+        gc.strokeOval(centerX - outerRingRadius, centerY - outerRingRadius, outerRingRadius * 2, outerRingRadius * 2);
+
+        gc.setFill(Color.rgb(50, 27, 18, 0.92 * visibility));
+        gc.fillRoundRect(centerX - baseRadius * 0.86, centerY + size * 0.12, baseRadius * 1.72, size * 0.12, size * 0.08, size * 0.08);
+
+        gc.setFill(Color.rgb(102, 56, 28, 0.95 * visibility));
+        gc.fillRoundRect(centerX - mastWidth / 2.0, beaconY - mastHeight * 0.44, mastWidth, mastHeight, mastWidth, mastWidth);
+
+        gc.setEffect(new DropShadow(size * (0.35 + pulse * 0.16), withOpacity(palette.accent(), (0.55 + pulse * 0.20) * visibility)));
+        gc.setFill(withOpacity(palette.base(), 0.96 * visibility));
+        gc.fillOval(centerX - coreRadius, beaconY - mastHeight * 0.48 - coreRadius, coreRadius * 2, coreRadius * 2);
+
+        gc.setFill(Color.rgb(255, 247, 234, (0.64 + pulse * 0.18) * visibility));
+        gc.fillOval(
+                centerX - coreRadius * 0.40,
+                beaconY - mastHeight * 0.48 - coreRadius * 0.98,
+                coreRadius * 0.72,
+                coreRadius * 0.72
+        );
+        gc.restore();
+    }
+
     private static ArtifactPalette getArtifactPalette(ArtifactType type) {
         return switch (type) {
             case CRYSTAL -> new ArtifactPalette(Color.web("#F0D66A"), Color.web("#FFF3A6"));
