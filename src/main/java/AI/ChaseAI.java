@@ -83,7 +83,6 @@ public class ChaseAI implements IEnemyAI {
 
     private int getVisionRange(){
         switch (enums.Difficulty.current) {
-            case EASY -> visionRange = 3;
             case MEDIUM -> visionRange = 5;
             case HARD -> visionRange = 8;
         }

@@ -50,9 +50,21 @@ public class EnemySpawner {
 
                     int distToKey = cell.manhattanDistance(keyPosition);
 
-                    if (distToKey > 0 && distToKey <= 2) {
-                        enemies.add(new Enemy(cell.getRow(), cell.getCol(), EnemyMode.CHASE, new ChaseAI()));
-                        guardsSpawned++;
+                    if (distToKey > 0 && distToKey <= 3) {
+                        boolean isTooClose = false;
+
+                        for (Enemy e : enemies) {
+                            Position existingEnemyPos = new Position(e.getRow(), e.getCol());
+                            if (cell.manhattanDistance(existingEnemyPos) < 2) {
+                                isTooClose = true;
+                                break;
+                            }
+                        }
+
+                        if (!isTooClose) {
+                            enemies.add(new Enemy(cell.getRow(), cell.getCol(), EnemyMode.CHASE, new ChaseAI()));
+                            guardsSpawned++;
+                        }
                     }
                 }
             }
