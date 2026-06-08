@@ -2,12 +2,15 @@ package ui.render;
 
 import enums.Difficulty;
 import enums.PlayerSkin;
+import events.EventBus;
+import events.GameEvent;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import model.Player;
 
 public class PlayerRenderer {
     private static final double MOVEMENT_SMOOTHING_SECONDS = 0.18;
+    private static final long DAMAGE_FLASH_DURATION_NANOS = 1_000_000_000L;
     private static final Color MENU_SKIN_BASE = Color.web("#22103A");
     private static final Color MENU_SKIN_GLOW = Color.web("#8F55FF");
     private static final Color MENU_SKIN_BORDER = Color.web("#C9A7FF");
@@ -16,6 +19,13 @@ public class PlayerRenderer {
     private double renderX;
     private double renderY;
     private boolean initialized = false;
+    private long damageFlashUntilNanos = 0L;
+
+    public PlayerRenderer() {
+        EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_DAMAGED, event ->
+                damageFlashUntilNanos = System.nanoTime() + DAMAGE_FLASH_DURATION_NANOS
+        );
+    }
 
     public void draw(GraphicsContext gc, Player player, double tileSize) {
         draw(gc, player, tileSize, Difficulty.EASY);
@@ -52,7 +62,7 @@ public class PlayerRenderer {
         if (player.hasShield()) {
             drawShieldRing(gc, diff, centerX, centerY, radius);
         }
-        drawSkin(gc, player.getSkin(), diff, centerX, centerY, radius, 1.0);
+        drawSkin(gc, player.getSkin(), getCurrentPalette(diff), centerX, centerY, radius);
     }
 
     public double getRenderCenterX(double tileSize) {
@@ -76,6 +86,15 @@ public class PlayerRenderer {
     private static void drawSkin(GraphicsContext gc, PlayerSkin skin, Difficulty diff, double centerX, double centerY,
                                  double radius, double opacity) {
         drawSkin(gc, skin, paletteFor(diff != null ? diff : Difficulty.EASY, opacity), centerX, centerY, radius);
+    }
+
+    private PlayerPalette getCurrentPalette(Difficulty diff) {
+        long now = System.nanoTime();
+        if (now < damageFlashUntilNanos) {
+            double progress = (double) (damageFlashUntilNanos - now) / DAMAGE_FLASH_DURATION_NANOS;
+            return damagePalette(0.72 + 0.28 * progress);
+        }
+        return paletteFor(diff != null ? diff : Difficulty.EASY, 1.0);
     }
 
     private static void drawSkin(GraphicsContext gc, PlayerSkin skin, PlayerPalette palette, double centerX,
@@ -229,6 +248,16 @@ public class PlayerRenderer {
                 withOpacity(MENU_SKIN_GLOW, 0.18 * opacity),
                 withOpacity(MENU_SKIN_BORDER, 0.88 * opacity),
                 withOpacity(MENU_SKIN_HIGHLIGHT, 0.28 * opacity)
+        );
+    }
+
+    private static PlayerPalette damagePalette(double opacity) {
+        return new PlayerPalette(
+                withOpacity(Color.web("#F04444"), opacity),
+                Color.rgb(255, 96, 96, 0.44 * opacity),
+                Color.rgb(255, 48, 48, 0.24 * opacity),
+                withOpacity(Color.web("#FFD0D0"), 0.9 * opacity),
+                Color.rgb(255, 255, 255, 0.34 * opacity)
         );
     }
 
