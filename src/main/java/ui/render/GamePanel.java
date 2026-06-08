@@ -18,7 +18,9 @@ public class GamePanel extends Pane {
     private static final double CAMERA_SMOOTHING_SECONDS = 0.3;
     private static final double INTRO_CAMERA_SMOOTHING_SECONDS = 0.55;
     private static final double LEVEL_INTRO_SECONDS = 2.6;
-    private static final int MIST_RADIUS_CELLS = 5;
+    private static final int EASY_MIST_RADIUS_CELLS = 10;
+    private static final int MEDIUM_MIST_RADIUS_CELLS = 7;
+    private static final int HARD_MIST_RADIUS_CELLS = 5;
     private static final int DEFAULT_MIST_SAMPLE_STEP = 2;
     private static final double MIST_ALPHA_CAP = 0.97;
     private static final double MIST_FOCUS_TRANSITION_SECONDS = 0.3;
@@ -493,7 +495,15 @@ public class GamePanel extends Pane {
 
     private double getCurrentClearRadius() {
         double revealProgress = smoothStep(0.30, 1.0, getIntroProgress());
-        return MIST_RADIUS_CELLS * TILE_SIZE * revealProgress;
+        return getMistRadiusCells() * TILE_SIZE * revealProgress;
+    }
+
+    private int getMistRadiusCells() {
+        return switch (difficulty) {
+            case EASY -> EASY_MIST_RADIUS_CELLS;
+            case MEDIUM -> MEDIUM_MIST_RADIUS_CELLS;
+            case HARD -> HARD_MIST_RADIUS_CELLS;
+        };
     }
 
     private double getIntroProgress() {

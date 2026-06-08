@@ -49,6 +49,9 @@ public class PlayerRenderer {
         double centerX = renderX + tileSize / 2.0;
         double centerY = renderY + tileSize / 2.0;
         double radius = tileSize * 0.4;
+        if (player.hasShield()) {
+            drawShieldRing(gc, diff, centerX, centerY, radius);
+        }
         drawSkin(gc, player.getSkin(), diff, centerX, centerY, radius, 1.0);
     }
 
@@ -227,6 +230,29 @@ public class PlayerRenderer {
                 withOpacity(MENU_SKIN_BORDER, 0.88 * opacity),
                 withOpacity(MENU_SKIN_HIGHLIGHT, 0.28 * opacity)
         );
+    }
+
+    private static void drawShieldRing(GraphicsContext gc, Difficulty diff, double centerX, double centerY, double radius) {
+        long nowNanos = System.nanoTime();
+        double timeSeconds = nowNanos / 1_000_000_000.0;
+        double pulse = 0.5 + 0.5 * Math.sin(timeSeconds * 3.2);
+        double outerRadius = radius * (1.7 + pulse * 0.14);
+        Color ringColor = switch (diff) {
+            case MEDIUM -> Color.web("#E4D4B4");
+            case HARD -> Color.web("#F0A0A8");
+            default -> Color.web("#9FEAFF");
+        };
+
+        gc.save();
+        gc.setStroke(Color.color(ringColor.getRed(), ringColor.getGreen(), ringColor.getBlue(), 0.82));
+        gc.setLineWidth(radius * 0.22);
+        gc.strokeOval(centerX - outerRadius, centerY - outerRadius, outerRadius * 2, outerRadius * 2);
+
+        gc.setStroke(Color.color(ringColor.getRed(), ringColor.getGreen(), ringColor.getBlue(), 0.35));
+        gc.setLineWidth(radius * 0.10);
+        double haloRadius = outerRadius * 1.22;
+        gc.strokeOval(centerX - haloRadius, centerY - haloRadius, haloRadius * 2, haloRadius * 2);
+        gc.restore();
     }
 
     private static Color withOpacity(Color color, double opacity) {
