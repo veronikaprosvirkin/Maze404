@@ -36,4 +36,8 @@ public class EventBus {
             eventListeners.remove(listener);
         }
     }
+
+    public void reset() {
+        listeners.clear();
+    }
 }
