@@ -1,5 +1,6 @@
 import enums.ArtifactType;
 import enums.Difficulty;
+import events.AudioManager;
 import events.EventBus;
 import events.GameEvent;
 import javafx.animation.Interpolator;
@@ -47,18 +48,21 @@ public class GameSession {
     private final StackPane root;
     private final Scene scene;
     private final Runnable exitToMenu;
+    private final AudioManager audioManager;
     private final MovementSystem movementSystem = new MovementSystem();
     private final GameLevelFactory gameLevelFactory = new GameLevelFactory();
     private final EnemyTurnScheduler enemyTurnScheduler = new EnemyTurnScheduler();
 
-    public GameSession(StackPane root, Scene scene, Runnable exitToMenu) {
+    public GameSession(StackPane root, Scene scene, Runnable exitToMenu, AudioManager audioManager) {
         this.root = root;
         this.scene = scene;
         this.exitToMenu = exitToMenu;
+        this.audioManager = audioManager;
     }
 
     public void start(StartMenuView.MenuSettings settings) {
         Difficulty.current = settings.difficulty() != null ? settings.difficulty() : Difficulty.EASY;
+        audioManager.setMasterVolume(settings.gameVolume());
 
         root.setStyle("-fx-background-color: " + getBackgroundColor(Difficulty.current) + ";");
         scene.getStylesheets().setAll(getClass().getResource(getGameStylesheet()).toExternalForm());

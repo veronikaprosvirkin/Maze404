@@ -17,7 +17,7 @@ public class MainApp extends Application {
     private static final double MIN_WINDOW_WIDTH = 1024;
     private static final double MIN_WINDOW_HEIGHT = 680;
     private static final CountDownLatch START_LATCH = new CountDownLatch(1);
-    AudioManager audioManager = new AudioManager(true);
+    private final AudioManager audioManager = new AudioManager(true);
 
     @SuppressWarnings("unused")
     public static void waitForStart() {
@@ -31,6 +31,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         GameWindows.setPrimaryStage(primaryStage);
+        audioManager.setMasterVolume(0.75);
 
         StackPane root = new StackPane();
         Scene scene = new Scene(root, 1024, 680);
@@ -50,8 +51,10 @@ public class MainApp extends Application {
 
     private void showStartMenu(StackPane root, Scene scene) {
         StartMenuView startMenu = new StartMenuView(
-                settings -> new GameSession(root, scene, () -> showStartMenu(root, scene)).start(settings),
-                Platform::exit
+                settings -> new GameSession(root, scene, () -> showStartMenu(root, scene), audioManager).start(settings),
+                Platform::exit,
+                audioManager.getMasterVolume() * 100.0,
+                audioManager::setMasterVolume
         );
         root.getChildren().setAll(startMenu);
         scene.getRoot().requestFocus();
