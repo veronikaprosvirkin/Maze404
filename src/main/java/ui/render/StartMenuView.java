@@ -41,6 +41,7 @@ import model.Grid;
 import java.io.InputStream;
 import java.util.Locale;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 
 public class StartMenuView extends StackPane {
     private static final String ICON_PATH = "/icons/";
@@ -87,6 +88,7 @@ public class StartMenuView extends StackPane {
     private double mistTargetX = BASE_WIDTH * 0.5;
     private double mistTargetY = BASE_HEIGHT * 0.5;
     private double gameVolume = DEFAULT_GAME_VOLUME;
+    private DoubleConsumer onVolumeChanged = value -> { };
     private double mistSampleStep = MIST_SAMPLE_STEP;
     private int currentSkinIndex = 0;
     private int currentLevelIndex = 0;
@@ -205,10 +207,16 @@ public class StartMenuView extends StackPane {
     };
 
     public StartMenuView(Runnable onPlay, Runnable onSettings, Runnable onExit) {
-        this(settings -> onPlay.run(), onExit);
+        this(settings -> onPlay.run(), onExit, DEFAULT_GAME_VOLUME, value -> { });
     }
 
     public StartMenuView(Consumer<MenuSettings> onPlay, Runnable onExit) {
+        this(onPlay, onExit, DEFAULT_GAME_VOLUME, value -> { });
+    }
+
+    public StartMenuView(Consumer<MenuSettings> onPlay, Runnable onExit, double initialGameVolume, DoubleConsumer onVolumeChanged) {
+        this.gameVolume = clamp(initialGameVolume, 0.0, 100.0);
+        this.onVolumeChanged = onVolumeChanged != null ? onVolumeChanged : value -> { };
         getStyleClass().add("start-menu");
         var stylesheet = StartMenuView.class.getResource("/styles/start-menu.css");
         if (stylesheet != null) {
@@ -432,7 +440,10 @@ public class StartMenuView extends StackPane {
                         100,
                         gameVolume,
                         value -> Math.round(value) +"",
-                        value -> gameVolume = value),
+                        value -> {
+                            gameVolume = value;
+                            this.onVolumeChanged.accept(clamp(value / 100.0, 0.0, 1.0));
+                        }),
                 createSliderSetting(
                         "Mist quality",
                         1,

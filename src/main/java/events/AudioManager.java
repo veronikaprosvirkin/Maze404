@@ -9,9 +9,13 @@ import javafx.scene.media.MediaPlayer;
 import java.net.URL;
 
 public class AudioManager {
+    private static final double BACKGROUND_VOLUME_SCALE = 0.5;
+    private static final double EFFECT_VOLUME_SCALE = 0.7;
+
     private final boolean enabled;
     private MediaPlayer backgroundPlayer;
     private boolean isMuted = false;
+    private double masterVolume = 1.0;
 
     public AudioManager(boolean enabled) {
         this.enabled = enabled;
@@ -45,7 +49,7 @@ public class AudioManager {
         Media media = new Media(url.toExternalForm());
         backgroundPlayer = new MediaPlayer(media);
         backgroundPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-        backgroundPlayer.setVolume(0.5); // Налаштуй гучність за потреби
+        applyBackgroundVolume();
         if (!isMuted) {
             backgroundPlayer.play();
         }
@@ -59,8 +63,27 @@ public class AudioManager {
 
         // MediaPlayer для ефектів: створюємо новий, щоб звуки могли накладатися
         MediaPlayer effectPlayer = new MediaPlayer(new Media(url.toExternalForm()));
-        effectPlayer.setVolume(0.7);
+        effectPlayer.setVolume(masterVolume * EFFECT_VOLUME_SCALE);
         effectPlayer.play();
+    }
+
+    public void setMasterVolume(double masterVolume) {
+        this.masterVolume = clamp(masterVolume, 0.0, 1.0);
+        applyBackgroundVolume();
+    }
+
+    public double getMasterVolume() {
+        return masterVolume;
+    }
+
+    private void applyBackgroundVolume() {
+        if (backgroundPlayer != null) {
+            backgroundPlayer.setVolume(masterVolume * BACKGROUND_VOLUME_SCALE);
+        }
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 
 /*
