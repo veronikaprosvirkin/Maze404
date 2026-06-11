@@ -15,8 +15,10 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -37,6 +39,8 @@ import ui.render.ArtifactVisuals;
 import ui.render.GameAlerts;
 import ui.render.GamePanel;
 import ui.render.StartMenuView;
+
+import java.util.Locale;
 
 public class GameSession {
     private static final int PLAYER_MAX_HEALTH = 3;
@@ -234,6 +238,8 @@ public class GameSession {
 
         winLoseOverlay.getChildren().add(endScreenBox);
 
+        int[] currentMistSampleStep = {settings.mistSampleStep()};
+
         Label pauseOverlayTitle = new Label(levelTitle.getText());
         pauseOverlayTitle.getStyleClass().add("pause-title-label");
         Label pausedLabel = new Label("Paused");
@@ -246,14 +252,48 @@ public class GameSession {
         attachPauseButtonHover(resumeButton, getPausePrimaryGlowColor(Difficulty.current));
         attachPauseButtonHover(exitButton, Color.rgb(255, 96, 96, 0.92));
 
-        VBox pauseMenu = new VBox(14, pauseOverlayTitle, pausedLabel, resumeButton, exitButton);
-        pauseMenu.getStyleClass().addAll("game-hud", "pause-overlay-panel");
-        pauseMenu.setAlignment(Pos.CENTER);
-        pauseMenu.setMaxWidth(Region.USE_PREF_SIZE);
-        pauseMenu.setMaxHeight(Region.USE_PREF_SIZE);
-        pauseMenu.setPadding(new Insets(24, 28, 24, 28));
+        Label settingsHeading = new Label("Settings");
+        settingsHeading.getStyleClass().addAll("pause-overlay-heading", "pause-settings-heading");
 
-        StackPane pauseOverlay = new StackPane(pauseMenu);
+        VBox settingsControls = new VBox(12,
+                createPauseSliderSetting(
+                        "Background music",
+                        audioManager.getMusicVolume() * 100.0,
+                        value -> {
+                            audioManager.setMusicVolume(value / 100.0);
+                        }),
+                createPauseSliderSetting(
+                        "Sound effects",
+                        audioManager.getEffectsVolume() * 100.0,
+                        value -> {
+                            double normalizedValue = value / 100.0;
+                            audioManager.setEffectsVolume(normalizedValue);
+                            gamePanel.setGameVolume(normalizedValue);
+                        }),
+                createPauseSliderSetting(
+                        "Mist quality",
+                        30 - currentMistSampleStep[0],
+                        value -> {
+                            int mistSampleStep = Math.max(1, (int) Math.round(30 - value));
+                            currentMistSampleStep[0] = mistSampleStep;
+                            gamePanel.setMistSampleStep(mistSampleStep);
+                        },
+                        value -> String.format(Locale.US, "%.0f", value))
+        );
+        settingsControls.setAlignment(Pos.CENTER);
+
+        VBox settingsFrame = new VBox(10, settingsHeading, settingsControls);
+        settingsFrame.getStyleClass().add("pause-settings-frame");
+        settingsFrame.setAlignment(Pos.CENTER);
+
+        VBox pausePanel = new VBox(14, pauseOverlayTitle, pausedLabel, resumeButton, exitButton, settingsFrame);
+        pausePanel.getStyleClass().addAll("game-hud", "pause-overlay-panel");
+        pausePanel.setAlignment(Pos.CENTER);
+        pausePanel.setMaxWidth(Region.USE_PREF_SIZE);
+        pausePanel.setMaxHeight(Region.USE_PREF_SIZE);
+        pausePanel.setPadding(new Insets(24, 28, 24, 28));
+
+        StackPane pauseOverlay = new StackPane(pausePanel);
         pauseOverlay.getStyleClass().add("pause-overlay");
         pauseOverlay.setVisible(false);
 
@@ -591,6 +631,46 @@ public class GameSession {
             case HARD -> "/styles/game-inferno.css";
             default -> "/styles/game-cryo.css";
         };
+    }
+
+    private static VBox createPauseSliderSetting(String labelText, double initialValue, java.util.function.DoubleConsumer onValueChanged) {
+        return createPauseSliderSetting(labelText, initialValue, onValueChanged, GameSession::formatSliderValue);
+    }
+
+    private static VBox createPauseSliderSetting(
+            String labelText,
+            double initialValue,
+            java.util.function.DoubleConsumer onValueChanged,
+            java.util.function.DoubleFunction<String> valueFormatter) {
+        Label label = new Label(labelText);
+        label.getStyleClass().add("pause-settings-label");
+
+        Label valueLabel = new Label(valueFormatter.apply(initialValue));
+        valueLabel.getStyleClass().add("pause-settings-value");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(12, label, spacer, valueLabel);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        Slider slider = new Slider(0, 100, initialValue);
+        slider.getStyleClass().add("pause-settings-slider");
+        slider.setMaxWidth(Double.MAX_VALUE);
+        slider.valueProperty().addListener((obs, oldValue, newValue) -> {
+            double value = newValue.doubleValue();
+            valueLabel.setText(valueFormatter.apply(value));
+            onValueChanged.accept(value);
+        });
+
+        VBox setting = new VBox(6, header, slider);
+        setting.getStyleClass().add("pause-settings-row");
+        setting.setMaxWidth(Double.MAX_VALUE);
+        return setting;
+    }
+
+    private static String formatSliderValue(double value) {
+        return String.format(Locale.US, "%.0f%%", value);
     }
 
 }
