@@ -230,6 +230,8 @@
 }
 
 .pause-settings-frame {
+    -fx-min-width: 336px;
+    -fx-pref-width: 336px;
     -fx-max-width: 336px;
     -fx-padding: 14 16 12 16;
     -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
@@ -244,6 +246,8 @@
 }
 
 .pause-settings-row {
+    -fx-min-width: 288px;
+    -fx-pref-width: 288px;
     -fx-max-width: 320px;
 }
 
@@ -260,7 +264,9 @@
 }
 
 .pause-settings-slider {
-    -fx-pref-width: 320px;
+    -fx-min-width: 288px;
+    -fx-pref-width: 288px;
+    -fx-max-width: 288px;
 }
 
 .pause-settings-slider .track {

@@ -23,6 +23,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import logic.ArtifactSystem;
 import logic.PauseController;
@@ -285,6 +286,12 @@ public class GameSession {
         VBox settingsFrame = new VBox(10, settingsHeading, settingsControls);
         settingsFrame.getStyleClass().add("pause-settings-frame");
         settingsFrame.setAlignment(Pos.CENTER);
+        Rectangle settingsFrameClip = new Rectangle();
+        settingsFrameClip.arcWidthProperty().set(20);
+        settingsFrameClip.arcHeightProperty().set(20);
+        settingsFrameClip.widthProperty().bind(settingsFrame.widthProperty());
+        settingsFrameClip.heightProperty().bind(settingsFrame.heightProperty());
+        settingsFrame.setClip(settingsFrameClip);
 
         VBox pausePanel = new VBox(14, pauseOverlayTitle, pausedLabel, resumeButton, exitButton, settingsFrame);
         pausePanel.getStyleClass().addAll("game-hud", "pause-overlay-panel");
