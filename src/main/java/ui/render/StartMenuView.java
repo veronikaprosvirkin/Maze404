@@ -51,7 +51,8 @@ public class StartMenuView extends StackPane {
     private static final double BASE_WIDTH = 1024.0;
     private static final double BASE_HEIGHT = 576.0;
     private static final int MIST_SAMPLE_STEP = 6;
-    private static final int DEFAULT_GAME_VOLUME = 75;
+    private static final int DEFAULT_MUSIC_VOLUME = 75;
+    private static final int DEFAULT_SOUND_EFFECTS_VOLUME = 75;
     private static final double SETTINGS_FRAME_WIDTH = 660.0;
     private static final double SETTINGS_CONTROL_WIDTH = 550.0;
     private static final double SETTINGS_SLIDER_WIDTH = 550.0;
@@ -87,8 +88,10 @@ public class StartMenuView extends StackPane {
     private double mistFocusY = BASE_HEIGHT * 0.5;
     private double mistTargetX = BASE_WIDTH * 0.5;
     private double mistTargetY = BASE_HEIGHT * 0.5;
-    private double gameVolume = DEFAULT_GAME_VOLUME;
-    private DoubleConsumer onVolumeChanged = value -> { };
+    private double musicVolume = DEFAULT_MUSIC_VOLUME;
+    private double soundEffectsVolume = DEFAULT_SOUND_EFFECTS_VOLUME;
+    private DoubleConsumer onMusicVolumeChanged = value -> { };
+    private DoubleConsumer onSoundEffectsVolumeChanged = value -> { };
     private double mistSampleStep = MIST_SAMPLE_STEP;
     private int currentSkinIndex = 0;
     private int currentLevelIndex = 0;
@@ -101,7 +104,8 @@ public class StartMenuView extends StackPane {
     private MistProfile transitionTargetMistProfile = DEFAULT_MENU_MIST_PROFILE;
 
     public record MenuSettings(
-            double gameVolume,
+            double musicVolume,
+            double soundEffectsVolume,
             int mistSampleStep,
             PlayerSkin playerSkin,
             Difficulty difficulty) {
@@ -207,16 +211,24 @@ public class StartMenuView extends StackPane {
     };
 
     public StartMenuView(Runnable onPlay, Runnable onSettings, Runnable onExit) {
-        this(settings -> onPlay.run(), onExit, DEFAULT_GAME_VOLUME, value -> { });
+        this(settings -> onPlay.run(), onExit, DEFAULT_MUSIC_VOLUME, value -> { }, DEFAULT_SOUND_EFFECTS_VOLUME, value -> { });
     }
 
     public StartMenuView(Consumer<MenuSettings> onPlay, Runnable onExit) {
-        this(onPlay, onExit, DEFAULT_GAME_VOLUME, value -> { });
+        this(onPlay, onExit, DEFAULT_MUSIC_VOLUME, value -> { }, DEFAULT_SOUND_EFFECTS_VOLUME, value -> { });
     }
 
-    public StartMenuView(Consumer<MenuSettings> onPlay, Runnable onExit, double initialGameVolume, DoubleConsumer onVolumeChanged) {
-        this.gameVolume = clamp(initialGameVolume, 0.0, 100.0);
-        this.onVolumeChanged = onVolumeChanged != null ? onVolumeChanged : value -> { };
+    public StartMenuView(
+            Consumer<MenuSettings> onPlay,
+            Runnable onExit,
+            double initialMusicVolume,
+            DoubleConsumer onMusicVolumeChanged,
+            double initialSoundEffectsVolume,
+            DoubleConsumer onSoundEffectsVolumeChanged) {
+        this.musicVolume = clamp(initialMusicVolume, 0.0, 100.0);
+        this.soundEffectsVolume = clamp(initialSoundEffectsVolume, 0.0, 100.0);
+        this.onMusicVolumeChanged = onMusicVolumeChanged != null ? onMusicVolumeChanged : value -> { };
+        this.onSoundEffectsVolumeChanged = onSoundEffectsVolumeChanged != null ? onSoundEffectsVolumeChanged : value -> { };
         getStyleClass().add("start-menu");
         var stylesheet = StartMenuView.class.getResource("/styles/start-menu.css");
         if (stylesheet != null) {
@@ -435,14 +447,24 @@ public class StartMenuView extends StackPane {
         controls.setMaxWidth(SETTINGS_CONTROL_WIDTH);
         controls.getChildren().addAll(
                 createSliderSetting(
-                        "Game volume",
+                        "Background music",
                         0,
                         100,
-                        gameVolume,
+                        musicVolume,
                         value -> Math.round(value) +"",
                         value -> {
-                            gameVolume = value;
-                            this.onVolumeChanged.accept(clamp(value / 100.0, 0.0, 1.0));
+                            musicVolume = value;
+                            this.onMusicVolumeChanged.accept(clamp(value / 100.0, 0.0, 1.0));
+                        }),
+                createSliderSetting(
+                        "Sound effects",
+                        0,
+                        100,
+                        soundEffectsVolume,
+                        value -> Math.round(value) +"",
+                        value -> {
+                            soundEffectsVolume = value;
+                            this.onSoundEffectsVolumeChanged.accept(clamp(value / 100.0, 0.0, 1.0));
                         }),
                 createSliderSetting(
                         "Mist quality",
@@ -818,7 +840,8 @@ public class StartMenuView extends StackPane {
 
     private MenuSettings getMenuSettings() {
         return new MenuSettings(
-                clamp(gameVolume / 100.0, 0.0, 1.0),
+                clamp(musicVolume / 100.0, 0.0, 1.0),
+                clamp(soundEffectsVolume / 100.0, 0.0, 1.0),
                 (int) Math.round(mistSampleStep),
                 getSelectedSkin(),
                 getSelectedLevel().difficulty()

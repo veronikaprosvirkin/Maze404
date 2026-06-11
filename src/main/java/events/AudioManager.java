@@ -12,7 +12,8 @@ public class AudioManager {
     private MediaPlayer backgroundPlayer;
     private String currentBackgroundTrack;
     private boolean isMuted = false;
-    private double masterVolume = 1.0;
+    private double musicVolume = 1.0;
+    private double effectsVolume = 1.0;
 
     public AudioManager(boolean enabled) {
         this.enabled = enabled;
@@ -74,22 +75,30 @@ public class AudioManager {
 
         // MediaPlayer для ефектів: створюємо новий, щоб звуки могли накладатися
         MediaPlayer effectPlayer = new MediaPlayer(new Media(url.toExternalForm()));
-        effectPlayer.setVolume(masterVolume * EFFECT_VOLUME_SCALE);
+        effectPlayer.setVolume(effectsVolume * EFFECT_VOLUME_SCALE);
         effectPlayer.play();
     }
 
-    public void setMasterVolume(double masterVolume) {
-        this.masterVolume = clamp(masterVolume, 0.0, 1.0);
+    public void setMusicVolume(double musicVolume) {
+        this.musicVolume = clamp(musicVolume, 0.0, 1.0);
         applyBackgroundVolume();
     }
 
-    public double getMasterVolume() {
-        return masterVolume;
+    public double getMusicVolume() {
+        return musicVolume;
+    }
+
+    public void setEffectsVolume(double effectsVolume) {
+        this.effectsVolume = clamp(effectsVolume, 0.0, 1.0);
+    }
+
+    public double getEffectsVolume() {
+        return effectsVolume;
     }
 
     private void applyBackgroundVolume() {
         if (backgroundPlayer != null) {
-            backgroundPlayer.setVolume(masterVolume * BACKGROUND_VOLUME_SCALE);
+            backgroundPlayer.setVolume(musicVolume * BACKGROUND_VOLUME_SCALE);
         }
     }
 

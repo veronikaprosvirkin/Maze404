@@ -31,7 +31,8 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         GameWindows.setPrimaryStage(primaryStage);
-        audioManager.setMasterVolume(0.75);
+        audioManager.setMusicVolume(0.75);
+        audioManager.setEffectsVolume(0.75);
 
         StackPane root = new StackPane();
         Scene scene = new Scene(root, 1024, 680);
@@ -54,8 +55,10 @@ public class MainApp extends Application {
         StartMenuView startMenu = new StartMenuView(
                 settings -> new GameSession(root, scene, () -> showStartMenu(root, scene), audioManager).start(settings),
                 Platform::exit,
-                audioManager.getMasterVolume() * 100.0,
-                audioManager::setMasterVolume
+                audioManager.getMusicVolume() * 100.0,
+                audioManager::setMusicVolume,
+                audioManager.getEffectsVolume() * 100.0,
+                audioManager::setEffectsVolume
         );
         root.getChildren().setAll(startMenu);
         scene.getRoot().requestFocus();
