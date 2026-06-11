@@ -62,7 +62,8 @@ public class GameSession {
 
     public void start(StartMenuView.MenuSettings settings) {
         Difficulty.current = settings.difficulty() != null ? settings.difficulty() : Difficulty.EASY;
-        audioManager.setMasterVolume(settings.gameVolume());
+        audioManager.setMusicVolume(settings.musicVolume());
+        audioManager.setEffectsVolume(settings.soundEffectsVolume());
         audioManager.playLevelMusic();
 
         root.setStyle("-fx-background-color: " + getBackgroundColor(Difficulty.current) + ";");
@@ -88,7 +89,7 @@ public class GameSession {
         gamePanel.setMistEnabled(mistEnabled);
         gamePanel.setMistAnimationTimeScale(mistAnimationTime);
         gamePanel.setMistDensity(mistDensity);
-        gamePanel.setGameVolume(settings.gameVolume());
+        gamePanel.setGameVolume(settings.soundEffectsVolume());
 
         Label hpValueLabel = createHudValueLabel();
         Label crystalsValueLabel = createHudValueLabel();
