@@ -3,12 +3,14 @@ import enums.Difficulty;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
+import logic.system.CollisionDetector;
 import model.GameState;
 import model.Grid;
 import model.Player;
 import model.Position;
 
 public class EnemyTurnScheduler {
+    private final CollisionDetector collisionDetector = new CollisionDetector();
     public Timeline createTimer(GameState gameState, Grid grid, Player player) {
         int[] tickCounter = {0};
 
@@ -34,6 +36,7 @@ public class EnemyTurnScheduler {
                             }
                         }
                     }
+                    collisionDetector.checkEnemyCollisions(gameState);
                 })
         );
         enemyTimer.setCycleCount(javafx.animation.Animation.INDEFINITE);
