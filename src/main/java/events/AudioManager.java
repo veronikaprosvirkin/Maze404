@@ -1,9 +1,5 @@
 package events;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import java.net.URL;
@@ -14,6 +10,7 @@ public class AudioManager {
 
     private final boolean enabled;
     private MediaPlayer backgroundPlayer;
+    private String currentBackgroundTrack;
     private boolean isMuted = false;
     private double masterVolume = 1.0;
 
@@ -21,7 +18,6 @@ public class AudioManager {
         this.enabled = enabled;
         if (!enabled) return;
 
-        // Існуючі підписки на події
         EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_MOVED, e -> play("move.wav"));
         EventBus.getInstance().subscribe(GameEvent.Type.TRAP_TRIGGERED, e -> play("trap.wav"));
         EventBus.getInstance().subscribe(GameEvent.Type.SCAN_ACTIVATED, e -> play("scan.wav"));
@@ -37,17 +33,32 @@ public class AudioManager {
         });
 
         EventBus.getInstance().subscribe(GameEvent.Type.EXIT_BLOCKED, e -> play("error.wav"));
-
-        initBackgroundMusic("bg.wav");
     }
 
+    public void playMenuMusic() {
+        playBackgroundLoop("menu-screen.wav");
+    }
 
-    private void initBackgroundMusic(String filename) {
+    public void playLevelMusic() {
+        playBackgroundLoop("stay-inside-me.wav");
+    }
+
+    private void playBackgroundLoop(String filename) {
+        if (!enabled) return;
+        if (filename.equals(currentBackgroundTrack) && backgroundPlayer != null) {
+            if (!isMuted) {
+                backgroundPlayer.play();
+            }
+            return;
+        }
+
+        stopBackground();
         URL url = getClass().getResource("/sounds/" + filename);
         if (url == null) return;
 
         Media media = new Media(url.toExternalForm());
         backgroundPlayer = new MediaPlayer(media);
+        currentBackgroundTrack = filename;
         backgroundPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         applyBackgroundVolume();
         if (!isMuted) {
@@ -80,6 +91,15 @@ public class AudioManager {
         if (backgroundPlayer != null) {
             backgroundPlayer.setVolume(masterVolume * BACKGROUND_VOLUME_SCALE);
         }
+    }
+
+    private void stopBackground() {
+        if (backgroundPlayer != null) {
+            backgroundPlayer.stop();
+            backgroundPlayer.dispose();
+            backgroundPlayer = null;
+        }
+        currentBackgroundTrack = null;
     }
 
     private double clamp(double value, double min, double max) {

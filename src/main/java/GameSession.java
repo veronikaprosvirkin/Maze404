@@ -63,6 +63,7 @@ public class GameSession {
     public void start(StartMenuView.MenuSettings settings) {
         Difficulty.current = settings.difficulty() != null ? settings.difficulty() : Difficulty.EASY;
         audioManager.setMasterVolume(settings.gameVolume());
+        audioManager.playLevelMusic();
 
         root.setStyle("-fx-background-color: " + getBackgroundColor(Difficulty.current) + ";");
         scene.getStylesheets().setAll(getClass().getResource(getGameStylesheet()).toExternalForm());

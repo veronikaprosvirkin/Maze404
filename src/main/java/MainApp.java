@@ -50,6 +50,7 @@ public class MainApp extends Application {
     }
 
     private void showStartMenu(StackPane root, Scene scene) {
+        audioManager.playMenuMusic();
         StartMenuView startMenu = new StartMenuView(
                 settings -> new GameSession(root, scene, () -> showStartMenu(root, scene), audioManager).start(settings),
                 Platform::exit,
