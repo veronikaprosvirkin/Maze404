@@ -179,9 +179,9 @@
     -fx-min-width: 420px;
     -fx-pref-width: 420px;
     -fx-max-width: 420px;
-    -fx-min-height: 280px;
-    -fx-pref-height: 280px;
-    -fx-max-height: 280px;
+    -fx-min-height: 470px;
+    -fx-pref-height: 470px;
+    -fx-max-height: 470px;
     -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(24, 8, 12, 0.96), rgba(10, 3, 5, 0.92));
     -fx-border-color: rgba(212, 168, 176, 0.30);
     -fx-border-width: 1;
@@ -219,4 +219,75 @@
     -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 58, 42, 0.30), rgba(44, 12, 10, 0.92));
     -fx-border-color: rgba(255, 58, 42, 0.88);
     -fx-effect: dropshadow(gaussian, rgba(255, 58, 42, 0.28), 22, 0.2, 0, 0);
+}
+
+.pause-panel-content {
+    -fx-alignment: center;
+}
+
+.pause-settings-content {
+    -fx-max-width: 320px;
+}
+
+.pause-settings-frame {
+    -fx-max-width: 336px;
+    -fx-padding: 14 16 12 16;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 225, 232, 0.08), rgba(255, 205, 215, 0.03));
+    -fx-background-radius: 20;
+    -fx-border-color: rgba(212, 168, 176, 0.20);
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+}
+
+.pause-settings-heading {
+    -fx-font-size: 20px;
+}
+
+.pause-settings-row {
+    -fx-max-width: 320px;
+}
+
+.pause-settings-label {
+    -fx-text-fill: rgba(212, 168, 176, 0.84);
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.pause-settings-value {
+    -fx-text-fill: #FFF0F4;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.pause-settings-slider {
+    -fx-pref-width: 320px;
+}
+
+.pause-settings-slider .track {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, rgba(240, 144, 64, 0.74), rgba(212, 168, 176, 0.26));
+    -fx-background-radius: 999;
+    -fx-pref-height: 6px;
+}
+
+.pause-settings-slider .thumb {
+    -fx-background-color: #FFF0F4;
+    -fx-background-radius: 999;
+    -fx-border-color: rgba(240, 144, 64, 0.96);
+    -fx-border-radius: 999;
+    -fx-pref-width: 16px;
+    -fx-pref-height: 16px;
+}
+
+.pause-settings-slider .axis {
+    -fx-opacity: 0;
+}
+
+.pause-settings-back-button {
+    -fx-min-width: 160px;
+    -fx-pref-width: 160px;
+    -fx-max-width: 160px;
+    -fx-min-height: 42px;
+    -fx-pref-height: 42px;
+    -fx-max-height: 42px;
+    -fx-font-size: 15px;
 }

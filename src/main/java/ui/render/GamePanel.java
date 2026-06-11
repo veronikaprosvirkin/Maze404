@@ -39,7 +39,7 @@ public class GamePanel extends Pane {
     private final List<Artifact> artifacts;
     private final double baseWidth;
     private final double baseHeight;
-    private final int mistSampleStep;
+    private int mistSampleStep;
     private double cameraX;
     private double cameraY;
     private boolean cameraInitialized = false;
@@ -255,6 +255,14 @@ public class GamePanel extends Pane {
 
     public void setGameVolume(double gameVolume) {
         this.gameVolume = clamp(gameVolume, 0.0, 1.0);
+    }
+
+    public int getMistSampleStep() {
+        return mistSampleStep;
+    }
+
+    public void setMistSampleStep(int mistSampleStep) {
+        this.mistSampleStep = Math.max(1, mistSampleStep);
     }
 
     public void setRadarActive(boolean radarActive) {
