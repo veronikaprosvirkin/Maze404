@@ -374,6 +374,25 @@ public class GameSession {
         };
         EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_DAMAGED, playerDamagedListener);
 
+        Consumer<GameEvent> artifactCollectedListener = event -> Platform.runLater(() -> {
+            syncHudValues(
+                    player,
+                    hpValueLabel,
+                    crystalsValueLabel,
+                    radarValueLabel,
+                    shieldValueLabel,
+                    beaconValueLabel,
+                    elixirsValueLabel,
+                    keyValueLabel,
+                    healthCard,
+                    healthDamageHighlightTimer,
+                    lastRenderedHealth
+            );
+            updateShieldHudState(shieldCard, player);
+            gamePanel.redraw(grid, player, enemies);
+        });
+        EventBus.getInstance().subscribe(GameEvent.Type.ARTIFACT_COLLECTED, artifactCollectedListener);
+
         Consumer<GameEvent> shieldActivatedListener = event -> Platform.runLater(() ->
                 levelIsland.showArtifactMessage(ArtifactType.SHIELD, "Shield equipped"));
         EventBus.getInstance().subscribe(GameEvent.Type.SHIELD_ACTIVATED, shieldActivatedListener);
@@ -537,6 +556,7 @@ public class GameSession {
             scene.removeEventFilter(KeyEvent.KEY_PRESSED, miniGamePromptKeyHandler);
             EventBus.getInstance().unsubscribe(GameEvent.Type.EXIT_BLOCKED, exitBlockedListener);
             EventBus.getInstance().unsubscribe(GameEvent.Type.PLAYER_DAMAGED, playerDamagedListener);
+            EventBus.getInstance().unsubscribe(GameEvent.Type.ARTIFACT_COLLECTED, artifactCollectedListener);
             EventBus.getInstance().unsubscribe(GameEvent.Type.SHIELD_ACTIVATED, shieldActivatedListener);
             EventBus.getInstance().unsubscribe(GameEvent.Type.BEACON_ACTIVATED, beaconActivatedListener);
             EventBus.getInstance().unsubscribe(GameEvent.Type.PLAYER_DIED, playerDiedListener);

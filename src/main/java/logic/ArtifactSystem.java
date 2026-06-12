@@ -17,25 +17,29 @@ public class ArtifactSystem {
                 continue;
             }
             if (playerPos.equals(artifact.getPosition())) {
-                artifact.collect();
                 switch (artifact.getType()) {
                     case CRYSTAL -> {
+                        artifact.collect();
                         player.addCrystals(1);
                         EventBus.getInstance().publish(new GameEvent(GameEvent.Type.ARTIFACT_COLLECTED, playerPos));
                     }
                     case RADAR -> {
+                        artifact.collect();
                         player.addRadarCharge(1);
                         EventBus.getInstance().publish(new GameEvent(GameEvent.Type.ARTIFACT_COLLECTED, playerPos));
                     }
                     case SHIELD -> {
+                        artifact.collect();
                         player.addShield(1);
                         EventBus.getInstance().publish(new GameEvent(GameEvent.Type.ARTIFACT_COLLECTED, playerPos));
                     }
                     case BEACON -> {
+                        artifact.collect();
                         player.addBeacon(1);
                         EventBus.getInstance().publish(new GameEvent(GameEvent.Type.ARTIFACT_COLLECTED, playerPos));
                     }
                     case ELIXIR -> {
+                        artifact.collect();
                         player.addElixir(1);
                         EventBus.getInstance().publish(new GameEvent(GameEvent.Type.ARTIFACT_COLLECTED, playerPos));
                     }
@@ -43,6 +47,7 @@ public class ArtifactSystem {
                         EventBus.getInstance().publish(new GameEvent(GameEvent.Type.MINI_GAME_TRIGGERED, playerPos));
                     }
                     case KEY -> {
+                        artifact.collect();
                         player.addKey();
                         EventBus.getInstance().publish(new GameEvent(GameEvent.Type.ARTIFACT_COLLECTED, playerPos));
                     }
