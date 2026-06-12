@@ -72,11 +72,12 @@ public class MiniGameManager {
         promptActive = true;
         levelIsland.showChoiceMessage(
                 enums.ArtifactType.MINI_GAME,
-                "Artifact recovered - spend 1 crystal? Crystals: " + player.getCrystals(),
+                "Enter the challenge?",
                 "Leave It",
                 this::rejectPrompt,
-                "Enter Challenge",
-                this::acceptPrompt
+                "Start",
+                this::acceptPrompt,
+                player.getCrystals()
         );
     }
 
