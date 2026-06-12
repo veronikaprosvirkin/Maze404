@@ -175,7 +175,8 @@
     -fx-min-height: 54px;
 }
 
-.level-island-action {
+.level-island-message {
+    -fx-min-width: 172px;
     -fx-padding: 7 13 7 11;
     -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(240, 144, 64, 0.22), rgba(255, 160, 174, 0.10));
     -fx-background-radius: 18;
@@ -185,7 +186,28 @@
     -fx-effect: dropshadow(gaussian, rgba(255, 160, 174, 0.22), 18, 0.22, 0, 0);
 }
 
-.level-island-action-text {
+.level-island-message-text {
+    -fx-text-fill: #FFF0F4;
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+}
+
+.level-island-tiny {
+    -fx-min-width: 42px;
+    -fx-pref-width: 42px;
+    -fx-max-width: 42px;
+    -fx-min-height: 42px;
+    -fx-pref-height: 42px;
+    -fx-max-height: 42px;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(240, 144, 64, 0.30), rgba(255, 160, 174, 0.12));
+    -fx-border-color: rgba(255, 160, 174, 0.64);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(255, 160, 174, 0.28), 18, 0.24, 0, 0);
+}
+
+.level-island-tiny-text {
     -fx-text-fill: #FFF0F4;
     -fx-font-size: 13px;
     -fx-font-weight: 800;

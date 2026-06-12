@@ -153,6 +153,10 @@ public class GameSession {
         inventoryHud.getChildren().addAll(radarCard, shieldCard, beaconCard, elixirCard);
         updateShieldHudState(shieldCard, player);
 
+        LevelIsland levelIsland = new LevelIsland(getLevelTitle(Difficulty.current));
+        StackPane.setAlignment(levelIsland.getView(), Pos.TOP_CENTER);
+        StackPane.setMargin(levelIsland.getView(), new Insets(24, 0, 0, 0));
+
         PauseTransition radarMistRestoreTimer = new PauseTransition(RADAR_REVEAL_DURATION);
         PauseTransition radarBlinkStartTimer = new PauseTransition(RADAR_WARNING_START_DELAY);
         Timeline radarBlinkTimeline = new Timeline(
@@ -170,6 +174,7 @@ public class GameSession {
             radarBlinkTimeline.stop();
             setHudCardState(radarCard, "hud-card-active", false);
             setHudCardState(radarCard, "hud-card-warning", false);
+            levelIsland.hideTinyMessage();
         });
 
         PauseTransition healthDamageHighlightTimer = new PauseTransition(HUD_DAMAGE_HIGHLIGHT_DURATION);
@@ -195,10 +200,6 @@ public class GameSession {
         hudRow.setMouseTransparent(false);
         hudRow.setMaxWidth(Region.USE_PREF_SIZE);
         hudRow.setMaxHeight(Region.USE_PREF_SIZE);
-
-        LevelIsland levelIsland = new LevelIsland(getLevelTitle(Difficulty.current));
-        StackPane.setAlignment(levelIsland.getView(), Pos.TOP_CENTER);
-        StackPane.setMargin(levelIsland.getView(), new Insets(24, 0, 0, 0));
 
         Label stealthHintLabel = new Label("STEALTH MODE ACTIVE");
         stealthHintLabel.getStyleClass().add("stealth-hint-text");
@@ -422,6 +423,7 @@ public class GameSession {
                         radarBlinkStartTimer.playFromStart();
                         radarMistRestoreTimer.stop();
                         radarMistRestoreTimer.playFromStart();
+                        levelIsland.showTinyCountdown(RADAR_REVEAL_DURATION);
                     }
                 }
                 case SHIELD -> shieldSystem.activateShield(gameState);
