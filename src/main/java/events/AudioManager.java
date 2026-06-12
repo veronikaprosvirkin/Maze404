@@ -1,5 +1,6 @@
 package events;
 
+import enums.Difficulty;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import java.net.URL;
@@ -40,8 +41,8 @@ public class AudioManager {
         playBackgroundLoop("menu-screen.wav");
     }
 
-    public void playLevelMusic() {
-        playBackgroundLoop("stay-inside-me.wav");
+    public void playLevelMusic(Difficulty difficulty) {
+        playBackgroundLoop(getLevelTrack(difficulty));
     }
 
     private void playBackgroundLoop(String filename) {
@@ -113,6 +114,14 @@ public class AudioManager {
 
     private double clamp(double value, double min, double max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    private String getLevelTrack(Difficulty difficulty) {
+        return switch (difficulty) {
+            case MEDIUM -> "stone-desert.wav";
+            case HARD -> "flame-hell.wav";
+            default -> "cryo-dangeon.wav";
+        };
     }
 
 /*

@@ -75,7 +75,7 @@ public class GameSession {
         Difficulty.current = settings.difficulty() != null ? settings.difficulty() : Difficulty.EASY;
         audioManager.setMusicVolume(settings.musicVolume());
         audioManager.setEffectsVolume(settings.soundEffectsVolume());
-        audioManager.playLevelMusic();
+        audioManager.playLevelMusic(Difficulty.current);
 
         root.setStyle("-fx-background-color: " + getBackgroundColor(Difficulty.current) + ";");
         scene.getStylesheets().setAll(getClass().getResource(getGameStylesheet()).toExternalForm());
