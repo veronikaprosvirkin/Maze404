@@ -16,6 +16,9 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
 
 public class LevelIsland {
@@ -31,6 +34,12 @@ public class LevelIsland {
     private static final Duration ANIMATION_DURATION = Duration.millis(260);
     private static final Duration MESSAGE_DURATION = Duration.seconds(2.4);
     private static final double TITLE_SLOT_HEIGHT = 54.0;
+    private static final double MIN_ISLAND_HEADER_WIDTH = 180.0;
+    private static final double ISLAND_MESSAGE_WIDTH = 260.0;
+    private static final double ISLAND_CHOICE_WIDTH = 382.0;
+    private static final double ISLAND_HORIZONTAL_PADDING = 36.0;
+    private static final double TITLE_HORIZONTAL_PADDING = 28.0;
+    private static final Font TITLE_MEASURE_FONT = Font.font("System", FontWeight.SEMI_BOLD, 16.0);
     private static final double MESSAGE_START_OFFSET = -8.0;
     private static final double MESSAGE_BOX_HEIGHT = 34.0;
     private static final double MESSAGE_BOTTOM_PADDING = 8.0;
@@ -45,6 +54,7 @@ public class LevelIsland {
     private final String title;
     private final HBox view;
     private final VBox islandBase;
+    private final StackPane titleSlot;
     private final StackPane messageSlot;
     private final HBox messageBox;
     private Node messageIcon;
@@ -56,19 +66,22 @@ public class LevelIsland {
     private final StackPane tinyMessageCircle;
     private final Label tinyMessageLabel;
     private final PauseTransition hideTimer = new PauseTransition(MESSAGE_DURATION);
+    private Timeline widthTransition;
     private Timeline messageTransition;
     private Timeline actionTransition;
     private Timeline tinyMessageTransition;
     private Timeline tinyCountdownTimeline;
+    private final double headerWidth;
     private boolean choiceActive = false;
 
     public LevelIsland(String title) {
         this.title = title;
+        this.headerWidth = computeHeaderWidth(title);
 
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("pause-title-label");
 
-        StackPane titleSlot = new StackPane(titleLabel);
+        titleSlot = new StackPane(titleLabel);
         titleSlot.setAlignment(Pos.CENTER);
         titleSlot.setMinHeight(TITLE_SLOT_HEIGHT);
         titleSlot.setPrefHeight(TITLE_SLOT_HEIGHT);
@@ -141,6 +154,7 @@ public class LevelIsland {
         islandBase.setPickOnBounds(false);
         islandBase.setMaxWidth(Region.USE_PREF_SIZE);
         islandBase.setMaxHeight(Region.USE_PREF_SIZE);
+        setIslandWidth(headerWidth);
 
         tinyMessageLabel = new Label();
         tinyMessageLabel.getStyleClass().add("level-island-tiny-text");
@@ -183,7 +197,7 @@ public class LevelIsland {
         messageBox.getChildren().set(0, messageIcon);
         messageIcon.setVisible(true);
         messageIcon.setManaged(true);
-        showMessage(message, true, MESSAGE_BOX_HEIGHT, MESSAGE_SLOT_HEIGHT);
+        showMessage(message, true, MESSAGE_BOX_HEIGHT, MESSAGE_SLOT_HEIGHT, ISLAND_MESSAGE_WIDTH);
     }
 
     public void showTextMessage(String message) {
@@ -194,7 +208,7 @@ public class LevelIsland {
         setDefaultMessageStyle();
         messageIcon.setVisible(false);
         messageIcon.setManaged(false);
-        showMessage(message, true, MESSAGE_BOX_HEIGHT, MESSAGE_SLOT_HEIGHT);
+        showMessage(message, true, MESSAGE_BOX_HEIGHT, MESSAGE_SLOT_HEIGHT, ISLAND_MESSAGE_WIDTH);
     }
 
     public void showPersistentTextMessage(String message) {
@@ -205,7 +219,7 @@ public class LevelIsland {
         setDefaultMessageStyle();
         messageIcon.setVisible(false);
         messageIcon.setManaged(false);
-        showMessage(message, false, MESSAGE_BOX_HEIGHT, MESSAGE_SLOT_HEIGHT);
+        showMessage(message, false, MESSAGE_BOX_HEIGHT, MESSAGE_SLOT_HEIGHT, ISLAND_MESSAGE_WIDTH);
     }
 
     public void hideTextMessage() {
@@ -252,7 +266,7 @@ public class LevelIsland {
             primaryAction.run();
         });
 
-        showMessage(message, false, CHOICE_MESSAGE_BOX_HEIGHT, CHOICE_MESSAGE_SLOT_HEIGHT);
+        showMessage(message, false, CHOICE_MESSAGE_BOX_HEIGHT, CHOICE_MESSAGE_SLOT_HEIGHT, ISLAND_CHOICE_WIDTH);
         showActions();
     }
 
@@ -313,18 +327,26 @@ public class LevelIsland {
 
     public void dispose() {
         hideTimer.stop();
+        stopWidthTransition();
         stopMessageTransition();
         stopActionTransition();
         stopTinyCountdown();
         stopTinyMessageTransition();
     }
 
-    private void showMessage(String message, boolean autoHide, double messageBoxHeight, double messageSlotHeight) {
+    private void showMessage(
+            String message,
+            boolean autoHide,
+            double messageBoxHeight,
+            double messageSlotHeight,
+            double islandWidth
+    ) {
         hideTimer.stop();
         stopMessageTransition();
 
         messageLabel.setText(message);
         setMessageBoxHeight(messageBoxHeight);
+        animateIslandWidth(islandWidth);
         messageSlot.setVisible(true);
         messageSlot.setManaged(true);
         messageBox.setVisible(true);
@@ -352,6 +374,7 @@ public class LevelIsland {
 
         actionSlot.setVisible(true);
         actionSlot.setManaged(true);
+        animateIslandWidth(ISLAND_CHOICE_WIDTH);
 
         actionTransition = new Timeline(
                 new KeyFrame(ANIMATION_DURATION,
@@ -442,8 +465,72 @@ public class LevelIsland {
             messageBox.setVisible(false);
             messageSlot.setVisible(false);
             messageSlot.setManaged(false);
+            animateIslandWidth(headerWidth);
         });
         messageTransition.playFromStart();
+    }
+
+    private void animateIslandWidth(double width) {
+        stopWidthTransition();
+
+        width = getExpandedWidth(width);
+        double contentWidth = getContentWidth(width);
+        widthTransition = new Timeline(
+                new KeyFrame(ANIMATION_DURATION,
+                        new KeyValue(islandBase.minWidthProperty(), width, Interpolator.EASE_BOTH),
+                        new KeyValue(islandBase.prefWidthProperty(), width, Interpolator.EASE_BOTH),
+                        new KeyValue(islandBase.maxWidthProperty(), width, Interpolator.EASE_BOTH),
+                        new KeyValue(titleSlot.minWidthProperty(), contentWidth, Interpolator.EASE_BOTH),
+                        new KeyValue(titleSlot.prefWidthProperty(), contentWidth, Interpolator.EASE_BOTH),
+                        new KeyValue(titleSlot.maxWidthProperty(), contentWidth, Interpolator.EASE_BOTH),
+                        new KeyValue(messageSlot.minWidthProperty(), contentWidth, Interpolator.EASE_BOTH),
+                        new KeyValue(messageSlot.prefWidthProperty(), contentWidth, Interpolator.EASE_BOTH),
+                        new KeyValue(messageSlot.maxWidthProperty(), contentWidth, Interpolator.EASE_BOTH),
+                        new KeyValue(messageBox.minWidthProperty(), contentWidth, Interpolator.EASE_BOTH),
+                        new KeyValue(messageBox.prefWidthProperty(), contentWidth, Interpolator.EASE_BOTH),
+                        new KeyValue(messageBox.maxWidthProperty(), contentWidth, Interpolator.EASE_BOTH),
+                        new KeyValue(actionSlot.minWidthProperty(), contentWidth, Interpolator.EASE_BOTH),
+                        new KeyValue(actionSlot.prefWidthProperty(), contentWidth, Interpolator.EASE_BOTH),
+                        new KeyValue(actionSlot.maxWidthProperty(), contentWidth, Interpolator.EASE_BOTH))
+        );
+        widthTransition.setOnFinished(event -> widthTransition = null);
+        widthTransition.playFromStart();
+    }
+
+    private void setIslandWidth(double width) {
+        double contentWidth = getContentWidth(width);
+        islandBase.setMinWidth(width);
+        islandBase.setPrefWidth(width);
+        islandBase.setMaxWidth(width);
+        titleSlot.setMinWidth(contentWidth);
+        titleSlot.setPrefWidth(contentWidth);
+        titleSlot.setMaxWidth(contentWidth);
+        messageSlot.setMinWidth(contentWidth);
+        messageSlot.setPrefWidth(contentWidth);
+        messageSlot.setMaxWidth(contentWidth);
+        messageBox.setMinWidth(contentWidth);
+        messageBox.setPrefWidth(contentWidth);
+        messageBox.setMaxWidth(contentWidth);
+        actionSlot.setMinWidth(contentWidth);
+        actionSlot.setPrefWidth(contentWidth);
+        actionSlot.setMaxWidth(contentWidth);
+    }
+
+    private double getContentWidth(double islandWidth) {
+        return Math.max(0.0, islandWidth - ISLAND_HORIZONTAL_PADDING);
+    }
+
+    private double getExpandedWidth(double width) {
+        return Math.max(headerWidth, width);
+    }
+
+    private static double computeHeaderWidth(String title) {
+        Text titleText = new Text(title == null ? "" : title);
+        titleText.setFont(TITLE_MEASURE_FONT);
+        return Math.ceil(Math.max(
+                MIN_ISLAND_HEADER_WIDTH,
+                titleText.getLayoutBounds().getWidth() + ISLAND_HORIZONTAL_PADDING + TITLE_HORIZONTAL_PADDING
+        ));
     }
 
     private void setMessageSlotHeight(double height) {
@@ -468,6 +555,13 @@ public class LevelIsland {
         if (messageTransition != null) {
             messageTransition.stop();
             messageTransition = null;
+        }
+    }
+
+    private void stopWidthTransition() {
+        if (widthTransition != null) {
+            widthTransition.stop();
+            widthTransition = null;
         }
     }
 

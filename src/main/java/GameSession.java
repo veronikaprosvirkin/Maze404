@@ -551,6 +551,7 @@ public class GameSession {
             pauseController.resume();
             enemyTimer.stop();
             stealthHintTimer.stop();
+            gamePanel.dispose();
             levelIsland.dispose();
             miniGameManager.dispose();
             scene.removeEventFilter(KeyEvent.KEY_PRESSED, miniGamePromptKeyHandler);
