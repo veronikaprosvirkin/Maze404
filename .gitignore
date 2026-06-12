@@ -22,7 +22,8 @@ build/
 *.ipr
 *.xml
 !src/main/resources/log4j2.xml
-.logs/
+logs/*
+!logs/.gitkeep
 
 # OS generated files
 .DS_Store

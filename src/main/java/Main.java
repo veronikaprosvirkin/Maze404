@@ -1,10 +1,9 @@
 import javafx.application.Application;
-import logic.generation.MazeGenerator;
-import model.Grid;
+import Utilities.AppLog;
 
 public class Main {
     public static void main(String[] args) {
+        AppLog.initialize();
         Application.launch(MainApp.class, args);
     }
 }
-
