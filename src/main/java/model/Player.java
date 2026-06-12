@@ -7,7 +7,7 @@ import events.EventBus;
 import events.GameEvent;
 
 public class Player {
-    private static final int MAX_HEALTH = 3;
+    private static final int MAX_HEALTH = 5;
 
     //  Геттери (контракт)
     @Getter
@@ -16,6 +16,13 @@ public class Player {
     @Getter
     @Setter
     private int col;
+    // поля для історії
+    @Getter
+    @Setter
+    private int prevRow;
+    @Getter
+    @Setter
+    private int prevCol;
     @Getter
     private int health = MAX_HEALTH;
     @Getter

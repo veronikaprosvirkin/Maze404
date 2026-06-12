@@ -6,7 +6,6 @@ import logic.*;
 import model.*;
 import model.Grid;
 import org.junit.jupiter.api.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
