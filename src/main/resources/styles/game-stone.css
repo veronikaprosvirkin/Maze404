@@ -171,6 +171,28 @@
     -fx-font-weight: 600;
 }
 
+.stealth-hint {
+    -fx-padding: 10 18 10 18;
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
+    -fx-border-color: rgba(217, 201, 168, 0.16);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.56), 24, 0.20, 0, 8);
+}
+
+.stealth-hint-text {
+    -fx-text-fill: #FFF7E3;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 248, 232, 0.10), rgba(255, 245, 220, 0.04));
+    -fx-border-color: rgba(240, 176, 48, 0.60);
+    -fx-border-width: 1;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-padding: 8 18 8 18;
+    -fx-effect: dropshadow(gaussian, rgba(240, 176, 48, 0.20), 20, 0.20, 0, 6);
+}
+
 .pause-overlay {
     -fx-background-color: rgba(10, 8, 6, 0.7);
 }
