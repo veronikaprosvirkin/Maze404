@@ -234,6 +234,24 @@
     -fx-font-weight: 800;
 }
 
+.level-island-choice-content {
+    -fx-alignment: center;
+}
+
+.level-island-crystal-count {
+    -fx-padding: 2 8 2 7;
+    -fx-background-color: rgba(240, 214, 106, 0.16);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(255, 243, 166, 0.42);
+    -fx-border-radius: 12;
+}
+
+.level-island-crystal-count-text {
+    -fx-text-fill: #FFF3A6;
+    -fx-font-size: 12px;
+    -fx-font-weight: 900;
+}
+
 .level-island-actions {
     -fx-padding: 0 0 8 0;
 }

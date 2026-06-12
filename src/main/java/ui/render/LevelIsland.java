@@ -57,8 +57,11 @@ public class LevelIsland {
     private final StackPane titleSlot;
     private final StackPane messageSlot;
     private final HBox messageBox;
+    private final VBox messageContent;
     private Node messageIcon;
     private final Label messageLabel;
+    private final HBox crystalCountBadge;
+    private final Label crystalCountLabel;
     private final StackPane actionSlot;
     private final HBox actionBox;
     private final Button secondaryActionButton;
@@ -92,8 +95,20 @@ public class LevelIsland {
         messageLabel.getStyleClass().add("level-island-message-text");
         messageLabel.setWrapText(true);
 
+        crystalCountLabel = new Label();
+        crystalCountLabel.getStyleClass().add("level-island-crystal-count-text");
+        crystalCountBadge = new HBox(5, ArtifactVisuals.createHudIcon(ArtifactType.CRYSTAL, 15), crystalCountLabel);
+        crystalCountBadge.getStyleClass().add("level-island-crystal-count");
+        crystalCountBadge.setAlignment(Pos.CENTER);
+        crystalCountBadge.setVisible(false);
+        crystalCountBadge.setManaged(false);
+
+        messageContent = new VBox(3, messageLabel, crystalCountBadge);
+        messageContent.getStyleClass().add("level-island-choice-content");
+        messageContent.setAlignment(Pos.CENTER);
+
         messageIcon = ArtifactVisuals.createHudIcon(ArtifactType.SHIELD, 18);
-        messageBox = new HBox(8, messageIcon, messageLabel);
+        messageBox = new HBox(8, messageIcon, messageContent);
         messageBox.getStyleClass().addAll(MESSAGE_BASE_CLASS, MESSAGE_DEFAULT_CLASS);
         messageBox.setAlignment(Pos.CENTER);
         messageBox.setVisible(false);
@@ -192,6 +207,7 @@ public class LevelIsland {
             return;
         }
         hideActions();
+        hideCrystalCount();
         setArtifactMessageStyle(artifactType);
         messageIcon = ArtifactVisuals.createHudIcon(artifactType, 18);
         messageBox.getChildren().set(0, messageIcon);
@@ -205,6 +221,7 @@ public class LevelIsland {
             return;
         }
         hideActions();
+        hideCrystalCount();
         setDefaultMessageStyle();
         messageIcon.setVisible(false);
         messageIcon.setManaged(false);
@@ -216,6 +233,7 @@ public class LevelIsland {
             return;
         }
         hideActions();
+        hideCrystalCount();
         setDefaultMessageStyle();
         messageIcon.setVisible(false);
         messageIcon.setManaged(false);
@@ -245,7 +263,8 @@ public class LevelIsland {
             String secondaryText,
             Runnable secondaryAction,
             String primaryText,
-            Runnable primaryAction
+            Runnable primaryAction,
+            int crystalCount
     ) {
         choiceActive = true;
         setArtifactMessageStyle(artifactType);
@@ -261,10 +280,15 @@ public class LevelIsland {
             secondaryAction.run();
         });
         primaryActionButton.setText(primaryText);
+        primaryActionButton.setGraphic(ArtifactVisuals.createHudIcon(ArtifactType.CRYSTAL, 15));
+        primaryActionButton.setGraphicTextGap(6);
         primaryActionButton.setOnAction(event -> {
             closeChoiceMessage();
             primaryAction.run();
         });
+        crystalCountLabel.setText(String.valueOf(crystalCount));
+        crystalCountBadge.setVisible(true);
+        crystalCountBadge.setManaged(true);
 
         showMessage(message, false, CHOICE_MESSAGE_BOX_HEIGHT, CHOICE_MESSAGE_SLOT_HEIGHT, ISLAND_CHOICE_WIDTH);
         showActions();
@@ -391,6 +415,9 @@ public class LevelIsland {
     private void closeChoiceMessage() {
         choiceActive = false;
         messageBox.getStyleClass().remove(MESSAGE_CHOICE_CLASS);
+        primaryActionButton.setGraphic(null);
+        secondaryActionButton.setGraphic(null);
+        hideCrystalCount();
         hideTimer.stop();
         hideActions();
         hideMessage();
@@ -412,6 +439,11 @@ public class LevelIsland {
     private void setDefaultMessageStyle() {
         clearMessageVariantStyles();
         messageBox.getStyleClass().add(MESSAGE_DEFAULT_CLASS);
+    }
+
+    private void hideCrystalCount() {
+        crystalCountBadge.setVisible(false);
+        crystalCountBadge.setManaged(false);
     }
 
     private void clearMessageVariantStyles() {
