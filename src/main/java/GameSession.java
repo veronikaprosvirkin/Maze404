@@ -334,6 +334,8 @@ public class GameSession {
                 createPauseSliderSetting(
                         "Mist quality",
                         30 - currentMistSampleStep[0],
+                        0,
+                        30,
                         value -> {
                             int mistSampleStep = Math.max(1, (int) Math.round(30 - value));
                             currentMistSampleStep[0] = mistSampleStep;
@@ -843,12 +845,14 @@ public class GameSession {
     }
 
     private static VBox createPauseSliderSetting(String labelText, double initialValue, java.util.function.DoubleConsumer onValueChanged) {
-        return createPauseSliderSetting(labelText, initialValue, onValueChanged, GameSession::formatSliderValue);
+        return createPauseSliderSetting(labelText, initialValue, 0, 100, onValueChanged, GameSession::formatSliderValue);
     }
 
     private static VBox createPauseSliderSetting(
             String labelText,
             double initialValue,
+            double minValue,
+            double maxValue,
             java.util.function.DoubleConsumer onValueChanged,
             java.util.function.DoubleFunction<String> valueFormatter) {
         Label label = new Label(labelText);
@@ -863,7 +867,7 @@ public class GameSession {
         HBox header = new HBox(12, label, spacer, valueLabel);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        Slider slider = new Slider(0, 100, initialValue);
+        Slider slider = new Slider(minValue, maxValue, initialValue);
         slider.getStyleClass().add("pause-settings-slider");
         slider.setMaxWidth(Double.MAX_VALUE);
         slider.valueProperty().addListener((obs, oldValue, newValue) -> {
@@ -876,6 +880,14 @@ public class GameSession {
         setting.getStyleClass().add("pause-settings-row");
         setting.setMaxWidth(Double.MAX_VALUE);
         return setting;
+    }
+
+    private static VBox createPauseSliderSetting(
+            String labelText,
+            double initialValue,
+            java.util.function.DoubleConsumer onValueChanged,
+            java.util.function.DoubleFunction<String> valueFormatter) {
+        return createPauseSliderSetting(labelText, initialValue, 0, 100, onValueChanged, valueFormatter);
     }
 
     private static String formatSliderValue(double value) {
