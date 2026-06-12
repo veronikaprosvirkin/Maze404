@@ -230,7 +230,7 @@
 
 .level-island-message-text {
     -fx-text-fill: #FFF0F4;
-    -fx-font-size: 13px;
+    -fx-font-size: 18px;
     -fx-font-weight: 800;
 }
 
@@ -248,7 +248,7 @@
 
 .level-island-crystal-count-text {
     -fx-text-fill: #FFF3A6;
-    -fx-font-size: 12px;
+    -fx-font-size: 16px;
     -fx-font-weight: 900;
 }
 
@@ -257,12 +257,12 @@
 }
 
 .level-island-action-button {
-    -fx-min-height: 28px;
-    -fx-pref-height: 28px;
-    -fx-background-radius: 14;
-    -fx-border-radius: 14;
-    -fx-padding: 0 14 0 14;
-    -fx-font-size: 12px;
+    -fx-min-height: 38px;
+    -fx-pref-height: 38px;
+    -fx-background-radius: 19;
+    -fx-border-radius: 19;
+    -fx-padding: 0 18 0 18;
+    -fx-font-size: 16px;
     -fx-font-weight: 800;
 }
 
@@ -295,7 +295,7 @@
 
 .level-island-tiny-text {
     -fx-text-fill: #FFF0F4;
-    -fx-font-size: 13px;
+    -fx-font-size: 18px;
     -fx-font-weight: 800;
 }
 
