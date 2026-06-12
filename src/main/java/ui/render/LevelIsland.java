@@ -23,6 +23,7 @@ public class LevelIsland {
     private static final String MESSAGE_SHIELD_CLASS = "level-island-message-shield";
     private static final String MESSAGE_BEACON_CLASS = "level-island-message-beacon";
     private static final String MESSAGE_ELIXIR_CLASS = "level-island-message-elixir";
+    private static final String MESSAGE_KEY_CLASS = "level-island-message-key";
     private static final String MESSAGE_DEFAULT_CLASS = "level-island-message-default";
     private static final Duration ANIMATION_DURATION = Duration.millis(260);
     private static final Duration MESSAGE_DURATION = Duration.seconds(2.4);
@@ -257,6 +258,7 @@ public class LevelIsland {
             case SHIELD -> MESSAGE_SHIELD_CLASS;
             case BEACON -> MESSAGE_BEACON_CLASS;
             case ELIXIR -> MESSAGE_ELIXIR_CLASS;
+            case KEY -> MESSAGE_KEY_CLASS;
             default -> MESSAGE_DEFAULT_CLASS;
         });
     }
@@ -272,6 +274,7 @@ public class LevelIsland {
                 MESSAGE_SHIELD_CLASS,
                 MESSAGE_BEACON_CLASS,
                 MESSAGE_ELIXIR_CLASS,
+                MESSAGE_KEY_CLASS,
                 MESSAGE_DEFAULT_CLASS
         );
     }

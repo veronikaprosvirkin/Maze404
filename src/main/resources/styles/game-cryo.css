@@ -210,6 +210,12 @@
     -fx-effect: dropshadow(gaussian, rgba(196, 107, 255, 0.28), 18, 0.24, 0, 0);
 }
 
+.level-island-message-key {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 216, 160, 0.26), rgba(255, 232, 194, 0.10));
+    -fx-border-color: rgba(255, 216, 160, 0.66);
+    -fx-effect: dropshadow(gaussian, rgba(255, 216, 160, 0.30), 18, 0.24, 0, 0);
+}
+
 .level-island-message-text {
     -fx-text-fill: #F5FBFF;
     -fx-font-size: 13px;
