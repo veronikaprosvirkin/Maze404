@@ -4,7 +4,7 @@ import enums.CellType;
 import enums.Difficulty;
 import events.EventBus;
 import events.GameEvent;
-import javafx.geometry.Pos;
+import logic.CollisionDetector;
 import model.*;
 
 public class MovementSystem {
@@ -21,7 +21,7 @@ public class MovementSystem {
 
         player.setRow(newRow);
         player.setCol(newCol);
-        collisionDetector.checkEnemyCollisions(state);
+        collisionDetector.checkCollisions(state);
         target.reveal();
         Position pos = new Position(newRow, newCol);
         EventBus.getInstance().publish(new GameEvent(GameEvent.Type.PLAYER_MOVED, pos));
