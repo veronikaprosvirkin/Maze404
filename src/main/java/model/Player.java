@@ -10,6 +10,7 @@ public class Player {
     private static final int MAX_HEALTH = 3;
     private static final long ENEMY_DAMAGE_COOLDOWN_NANOS = 1_000_000_000L;
     private static final long SEMI_INVISIBLE_IDLE_NANOS = 5_000_000_000L;
+    private static final long SEMI_INVISIBLE_MOVE_GRACE_NANOS = 2_000_000_00L;
 
     //  Геттери (контракт)
     @Getter
@@ -36,6 +37,7 @@ public class Player {
     private boolean hasKey = false;
     private long lastEnemyDamageAtNanos = Long.MIN_VALUE;
     private long lastPositionChangeAtNanos = System.nanoTime();
+    private long semiInvisibleGraceUntilNanos = Long.MIN_VALUE;
 
     public Player(int row, int col) {
         this.row = row;
@@ -46,16 +48,26 @@ public class Player {
     public boolean hasKey() { return hasKey; }
     public void setHasKey(boolean hasKey) { this.hasKey = hasKey; }
     public void setRow(int row) {
-        if (this.row != row) {
-            this.row = row;
-            lastPositionChangeAtNanos = System.nanoTime();
-        }
+        setRow(row, System.nanoTime());
     }
 
     public void setCol(int col) {
+        setCol(col, System.nanoTime());
+    }
+
+    void setRow(int row, long nowNanos) {
+        if (this.row != row) {
+            boolean wasSemiInvisible = isSemiInvisible(nowNanos);
+            this.row = row;
+            onPositionChanged(nowNanos, wasSemiInvisible);
+        }
+    }
+
+    void setCol(int col, long nowNanos) {
         if (this.col != col) {
+            boolean wasSemiInvisible = isSemiInvisible(nowNanos);
             this.col = col;
-            lastPositionChangeAtNanos = System.nanoTime();
+            onPositionChanged(nowNanos, wasSemiInvisible);
         }
     }
 
@@ -125,11 +137,19 @@ public class Player {
     }
 
     boolean isSemiInvisible(long nowNanos) {
-        return nowNanos - lastPositionChangeAtNanos >= SEMI_INVISIBLE_IDLE_NANOS;
+        return nowNanos - lastPositionChangeAtNanos >= SEMI_INVISIBLE_IDLE_NANOS
+                || nowNanos < semiInvisibleGraceUntilNanos;
     }
 
     public void heal(int amount) {
         health = Math.min(MAX_HEALTH, health + amount);
+    }
+
+    private void onPositionChanged(long nowNanos, boolean wasSemiInvisible) {
+        if (wasSemiInvisible) {
+            semiInvisibleGraceUntilNanos = nowNanos + SEMI_INVISIBLE_MOVE_GRACE_NANOS;
+        }
+        lastPositionChangeAtNanos = nowNanos;
     }
 
 

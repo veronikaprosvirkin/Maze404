@@ -24,11 +24,13 @@ class PlayerStealthTest {
 
         assertTrue(player.isSemiInvisible(beforeMove + 5_000_000_000L));
 
-        player.setCol(2);
-        long afterMove = System.nanoTime();
+        long moveAt = beforeMove + 5_000_000_000L;
+        player.setCol(2, moveAt);
 
-        assertFalse(player.isSemiInvisible(afterMove + 4_000_000_000L));
-        assertTrue(player.isSemiInvisible(afterMove + 5_000_000_000L));
+        assertTrue(player.isSemiInvisible(moveAt + 999_999_999L));
+        assertFalse(player.isSemiInvisible(moveAt + 1_000_000_000L));
+        assertFalse(player.isSemiInvisible(moveAt + 4_000_000_000L));
+        assertTrue(player.isSemiInvisible(moveAt + 5_000_000_000L));
     }
 
     @Test
