@@ -17,6 +17,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -46,6 +48,7 @@ import java.util.Locale;
 
 public class GameSession {
     private static final int PLAYER_MAX_HEALTH = 3;
+    private static final String ICON_PATH = "/icons/";
     private static final Duration RADAR_REVEAL_DURATION = Duration.seconds(10);
     private static final Duration RADAR_WARNING_START_DELAY = Duration.seconds(7);
     private static final Duration RADAR_BLINK_INTERVAL = Duration.seconds(0.35);
@@ -249,19 +252,49 @@ public class GameSession {
         StackPane.setMargin(pauseButtonWrapper, new Insets(24, 0, 0, 24));
 
         StackPane winLoseOverlay = new StackPane();
+        winLoseOverlay.getStyleClass().add("victory-overlay");
         winLoseOverlay.setVisible(false);
-        winLoseOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
         StackPane.setAlignment(winLoseOverlay, Pos.CENTER);
 
-        Label endGroupLabel = new Label();
-        endGroupLabel.setStyle("-fx-text-fill: #FFD700; -fx-font-size: 36px; -fx-font-weight: bold;");
+        Label endBadgeLabel = new Label(levelTitle.getText());
+        endBadgeLabel.getStyleClass().add("victory-badge");
 
-        Button returnToMenuBtn = new Button("Main Menu");
-        returnToMenuBtn.getStyleClass().addAll("hud-card", "pause-menu-button", "pause-menu-secondary");
-        attachPauseButtonHover(returnToMenuBtn, Color.rgb(255, 96, 96, 0.92));
+        ImageView successIcon = createMenuIcon("success.png", 42);
+        Label defeatCrossLabel = new Label("×");
+        defeatCrossLabel.getStyleClass().add("victory-icon-cross");
+        defeatCrossLabel.setVisible(false);
+        defeatCrossLabel.setManaged(false);
+        StackPane endIconShell = new StackPane(successIcon, defeatCrossLabel);
+        endIconShell.getStyleClass().add("victory-icon-shell");
 
-        VBox endScreenBox = new VBox(24, endGroupLabel, returnToMenuBtn);
+        Label endGroupLabel = new Label("LEVEL COMPLETE");
+        endGroupLabel.getStyleClass().add("victory-title");
+
+        Label endSubtitleLabel = new Label("You found the exit and cleared the maze.");
+        endSubtitleLabel.getStyleClass().add("victory-subtitle");
+        endSubtitleLabel.setWrapText(true);
+        endSubtitleLabel.setMaxWidth(320);
+        endSubtitleLabel.setAlignment(Pos.CENTER);
+
+        Button retryLevelBtn = new Button("Restart");
+        retryLevelBtn.getStyleClass().addAll("hud-card", "pause-menu-button", "victory-retry-button");
+        retryLevelBtn.setVisible(false);
+        retryLevelBtn.setManaged(false);
+        attachPauseButtonHover(retryLevelBtn, getPausePrimaryGlowColor(Difficulty.current));
+
+        Button returnToMenuBtn = new Button("Exit");
+        returnToMenuBtn.getStyleClass().addAll("hud-card", "pause-menu-button", "victory-exit-button");
+        attachPauseButtonHover(returnToMenuBtn, getPauseSecondaryGlowColor(Difficulty.current));
+
+        VBox endMenuButtons = new VBox(12, retryLevelBtn, returnToMenuBtn);
+        endMenuButtons.setAlignment(Pos.CENTER);
+
+        VBox endScreenBox = new VBox(18, endBadgeLabel, endIconShell, endGroupLabel, endSubtitleLabel, endMenuButtons);
+        endScreenBox.getStyleClass().addAll("game-hud", "victory-panel");
         endScreenBox.setAlignment(Pos.CENTER);
+        endScreenBox.setMaxWidth(Region.USE_PREF_SIZE);
+        endScreenBox.setMaxHeight(Region.USE_PREF_SIZE);
+        endScreenBox.setPadding(new Insets(26, 30, 26, 30));
 
         winLoseOverlay.getChildren().add(endScreenBox);
 
@@ -416,14 +449,34 @@ public class GameSession {
                 if (gameState.isGameOver() || player.getHealth() <= 0) {
                     pauseController.resume();
                     pauseOverlay.setVisible(false);
+                    winLoseOverlay.getStyleClass().remove("victory-complete");
+                    winLoseOverlay.getStyleClass().add("victory-defeat");
+                    endBadgeLabel.setText(levelTitle.getText());
+                    successIcon.setVisible(false);
+                    successIcon.setManaged(false);
+                    defeatCrossLabel.setVisible(true);
+                    defeatCrossLabel.setManaged(true);
                     endGroupLabel.setText("GAME OVER");
-                    endGroupLabel.setStyle("-fx-text-fill: #FF3333; -fx-font-size: 42px; -fx-font-weight: bold;");
+                    endSubtitleLabel.setText(getDefeatSubtitle(Difficulty.current));
+                    retryLevelBtn.setManaged(true);
+                    retryLevelBtn.setVisible(true);
+                    returnToMenuBtn.setText("Exit");
                     winLoseOverlay.setVisible(true);
                 } else if (gameState.isLevelComplete()) {
                     pauseController.resume();
                     pauseOverlay.setVisible(false);
-                    endGroupLabel.setText("VICTORY!");
-                    endGroupLabel.setStyle("-fx-text-fill: #33FF33; -fx-font-size: 42px; -fx-font-weight: bold;");
+                    winLoseOverlay.getStyleClass().remove("victory-defeat");
+                    winLoseOverlay.getStyleClass().add("victory-complete");
+                    endBadgeLabel.setText(levelTitle.getText());
+                    successIcon.setVisible(true);
+                    successIcon.setManaged(true);
+                    defeatCrossLabel.setVisible(false);
+                    defeatCrossLabel.setManaged(false);
+                    endGroupLabel.setText(getCompletionTitle(Difficulty.current));
+                    endSubtitleLabel.setText(getCompletionSubtitle(Difficulty.current));
+                    retryLevelBtn.setManaged(false);
+                    retryLevelBtn.setVisible(false);
+                    returnToMenuBtn.setText("Exit");
                     winLoseOverlay.setVisible(true);
                 }
             });
@@ -456,18 +509,23 @@ public class GameSession {
             syncPauseUi.run();
             scene.getRoot().requestFocus();
         });
-        exitButton.setOnAction(event -> {
+        Runnable closeSession = () -> {
             pauseController.resume();
             enemyTimer.stop();
             stealthHintTimer.stop();
             miniGameManager.dispose();
+        };
+
+        exitButton.setOnAction(event -> {
+            closeSession.run();
             exitToMenu.run();
         });
+        retryLevelBtn.setOnAction(event -> {
+            closeSession.run();
+            start(settings);
+        });
         returnToMenuBtn.setOnAction(event -> {
-            pauseController.resume();
-            enemyTimer.stop();
-            stealthHintTimer.stop();
-            miniGameManager.dispose();
+            closeSession.run();
             exitToMenu.run();
         });
 
@@ -531,6 +589,54 @@ public class GameSession {
             case HARD -> Color.rgb(240, 144, 64, 0.92);
             default -> Color.rgb(101, 242, 160, 0.92);
         };
+    }
+
+    private static Color getPauseSecondaryGlowColor(Difficulty difficulty) {
+        return switch (difficulty) {
+            case MEDIUM -> Color.rgb(196, 68, 42, 0.92);
+            case HARD -> Color.rgb(255, 58, 42, 0.92);
+            default -> Color.rgb(125, 228, 255, 0.90);
+        };
+    }
+
+    private static String getCompletionTitle(Difficulty difficulty) {
+        return switch (difficulty) {
+            case MEDIUM -> "STONE DESERT CLEARED";
+            case HARD -> "INFERNO HELL CONQUERED";
+            default -> "CRYO DUNGEON CLEARED";
+        };
+    }
+
+    private static String getCompletionSubtitle(Difficulty difficulty) {
+        return switch (difficulty) {
+            case MEDIUM -> "The dunes gave way. Level 2 is complete and the exit stands behind you.";
+            case HARD -> "You survived the furnace. Level 3 is complete and the inferno has fallen silent.";
+            default -> "The frozen maze is behind you. Level 1 is complete and the path is secure.";
+        };
+    }
+
+    private static String getDefeatSubtitle(Difficulty difficulty) {
+        return switch (difficulty) {
+            case MEDIUM -> "The desert closed in around you. Retry the level or exit to the main menu.";
+            case HARD -> "The inferno burned through this attempt. Retry the level or exit to the main menu.";
+            default -> "The frozen maze outlasted this run. Retry the level or exit to the main menu.";
+        };
+    }
+
+    private static ImageView createMenuIcon(String iconName, double iconSize) {
+        Image image;
+        try (var stream = GameSession.class.getResourceAsStream(ICON_PATH + iconName)) {
+            image = stream != null ? new Image(stream) : null;
+        } catch (Exception ignored) {
+            image = null;
+        }
+
+        ImageView icon = new ImageView(image);
+        icon.setFitWidth(iconSize);
+        icon.setFitHeight(iconSize);
+        icon.setPreserveRatio(true);
+        icon.setSmooth(true);
+        return icon;
     }
 
     private static VBox createHudCard(String title, Node iconNode, Label valueLabel, String accentStyleClass) {

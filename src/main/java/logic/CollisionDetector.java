@@ -49,7 +49,7 @@ public class CollisionDetector {
 
             // Якщо є будь-яке з двох зіткнень гравець отримує шкоду
             if (isDirectCollision || isPassThroughCollision) {
-                player.takeDamage(1);
+                player.takeEnemyDamage(1);
             }
         }
     }
