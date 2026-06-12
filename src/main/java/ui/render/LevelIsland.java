@@ -20,15 +20,15 @@ import javafx.util.Duration;
 public class LevelIsland {
     private static final Duration ANIMATION_DURATION = Duration.millis(260);
     private static final Duration MESSAGE_DURATION = Duration.seconds(2.4);
-    private static final double COLLAPSED_SIZE = 0.0;
     private static final double MESSAGE_START_OFFSET = -8.0;
-    private static final double MIN_MESSAGE_HEIGHT = 34.0;
+    private static final double MESSAGE_SLOT_HEIGHT = 34.0;
     private static final double TINY_MESSAGE_SIZE = 42.0;
     private static final double TINY_MESSAGE_START_OFFSET = -18.0;
 
     private final String title;
     private final HBox view;
     private final VBox islandBase;
+    private final StackPane messageSlot;
     private final HBox messageBox;
     private final Label messageLabel;
     private final StackPane tinyMessageCircle;
@@ -52,10 +52,11 @@ public class LevelIsland {
         messageBox.getStyleClass().add("level-island-message");
         messageBox.setAlignment(Pos.CENTER);
         messageBox.setVisible(false);
-        messageBox.setManaged(false);
         messageBox.setOpacity(0);
         messageBox.setTranslateY(MESSAGE_START_OFFSET);
-        setMessageHeight(COLLAPSED_SIZE);
+        messageBox.setMinHeight(MESSAGE_SLOT_HEIGHT);
+        messageBox.setPrefHeight(MESSAGE_SLOT_HEIGHT);
+        messageBox.setMaxHeight(MESSAGE_SLOT_HEIGHT);
 
         Rectangle clip = new Rectangle();
         clip.arcWidthProperty().set(24);
@@ -64,9 +65,20 @@ public class LevelIsland {
         clip.heightProperty().bind(messageBox.heightProperty());
         messageBox.setClip(clip);
 
-        islandBase = new VBox(8, titleLabel, messageBox);
+        messageSlot = new StackPane(messageBox);
+        messageSlot.setAlignment(Pos.CENTER);
+        messageSlot.setVisible(false);
+        messageSlot.setManaged(false);
+        setMessageSlotHeight(0);
+        messageSlot.setPickOnBounds(false);
+        Rectangle messageSlotClip = new Rectangle();
+        messageSlotClip.widthProperty().bind(messageSlot.widthProperty());
+        messageSlotClip.heightProperty().bind(messageSlot.heightProperty());
+        messageSlot.setClip(messageSlotClip);
+
+        islandBase = new VBox(8, titleLabel, messageSlot);
         islandBase.getStyleClass().addAll("game-hud", "level-island");
-        islandBase.setAlignment(Pos.CENTER);
+        islandBase.setAlignment(Pos.TOP_CENTER);
         islandBase.setPadding(new Insets(12, 18, 12, 18));
         islandBase.setPickOnBounds(false);
         islandBase.setMaxWidth(Region.USE_PREF_SIZE);
@@ -175,16 +187,16 @@ public class LevelIsland {
         stopMessageTransition();
 
         messageLabel.setText(message);
+        messageSlot.setVisible(true);
+        messageSlot.setManaged(true);
         messageBox.setVisible(true);
-        messageBox.setManaged(true);
         messageBox.applyCss();
 
-        double targetHeight = Math.max(MIN_MESSAGE_HEIGHT, messageBox.prefHeight(-1));
         messageTransition = new Timeline(
                 new KeyFrame(ANIMATION_DURATION,
-                        new KeyValue(messageBox.minHeightProperty(), targetHeight, Interpolator.EASE_BOTH),
-                        new KeyValue(messageBox.prefHeightProperty(), targetHeight, Interpolator.EASE_BOTH),
-                        new KeyValue(messageBox.maxHeightProperty(), targetHeight, Interpolator.EASE_BOTH),
+                        new KeyValue(messageSlot.minHeightProperty(), MESSAGE_SLOT_HEIGHT, Interpolator.EASE_BOTH),
+                        new KeyValue(messageSlot.prefHeightProperty(), MESSAGE_SLOT_HEIGHT, Interpolator.EASE_BOTH),
+                        new KeyValue(messageSlot.maxHeightProperty(), MESSAGE_SLOT_HEIGHT, Interpolator.EASE_BOTH),
                         new KeyValue(messageBox.opacityProperty(), 1.0, Interpolator.EASE_BOTH),
                         new KeyValue(messageBox.translateYProperty(), 0.0, Interpolator.EASE_BOTH))
         );
@@ -200,24 +212,25 @@ public class LevelIsland {
 
         messageTransition = new Timeline(
                 new KeyFrame(ANIMATION_DURATION,
-                        new KeyValue(messageBox.minHeightProperty(), COLLAPSED_SIZE, Interpolator.EASE_BOTH),
-                        new KeyValue(messageBox.prefHeightProperty(), COLLAPSED_SIZE, Interpolator.EASE_BOTH),
-                        new KeyValue(messageBox.maxHeightProperty(), COLLAPSED_SIZE, Interpolator.EASE_BOTH),
+                        new KeyValue(messageSlot.minHeightProperty(), 0.0, Interpolator.EASE_BOTH),
+                        new KeyValue(messageSlot.prefHeightProperty(), 0.0, Interpolator.EASE_BOTH),
+                        new KeyValue(messageSlot.maxHeightProperty(), 0.0, Interpolator.EASE_BOTH),
                         new KeyValue(messageBox.opacityProperty(), 0.0, Interpolator.EASE_BOTH),
                         new KeyValue(messageBox.translateYProperty(), MESSAGE_START_OFFSET, Interpolator.EASE_BOTH))
         );
         messageTransition.setOnFinished(event -> {
             messageTransition = null;
             messageBox.setVisible(false);
-            messageBox.setManaged(false);
+            messageSlot.setVisible(false);
+            messageSlot.setManaged(false);
         });
         messageTransition.playFromStart();
     }
 
-    private void setMessageHeight(double height) {
-        messageBox.setMinHeight(height);
-        messageBox.setPrefHeight(height);
-        messageBox.setMaxHeight(height);
+    private void setMessageSlotHeight(double height) {
+        messageSlot.setMinHeight(height);
+        messageSlot.setPrefHeight(height);
+        messageSlot.setMaxHeight(height);
     }
 
     private void stopMessageTransition() {
