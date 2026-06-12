@@ -42,6 +42,7 @@ import ui.input.InputHandler;
 import ui.render.ArtifactVisuals;
 import ui.render.GameAlerts;
 import ui.render.GamePanel;
+import ui.render.LevelIsland;
 import ui.render.StartMenuView;
 
 import java.util.Locale;
@@ -195,17 +196,9 @@ public class GameSession {
         hudRow.setMaxWidth(Region.USE_PREF_SIZE);
         hudRow.setMaxHeight(Region.USE_PREF_SIZE);
 
-        Label levelTitle = new Label(getLevelTitle(Difficulty.current));
-        levelTitle.getStyleClass().add("pause-title-label");
-        HBox levelTitleBox = new HBox(levelTitle);
-        levelTitleBox.getStyleClass().add("game-hud");
-        levelTitleBox.setAlignment(Pos.CENTER);
-        levelTitleBox.setPadding(new Insets(14, 22, 14, 22));
-        levelTitleBox.setPickOnBounds(false);
-        levelTitleBox.setMaxWidth(Region.USE_PREF_SIZE);
-        levelTitleBox.setMaxHeight(Region.USE_PREF_SIZE);
-        StackPane.setAlignment(levelTitleBox, Pos.TOP_CENTER);
-        StackPane.setMargin(levelTitleBox, new Insets(24, 0, 0, 0));
+        LevelIsland levelIsland = new LevelIsland(getLevelTitle(Difficulty.current));
+        StackPane.setAlignment(levelIsland.getView(), Pos.TOP_CENTER);
+        StackPane.setMargin(levelIsland.getView(), new Insets(24, 0, 0, 0));
 
         Label stealthHintLabel = new Label("STEALTH MODE ACTIVE");
         stealthHintLabel.getStyleClass().add("stealth-hint-text");
@@ -257,7 +250,7 @@ public class GameSession {
         winLoseOverlay.setVisible(false);
         StackPane.setAlignment(winLoseOverlay, Pos.CENTER);
 
-        Label endBadgeLabel = new Label(levelTitle.getText());
+        Label endBadgeLabel = new Label(levelIsland.getTitle());
         endBadgeLabel.getStyleClass().add("victory-badge");
 
         ImageView successIcon = createMenuIcon("success.png", 42);
@@ -301,7 +294,7 @@ public class GameSession {
 
         int[] currentMistSampleStep = {settings.mistSampleStep()};
 
-        Label pauseOverlayTitle = new Label(levelTitle.getText());
+        Label pauseOverlayTitle = new Label(levelIsland.getTitle());
         pauseOverlayTitle.getStyleClass().add("pause-title-label");
         Label pausedLabel = new Label("Paused");
         pausedLabel.getStyleClass().add("pause-overlay-heading");
@@ -389,6 +382,10 @@ public class GameSession {
         };
         EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_DAMAGED, playerDamagedListener);
 
+        Consumer<GameEvent> shieldActivatedListener = event -> Platform.runLater(() ->
+                levelIsland.showArtifactMessage(ArtifactType.SHIELD, "Shield equipped"));
+        EventBus.getInstance().subscribe(GameEvent.Type.SHIELD_ACTIVATED, shieldActivatedListener);
+
         Timeline stealthHintTimer = new Timeline(
                 new KeyFrame(STEALTH_HINT_UPDATE_INTERVAL, event ->
                         updateStealthHint(stealthHintBox, player.isSemiInvisible(), stealthHintVisible))
@@ -461,7 +458,7 @@ public class GameSession {
                     pauseOverlay.setVisible(false);
                     winLoseOverlay.getStyleClass().remove("victory-defeat");
                     winLoseOverlay.getStyleClass().add("victory-complete");
-                    endBadgeLabel.setText(levelTitle.getText());
+                    endBadgeLabel.setText(levelIsland.getTitle());
                     successIcon.setVisible(true);
                     successIcon.setManaged(true);
                     defeatCrossLabel.setVisible(false);
@@ -494,7 +491,7 @@ public class GameSession {
             enemyTimer.stop();
             winLoseOverlay.getStyleClass().remove("victory-complete");
             winLoseOverlay.getStyleClass().add("victory-defeat");
-            endBadgeLabel.setText(levelTitle.getText());
+            endBadgeLabel.setText(levelIsland.getTitle());
             successIcon.setVisible(false);
             successIcon.setManaged(false);
             defeatCrossLabel.setVisible(true);
@@ -514,7 +511,7 @@ public class GameSession {
         Runnable syncPauseUi = () -> {
             boolean paused = pauseController.isPaused();
             pauseOverlay.setVisible(paused);
-            pauseOverlayTitle.setText(levelTitle.getText());
+            pauseOverlayTitle.setText(levelIsland.getTitle());
         };
 
         pauseButton.setOnAction(event -> {
@@ -531,9 +528,11 @@ public class GameSession {
             pauseController.resume();
             enemyTimer.stop();
             stealthHintTimer.stop();
+            levelIsland.dispose();
             miniGameManager.dispose();
             EventBus.getInstance().unsubscribe(GameEvent.Type.EXIT_BLOCKED, exitBlockedListener);
             EventBus.getInstance().unsubscribe(GameEvent.Type.PLAYER_DAMAGED, playerDamagedListener);
+            EventBus.getInstance().unsubscribe(GameEvent.Type.SHIELD_ACTIVATED, shieldActivatedListener);
             EventBus.getInstance().unsubscribe(GameEvent.Type.PLAYER_DIED, playerDiedListener);
         };
 
@@ -550,7 +549,7 @@ public class GameSession {
             exitToMenu.run();
         });
 
-        root.getChildren().setAll(gamePanel, levelTitleBox, pauseButtonWrapper, bottomHudStack, pauseOverlay, winLoseOverlay);
+        root.getChildren().setAll(gamePanel, levelIsland.getView(), pauseButtonWrapper, bottomHudStack, pauseOverlay, winLoseOverlay);
         scene.getRoot().requestFocus();
     }
 
