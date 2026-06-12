@@ -12,7 +12,7 @@ public class CollisionDetector {
 
         for (Enemy enemy : state.getEnemies()) {
             if (enemy.getRow() == player.getRow() && enemy.getCol() == player.getCol()) {
-                player.takeDamage(1); // takeDamage сам перевіряє щит і публікує події
+                player.takeEnemyDamage(1);
                 break;
             }
         }
