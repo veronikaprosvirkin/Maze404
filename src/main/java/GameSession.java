@@ -40,7 +40,6 @@ import model.Player;
 import ui.input.GameAction;
 import ui.input.InputHandler;
 import ui.render.ArtifactVisuals;
-import ui.render.GameAlerts;
 import ui.render.GamePanel;
 import ui.render.LevelIsland;
 import ui.render.StartMenuView;
@@ -344,8 +343,8 @@ public class GameSession {
         pauseOverlay.getStyleClass().add("pause-overlay");
         pauseOverlay.setVisible(false);
 
-        Consumer<GameEvent> exitBlockedListener = event ->
-                Platform.runLater(GameAlerts::showExitBlockedAlert);
+        Consumer<GameEvent> exitBlockedListener = event -> Platform.runLater(() ->
+                levelIsland.showArtifactMessage(ArtifactType.KEY, "Key required"));
         EventBus.getInstance().subscribe(GameEvent.Type.EXIT_BLOCKED, exitBlockedListener);
 
         Consumer<GameEvent> playerDamagedListener = event -> {
