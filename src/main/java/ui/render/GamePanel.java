@@ -32,6 +32,7 @@ public class GamePanel extends Pane {
     private static final double MIST_OUTSIDE_FADE_BAND = TILE_SIZE * 3.4;
 
     private final Canvas canvas;
+    private final AnimationTimer timer;
     private final GridRenderer gridRenderer;
     private final PlayerRenderer playerRenderer;
     private final EnemyRenderer enemyRenderer;
@@ -115,7 +116,7 @@ public class GamePanel extends Pane {
         widthProperty().addListener((obs, oldWidth, newWidth) -> updateCanvasSize());
         heightProperty().addListener((obs, oldHeight, newHeight) -> updateCanvasSize());
 
-        AnimationTimer timer = new AnimationTimer() {
+        timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 if (lastFrameNanos == 0L) {
@@ -267,6 +268,10 @@ public class GamePanel extends Pane {
 
     public void setRadarActive(boolean radarActive) {
         setTargetViewportZoom(radarActive ? RADAR_VIEWPORT_ZOOM : VIEWPORT_ZOOM);
+    }
+
+    public void dispose() {
+        timer.stop();
     }
 
     private void drawMist(GraphicsContext gc, Grid grid, double viewX, double viewY,
