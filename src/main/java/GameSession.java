@@ -371,6 +371,10 @@ public class GameSession {
                 levelIsland.showArtifactMessage(ArtifactType.SHIELD, "Shield equipped"));
         EventBus.getInstance().subscribe(GameEvent.Type.SHIELD_ACTIVATED, shieldActivatedListener);
 
+        Consumer<GameEvent> beaconActivatedListener = event -> Platform.runLater(() ->
+                levelIsland.showArtifactMessage(ArtifactType.BEACON, "Beacon placed"));
+        EventBus.getInstance().subscribe(GameEvent.Type.BEACON_ACTIVATED, beaconActivatedListener);
+
         Timeline stealthHintTimer = new Timeline(
                 new KeyFrame(STEALTH_HINT_UPDATE_INTERVAL, event ->
                         updateStealthHint(levelIsland, player.isSemiInvisible(), stealthHintVisible))
@@ -407,12 +411,20 @@ public class GameSession {
                         radarBlinkStartTimer.playFromStart();
                         radarMistRestoreTimer.stop();
                         radarMistRestoreTimer.playFromStart();
+                        levelIsland.showArtifactMessage(ArtifactType.RADAR, "Radar activated");
                         levelIsland.showTinyCountdown(RADAR_REVEAL_DURATION);
                     }
                 }
                 case SHIELD -> shieldSystem.activateShield(gameState);
                 case BEACON -> beaconSystem.placeBeacon(gameState);
-                case ELIXIR -> useElixir(player);
+                case ELIXIR -> {
+                    int elixirsBeforeUse = player.getElixirCount();
+                    int healthBeforeUse = player.getHealth();
+                    useElixir(player);
+                    if (player.getElixirCount() < elixirsBeforeUse && player.getHealth() > healthBeforeUse) {
+                        levelIsland.showArtifactMessage(ArtifactType.ELIXIR, "Elixir used");
+                    }
+                }
                 default -> {
                 }
             }
@@ -519,6 +531,7 @@ public class GameSession {
             EventBus.getInstance().unsubscribe(GameEvent.Type.EXIT_BLOCKED, exitBlockedListener);
             EventBus.getInstance().unsubscribe(GameEvent.Type.PLAYER_DAMAGED, playerDamagedListener);
             EventBus.getInstance().unsubscribe(GameEvent.Type.SHIELD_ACTIVATED, shieldActivatedListener);
+            EventBus.getInstance().unsubscribe(GameEvent.Type.BEACON_ACTIVATED, beaconActivatedListener);
             EventBus.getInstance().unsubscribe(GameEvent.Type.PLAYER_DIED, playerDiedListener);
         };
 

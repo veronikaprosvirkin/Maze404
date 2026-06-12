@@ -186,6 +186,30 @@
     -fx-effect: dropshadow(gaussian, rgba(255, 160, 174, 0.22), 18, 0.22, 0, 0);
 }
 
+.level-island-message-radar {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(101, 242, 160, 0.24), rgba(212, 255, 227, 0.10));
+    -fx-border-color: rgba(101, 242, 160, 0.62);
+    -fx-effect: dropshadow(gaussian, rgba(101, 242, 160, 0.28), 18, 0.24, 0, 0);
+}
+
+.level-island-message-shield {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(125, 228, 255, 0.24), rgba(215, 250, 255, 0.10));
+    -fx-border-color: rgba(125, 228, 255, 0.62);
+    -fx-effect: dropshadow(gaussian, rgba(125, 228, 255, 0.28), 18, 0.24, 0, 0);
+}
+
+.level-island-message-beacon {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 142, 82, 0.24), rgba(255, 210, 168, 0.10));
+    -fx-border-color: rgba(255, 142, 82, 0.62);
+    -fx-effect: dropshadow(gaussian, rgba(255, 142, 82, 0.28), 18, 0.24, 0, 0);
+}
+
+.level-island-message-elixir {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(196, 107, 255, 0.24), rgba(240, 200, 255, 0.10));
+    -fx-border-color: rgba(196, 107, 255, 0.62);
+    -fx-effect: dropshadow(gaussian, rgba(196, 107, 255, 0.28), 18, 0.24, 0, 0);
+}
+
 .level-island-message-text {
     -fx-text-fill: #FFF0F4;
     -fx-font-size: 13px;

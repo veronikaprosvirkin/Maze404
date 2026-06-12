@@ -18,6 +18,12 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 public class LevelIsland {
+    private static final String MESSAGE_BASE_CLASS = "level-island-message";
+    private static final String MESSAGE_RADAR_CLASS = "level-island-message-radar";
+    private static final String MESSAGE_SHIELD_CLASS = "level-island-message-shield";
+    private static final String MESSAGE_BEACON_CLASS = "level-island-message-beacon";
+    private static final String MESSAGE_ELIXIR_CLASS = "level-island-message-elixir";
+    private static final String MESSAGE_DEFAULT_CLASS = "level-island-message-default";
     private static final Duration ANIMATION_DURATION = Duration.millis(260);
     private static final Duration MESSAGE_DURATION = Duration.seconds(2.4);
     private static final double TITLE_SLOT_HEIGHT = 54.0;
@@ -60,7 +66,7 @@ public class LevelIsland {
 
         messageIcon = ArtifactVisuals.createHudIcon(ArtifactType.SHIELD, 18);
         messageBox = new HBox(8, messageIcon, messageLabel);
-        messageBox.getStyleClass().add("level-island-message");
+        messageBox.getStyleClass().addAll(MESSAGE_BASE_CLASS, MESSAGE_DEFAULT_CLASS);
         messageBox.setAlignment(Pos.CENTER);
         messageBox.setVisible(false);
         messageBox.setOpacity(0);
@@ -128,6 +134,7 @@ public class LevelIsland {
     }
 
     public void showArtifactMessage(ArtifactType artifactType, String message) {
+        setArtifactMessageStyle(artifactType);
         messageIcon = ArtifactVisuals.createHudIcon(artifactType, 18);
         messageBox.getChildren().set(0, messageIcon);
         messageIcon.setVisible(true);
@@ -136,12 +143,14 @@ public class LevelIsland {
     }
 
     public void showTextMessage(String message) {
+        setDefaultMessageStyle();
         messageIcon.setVisible(false);
         messageIcon.setManaged(false);
         showMessage(message, true);
     }
 
     public void showPersistentTextMessage(String message) {
+        setDefaultMessageStyle();
         messageIcon.setVisible(false);
         messageIcon.setManaged(false);
         showMessage(message, false);
@@ -239,6 +248,32 @@ public class LevelIsland {
             }
         });
         messageTransition.playFromStart();
+    }
+
+    private void setArtifactMessageStyle(ArtifactType artifactType) {
+        clearMessageVariantStyles();
+        messageBox.getStyleClass().add(switch (artifactType) {
+            case RADAR -> MESSAGE_RADAR_CLASS;
+            case SHIELD -> MESSAGE_SHIELD_CLASS;
+            case BEACON -> MESSAGE_BEACON_CLASS;
+            case ELIXIR -> MESSAGE_ELIXIR_CLASS;
+            default -> MESSAGE_DEFAULT_CLASS;
+        });
+    }
+
+    private void setDefaultMessageStyle() {
+        clearMessageVariantStyles();
+        messageBox.getStyleClass().add(MESSAGE_DEFAULT_CLASS);
+    }
+
+    private void clearMessageVariantStyles() {
+        messageBox.getStyleClass().removeAll(
+                MESSAGE_RADAR_CLASS,
+                MESSAGE_SHIELD_CLASS,
+                MESSAGE_BEACON_CLASS,
+                MESSAGE_ELIXIR_CLASS,
+                MESSAGE_DEFAULT_CLASS
+        );
     }
 
     private void hideMessage() {
