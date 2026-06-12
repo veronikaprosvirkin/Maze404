@@ -10,11 +10,13 @@ import java.util.Map;
 public class CollisionDetector {
     private static class Coords {
         int row, col;
+
         Coords(int row, int col) {
             this.row = row;
             this.col = col;
         }
     }
+
     private Coords prevPlayerPos = null;
     private final Map<Enemy, Coords> prevEnemyPositions = new HashMap<>();
 
@@ -25,7 +27,7 @@ public class CollisionDetector {
         Player player = gameState.getPlayer();
 
         checkEnemyCollisions(player, gameState);
-       // checkArtifactCollisions(player, gameState);
+        // checkArtifactCollisions(player, gameState);
 
         updateHistory(gameState);
     }
@@ -75,7 +77,7 @@ public class CollisionDetector {
             collectedArtifact.collect();
 
             // 1. Даємо бонус гравцю залежно від типу артефакту
-            switch(collectedArtifact.getType()) {
+            switch (collectedArtifact.getType()) {
                 case CRYSTAL -> player.addCrystals(1);
                 case SHIELD -> player.addShield(1);
                 // ... інші типи

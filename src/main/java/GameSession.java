@@ -49,6 +49,7 @@ public class GameSession {
     private static final Duration RADAR_WARNING_START_DELAY = Duration.seconds(7);
     private static final Duration RADAR_BLINK_INTERVAL = Duration.seconds(0.35);
     private static final Duration HUD_DAMAGE_HIGHLIGHT_DURATION = Duration.seconds(1);
+    private static final Duration STEALTH_HINT_UPDATE_INTERVAL = Duration.millis(100);
 
     private final StackPane root;
     private final Scene scene;
@@ -168,6 +169,7 @@ public class GameSession {
         PauseTransition healthDamageHighlightTimer = new PauseTransition(HUD_DAMAGE_HIGHLIGHT_DURATION);
         healthDamageHighlightTimer.setOnFinished(event -> setHudCardState(healthCard, "hud-card-active", false));
         int[] lastRenderedHealth = {player.getHealth()};
+        boolean[] stealthHintVisible = {false};
 
         HBox hudRow = new HBox(12, healthHud, inventoryHud);
         if (Difficulty.current != Difficulty.EASY) {
@@ -187,8 +189,6 @@ public class GameSession {
         hudRow.setMouseTransparent(true);
         hudRow.setMaxWidth(Region.USE_PREF_SIZE);
         hudRow.setMaxHeight(Region.USE_PREF_SIZE);
-        StackPane.setAlignment(hudRow, Pos.BOTTOM_CENTER);
-        StackPane.setMargin(hudRow, new Insets(0, 0, 24, 0));
 
         Label levelTitle = new Label(getLevelTitle(Difficulty.current));
         levelTitle.getStyleClass().add("pause-title-label");
@@ -201,6 +201,31 @@ public class GameSession {
         levelTitleBox.setMaxHeight(Region.USE_PREF_SIZE);
         StackPane.setAlignment(levelTitleBox, Pos.TOP_CENTER);
         StackPane.setMargin(levelTitleBox, new Insets(24, 0, 0, 0));
+
+        Label stealthHintLabel = new Label("STEALTH MODE ACTIVE");
+        stealthHintLabel.getStyleClass().add("stealth-hint-text");
+        stealthHintLabel.setManaged(true);
+        stealthHintLabel.setVisible(true);
+        stealthHintLabel.setMouseTransparent(true);
+        HBox stealthHintBox = new HBox(stealthHintLabel);
+        stealthHintBox.getStyleClass().addAll("game-hud", "stealth-hint");
+        stealthHintBox.setManaged(false);
+        stealthHintBox.setVisible(false);
+        stealthHintBox.setMouseTransparent(true);
+        stealthHintBox.setOpacity(1.0);
+        stealthHintBox.setTranslateY(10.0);
+        stealthHintBox.setAlignment(Pos.CENTER);
+        stealthHintBox.setMaxWidth(Region.USE_PREF_SIZE);
+        stealthHintBox.setMaxHeight(Region.USE_PREF_SIZE);
+
+        VBox bottomHudStack = new VBox(10, stealthHintBox, hudRow);
+        bottomHudStack.setPickOnBounds(false);
+        bottomHudStack.setMouseTransparent(true);
+        bottomHudStack.setAlignment(Pos.BOTTOM_CENTER);
+        bottomHudStack.setMaxWidth(Region.USE_PREF_SIZE);
+        bottomHudStack.setMaxHeight(Region.USE_PREF_SIZE);
+        StackPane.setAlignment(bottomHudStack, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(bottomHudStack, new Insets(0, 0, 24, 0));
 
         Button pauseButton = new Button("Pause");
         pauseButton.getStyleClass().addAll("hud-card", "pause-hud-button");
@@ -326,6 +351,13 @@ public class GameSession {
             });
         });
 
+        Timeline stealthHintTimer = new Timeline(
+                new KeyFrame(STEALTH_HINT_UPDATE_INTERVAL, event ->
+                        updateStealthHint(stealthHintBox, player.isSemiInvisible(), stealthHintVisible))
+        );
+        stealthHintTimer.setCycleCount(Timeline.INDEFINITE);
+        stealthHintTimer.play();
+
         InputHandler inputHandler = new InputHandler(action -> {
             if (action == ui.input.GameAction.TOGGLE_PAUSE) {
                 pauseController.toggle();
@@ -419,17 +451,19 @@ public class GameSession {
         exitButton.setOnAction(event -> {
             pauseController.resume();
             enemyTimer.stop();
+            stealthHintTimer.stop();
             miniGameManager.dispose();
             exitToMenu.run();
         });
         returnToMenuBtn.setOnAction(event -> {
             pauseController.resume();
             enemyTimer.stop();
+            stealthHintTimer.stop();
             miniGameManager.dispose();
             exitToMenu.run();
         });
 
-        root.getChildren().setAll(gamePanel, levelTitleBox, pauseButtonWrapper, hudRow, pauseOverlay, winLoseOverlay);
+        root.getChildren().setAll(gamePanel, levelTitleBox, pauseButtonWrapper, bottomHudStack, pauseOverlay, winLoseOverlay);
         scene.getRoot().requestFocus();
     }
 
@@ -616,6 +650,29 @@ public class GameSession {
     private static void updateShieldHudState(VBox shieldCard, Player player) {
         boolean active = player.hasShield();
         setHudCardState(shieldCard, "hud-card-active", active);
+    }
+
+    private static void updateStealthHint(HBox stealthHintBox, boolean stealthActive, boolean[] stealthHintVisible) {
+        if (stealthHintVisible[0] == stealthActive) {
+            return;
+        }
+
+        stealthHintVisible[0] = stealthActive;
+        stealthHintBox.setVisible(true);
+        stealthHintBox.setManaged(true);
+
+        Timeline transition = new Timeline(
+                new KeyFrame(Duration.millis(220),
+                        new KeyValue(stealthHintBox.opacityProperty(), stealthActive ? 1.0 : 0.0, Interpolator.EASE_BOTH),
+                        new KeyValue(stealthHintBox.translateYProperty(), stealthActive ? 0.0 : 10.0, Interpolator.EASE_BOTH))
+        );
+        transition.setOnFinished(event -> {
+            if (!stealthActive) {
+                stealthHintBox.setVisible(false);
+                stealthHintBox.setManaged(false);
+            }
+        });
+        transition.play();
     }
 
     private static void toggleHudCardState(VBox card, String styleClass) {
