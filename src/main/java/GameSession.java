@@ -45,6 +45,7 @@ import ui.render.GamePanel;
 import ui.render.StartMenuView;
 
 import java.util.Locale;
+import java.util.function.Consumer;
 
 public class GameSession {
     private static final int PLAYER_MAX_HEALTH = 3;
@@ -363,11 +364,11 @@ public class GameSession {
         pauseOverlay.getStyleClass().add("pause-overlay");
         pauseOverlay.setVisible(false);
 
-        EventBus.getInstance().subscribe(GameEvent.Type.EXIT_BLOCKED, event -> {
-            Platform.runLater(GameAlerts::showExitBlockedAlert);
-        });
+        Consumer<GameEvent> exitBlockedListener = event ->
+                Platform.runLater(GameAlerts::showExitBlockedAlert);
+        EventBus.getInstance().subscribe(GameEvent.Type.EXIT_BLOCKED, exitBlockedListener);
 
-        EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_DAMAGED, event -> {
+        Consumer<GameEvent> playerDamagedListener = event -> {
             Platform.runLater(() -> {
                 syncHudValues(
                         player,
@@ -383,7 +384,8 @@ public class GameSession {
                         lastRenderedHealth
                 );
             });
-        });
+        };
+        EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_DAMAGED, playerDamagedListener);
 
         Timeline stealthHintTimer = new Timeline(
                 new KeyFrame(STEALTH_HINT_UPDATE_INTERVAL, event ->
@@ -391,6 +393,8 @@ public class GameSession {
         );
         stealthHintTimer.setCycleCount(Timeline.INDEFINITE);
         stealthHintTimer.play();
+
+        Runnable[] showDefeatOverlayRef = new Runnable[1];
 
         java.util.function.Consumer<GameAction> actionHandler = action -> {
             if (action == GameAction.TOGGLE_PAUSE) {
@@ -447,21 +451,9 @@ public class GameSession {
                 updateShieldHudState(shieldCard, player);
 
                 if (gameState.isGameOver() || player.getHealth() <= 0) {
-                    pauseController.resume();
-                    pauseOverlay.setVisible(false);
-                    winLoseOverlay.getStyleClass().remove("victory-complete");
-                    winLoseOverlay.getStyleClass().add("victory-defeat");
-                    endBadgeLabel.setText(levelTitle.getText());
-                    successIcon.setVisible(false);
-                    successIcon.setManaged(false);
-                    defeatCrossLabel.setVisible(true);
-                    defeatCrossLabel.setManaged(true);
-                    endGroupLabel.setText("GAME OVER");
-                    endSubtitleLabel.setText(getDefeatSubtitle(Difficulty.current));
-                    retryLevelBtn.setManaged(true);
-                    retryLevelBtn.setVisible(true);
-                    returnToMenuBtn.setText("Exit");
-                    winLoseOverlay.setVisible(true);
+                    if (showDefeatOverlayRef[0] != null) {
+                        showDefeatOverlayRef[0].run();
+                    }
                 } else if (gameState.isLevelComplete()) {
                     pauseController.resume();
                     pauseOverlay.setVisible(false);
@@ -493,6 +485,30 @@ public class GameSession {
         Timeline enemyTimer = enemyTurnScheduler.createTimer(gameState, grid, player);
         enemyTimer.play();
 
+        Runnable showDefeatOverlay = () -> {
+            gameState.setGameOver(true);
+            pauseController.resume();
+            pauseOverlay.setVisible(false);
+            enemyTimer.stop();
+            winLoseOverlay.getStyleClass().remove("victory-complete");
+            winLoseOverlay.getStyleClass().add("victory-defeat");
+            endBadgeLabel.setText(levelTitle.getText());
+            successIcon.setVisible(false);
+            successIcon.setManaged(false);
+            defeatCrossLabel.setVisible(true);
+            defeatCrossLabel.setManaged(true);
+            endGroupLabel.setText("GAME OVER");
+            endSubtitleLabel.setText(getDefeatSubtitle(Difficulty.current));
+            retryLevelBtn.setManaged(true);
+            retryLevelBtn.setVisible(true);
+            returnToMenuBtn.setText("Exit");
+            winLoseOverlay.setVisible(true);
+        };
+        showDefeatOverlayRef[0] = showDefeatOverlay;
+
+        Consumer<GameEvent> playerDiedListener = event -> Platform.runLater(showDefeatOverlay);
+        EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_DIED, playerDiedListener);
+
         Runnable syncPauseUi = () -> {
             boolean paused = pauseController.isPaused();
             pauseOverlay.setVisible(paused);
@@ -514,6 +530,9 @@ public class GameSession {
             enemyTimer.stop();
             stealthHintTimer.stop();
             miniGameManager.dispose();
+            EventBus.getInstance().unsubscribe(GameEvent.Type.EXIT_BLOCKED, exitBlockedListener);
+            EventBus.getInstance().unsubscribe(GameEvent.Type.PLAYER_DAMAGED, playerDamagedListener);
+            EventBus.getInstance().unsubscribe(GameEvent.Type.PLAYER_DIED, playerDiedListener);
         };
 
         exitButton.setOnAction(event -> {
