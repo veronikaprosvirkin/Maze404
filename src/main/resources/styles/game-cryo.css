@@ -171,6 +171,28 @@
     -fx-font-weight: 600;
 }
 
+.stealth-hint {
+    -fx-padding: 10 18 10 18;
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
+    -fx-border-color: rgba(210, 234, 255, 0.16);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.52), 24, 0.20, 0, 8);
+}
+
+.stealth-hint-text {
+    -fx-text-fill: #F5FFFB;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+    -fx-border-color: rgba(101, 242, 160, 0.62);
+    -fx-border-width: 1;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-padding: 8 18 8 18;
+    -fx-effect: dropshadow(gaussian, rgba(101, 242, 160, 0.22), 20, 0.20, 0, 6);
+}
+
 .pause-overlay {
     -fx-background-color: rgba(5, 9, 16, 0.68);
 }

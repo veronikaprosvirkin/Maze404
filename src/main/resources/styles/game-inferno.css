@@ -171,6 +171,28 @@
     -fx-font-weight: 600;
 }
 
+.stealth-hint {
+    -fx-padding: 10 18 10 18;
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
+    -fx-border-color: rgba(212, 168, 176, 0.16);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.58), 24, 0.20, 0, 8);
+}
+
+.stealth-hint-text {
+    -fx-text-fill: #FFF0F4;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 225, 232, 0.10), rgba(255, 205, 215, 0.04));
+    -fx-border-color: rgba(255, 160, 174, 0.60);
+    -fx-border-width: 1;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-padding: 8 18 8 18;
+    -fx-effect: dropshadow(gaussian, rgba(255, 160, 174, 0.20), 20, 0.20, 0, 6);
+}
+
 .pause-overlay {
     -fx-background-color: rgba(10, 3, 5, 0.72);
 }
