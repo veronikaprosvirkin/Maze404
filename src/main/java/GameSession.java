@@ -201,23 +201,7 @@ public class GameSession {
         hudRow.setMaxWidth(Region.USE_PREF_SIZE);
         hudRow.setMaxHeight(Region.USE_PREF_SIZE);
 
-        Label stealthHintLabel = new Label("STEALTH MODE ACTIVE");
-        stealthHintLabel.getStyleClass().add("stealth-hint-text");
-        stealthHintLabel.setManaged(true);
-        stealthHintLabel.setVisible(true);
-        stealthHintLabel.setMouseTransparent(true);
-        HBox stealthHintBox = new HBox(stealthHintLabel);
-        stealthHintBox.getStyleClass().addAll("game-hud", "stealth-hint");
-        stealthHintBox.setManaged(false);
-        stealthHintBox.setVisible(false);
-        stealthHintBox.setMouseTransparent(true);
-        stealthHintBox.setOpacity(1.0);
-        stealthHintBox.setTranslateY(10.0);
-        stealthHintBox.setAlignment(Pos.CENTER);
-        stealthHintBox.setMaxWidth(Region.USE_PREF_SIZE);
-        stealthHintBox.setMaxHeight(Region.USE_PREF_SIZE);
-
-        VBox bottomHudStack = new VBox(10, stealthHintBox, hudRow);
+        VBox bottomHudStack = new VBox(hudRow);
         bottomHudStack.setPickOnBounds(false);
         bottomHudStack.setMouseTransparent(false);
         bottomHudStack.setAlignment(Pos.BOTTOM_CENTER);
@@ -389,7 +373,7 @@ public class GameSession {
 
         Timeline stealthHintTimer = new Timeline(
                 new KeyFrame(STEALTH_HINT_UPDATE_INTERVAL, event ->
-                        updateStealthHint(stealthHintBox, player.isSemiInvisible(), stealthHintVisible))
+                        updateStealthHint(levelIsland, player.isSemiInvisible(), stealthHintVisible))
         );
         stealthHintTimer.setCycleCount(Timeline.INDEFINITE);
         stealthHintTimer.play();
@@ -788,27 +772,18 @@ public class GameSession {
         setHudCardState(shieldCard, "hud-card-active", active);
     }
 
-    private static void updateStealthHint(HBox stealthHintBox, boolean stealthActive, boolean[] stealthHintVisible) {
+    private static void updateStealthHint(LevelIsland levelIsland, boolean stealthActive, boolean[] stealthHintVisible) {
         if (stealthHintVisible[0] == stealthActive) {
             return;
         }
 
         stealthHintVisible[0] = stealthActive;
-        stealthHintBox.setVisible(true);
-        stealthHintBox.setManaged(true);
+        if (stealthActive) {
+            levelIsland.showPersistentTextMessage("STEALTH MODE ACTIVE");
+            return;
+        }
 
-        Timeline transition = new Timeline(
-                new KeyFrame(Duration.millis(220),
-                        new KeyValue(stealthHintBox.opacityProperty(), stealthActive ? 1.0 : 0.0, Interpolator.EASE_BOTH),
-                        new KeyValue(stealthHintBox.translateYProperty(), stealthActive ? 0.0 : 10.0, Interpolator.EASE_BOTH))
-        );
-        transition.setOnFinished(event -> {
-            if (!stealthActive) {
-                stealthHintBox.setVisible(false);
-                stealthHintBox.setManaged(false);
-            }
-        });
-        transition.play();
+        levelIsland.hideTextMessage();
     }
 
     private static void toggleHudCardState(VBox card, String styleClass) {
