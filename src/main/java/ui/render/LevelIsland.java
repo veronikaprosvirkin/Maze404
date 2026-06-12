@@ -20,8 +20,11 @@ import javafx.util.Duration;
 public class LevelIsland {
     private static final Duration ANIMATION_DURATION = Duration.millis(260);
     private static final Duration MESSAGE_DURATION = Duration.seconds(2.4);
+    private static final double TITLE_SLOT_HEIGHT = 54.0;
     private static final double MESSAGE_START_OFFSET = -8.0;
-    private static final double MESSAGE_SLOT_HEIGHT = 34.0;
+    private static final double MESSAGE_BOX_HEIGHT = 34.0;
+    private static final double MESSAGE_BOTTOM_PADDING = 8.0;
+    private static final double MESSAGE_SLOT_HEIGHT = MESSAGE_BOX_HEIGHT + MESSAGE_BOTTOM_PADDING;
     private static final double TINY_MESSAGE_SIZE = 42.0;
     private static final double TINY_MESSAGE_START_OFFSET = -18.0;
 
@@ -44,6 +47,13 @@ public class LevelIsland {
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("pause-title-label");
 
+        StackPane titleSlot = new StackPane(titleLabel);
+        titleSlot.setAlignment(Pos.CENTER);
+        titleSlot.setMinHeight(TITLE_SLOT_HEIGHT);
+        titleSlot.setPrefHeight(TITLE_SLOT_HEIGHT);
+        titleSlot.setMaxHeight(TITLE_SLOT_HEIGHT);
+        titleSlot.setPickOnBounds(false);
+
         messageLabel = new Label();
         messageLabel.getStyleClass().add("level-island-message-text");
 
@@ -54,9 +64,9 @@ public class LevelIsland {
         messageBox.setVisible(false);
         messageBox.setOpacity(0);
         messageBox.setTranslateY(MESSAGE_START_OFFSET);
-        messageBox.setMinHeight(MESSAGE_SLOT_HEIGHT);
-        messageBox.setPrefHeight(MESSAGE_SLOT_HEIGHT);
-        messageBox.setMaxHeight(MESSAGE_SLOT_HEIGHT);
+        messageBox.setMinHeight(MESSAGE_BOX_HEIGHT);
+        messageBox.setPrefHeight(MESSAGE_BOX_HEIGHT);
+        messageBox.setMaxHeight(MESSAGE_BOX_HEIGHT);
 
         Rectangle clip = new Rectangle();
         clip.arcWidthProperty().set(24);
@@ -66,7 +76,8 @@ public class LevelIsland {
         messageBox.setClip(clip);
 
         messageSlot = new StackPane(messageBox);
-        messageSlot.setAlignment(Pos.CENTER);
+        messageSlot.setAlignment(Pos.TOP_CENTER);
+        messageSlot.setPadding(new Insets(0, 0, MESSAGE_BOTTOM_PADDING, 0));
         messageSlot.setVisible(false);
         messageSlot.setManaged(false);
         setMessageSlotHeight(0);
@@ -76,10 +87,10 @@ public class LevelIsland {
         messageSlotClip.heightProperty().bind(messageSlot.heightProperty());
         messageSlot.setClip(messageSlotClip);
 
-        islandBase = new VBox(8, titleLabel, messageSlot);
+        islandBase = new VBox(0, titleSlot, messageSlot);
         islandBase.getStyleClass().addAll("game-hud", "level-island");
         islandBase.setAlignment(Pos.TOP_CENTER);
-        islandBase.setPadding(new Insets(12, 18, 12, 18));
+        islandBase.setPadding(new Insets(0, 18, 0, 18));
         islandBase.setPickOnBounds(false);
         islandBase.setMaxWidth(Region.USE_PREF_SIZE);
         islandBase.setMaxHeight(Region.USE_PREF_SIZE);
