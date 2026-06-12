@@ -197,6 +197,109 @@
     -fx-background-color: rgba(10, 8, 6, 0.7);
 }
 
+.victory-overlay {
+    -fx-background-color: rgba(10, 8, 6, 0.78);
+}
+
+.victory-panel {
+    -fx-min-width: 430px;
+    -fx-pref-width: 430px;
+    -fx-max-width: 430px;
+    -fx-background-color:
+        linear-gradient(from 0% 0% to 100% 100%, rgba(20, 15, 11, 0.98), rgba(10, 8, 6, 0.94)),
+        linear-gradient(from 0% 0% to 100% 100%, rgba(240, 176, 48, 0.12), rgba(217, 201, 168, 0.06));
+    -fx-border-color: rgba(240, 176, 48, 0.66), rgba(255, 241, 200, 0.14);
+    -fx-border-width: 2, 1;
+    -fx-border-radius: 32, 30;
+    -fx-background-radius: 32, 30;
+    -fx-effect: dropshadow(gaussian, rgba(240, 176, 48, 0.24), 42, 0.26, 0, 0);
+}
+
+.victory-badge {
+    -fx-padding: 8 18 8 18;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(240, 176, 48, 0.22), rgba(217, 201, 168, 0.10));
+    -fx-border-color: rgba(240, 176, 48, 0.78);
+    -fx-border-width: 1.4;
+    -fx-border-radius: 999;
+    -fx-background-radius: 999;
+    -fx-text-fill: #FFF5D8;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+}
+
+.victory-icon-shell {
+    -fx-min-width: 88px;
+    -fx-min-height: 88px;
+    -fx-max-width: 88px;
+    -fx-max-height: 88px;
+    -fx-background-color: radial-gradient(center 50% 50%, radius 62%, rgba(240, 176, 48, 0.28), rgba(217, 201, 168, 0.12) 58%, transparent 78%);
+    -fx-border-color: rgba(240, 176, 48, 0.60);
+    -fx-border-width: 1.6;
+    -fx-border-radius: 44;
+    -fx-background-radius: 44;
+    -fx-effect: dropshadow(gaussian, rgba(240, 176, 48, 0.34), 28, 0.24, 0, 0);
+}
+
+.victory-icon-cross {
+    -fx-text-fill: #FFF8E6;
+    -fx-font-size: 46px;
+    -fx-font-weight: 900;
+}
+
+.victory-title {
+    -fx-text-fill: #FFF8E6;
+    -fx-font-size: 28px;
+    -fx-font-weight: 900;
+}
+
+.victory-subtitle {
+    -fx-text-fill: rgba(255, 241, 200, 0.80);
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-text-alignment: center;
+}
+
+.victory-exit-button {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(240, 176, 48, 0.32), rgba(48, 34, 10, 0.92));
+    -fx-border-color: rgba(240, 176, 48, 0.88);
+    -fx-effect: dropshadow(gaussian, rgba(240, 176, 48, 0.28), 22, 0.2, 0, 0);
+}
+
+.victory-retry-button {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(217, 201, 168, 0.28), rgba(58, 42, 18, 0.92));
+    -fx-border-color: rgba(217, 201, 168, 0.88);
+    -fx-effect: dropshadow(gaussian, rgba(217, 201, 168, 0.24), 22, 0.2, 0, 0);
+}
+
+.victory-defeat .victory-panel {
+    -fx-background-color:
+        linear-gradient(from 0% 0% to 100% 100%, rgba(30, 12, 8, 0.98), rgba(12, 6, 4, 0.94)),
+        linear-gradient(from 0% 0% to 100% 100%, rgba(196, 68, 42, 0.12), rgba(240, 176, 48, 0.05));
+    -fx-border-color: rgba(196, 68, 42, 0.62), rgba(255, 241, 200, 0.12);
+    -fx-effect: dropshadow(gaussian, rgba(196, 68, 42, 0.24), 42, 0.26, 0, 0);
+}
+
+.victory-defeat .victory-icon-shell {
+    -fx-background-color: radial-gradient(center 50% 50%, radius 62%, rgba(196, 68, 42, 0.26), rgba(240, 176, 48, 0.08) 58%, transparent 78%);
+    -fx-border-color: rgba(196, 68, 42, 0.60);
+}
+
+.victory-defeat .victory-icon-cross {
+    -fx-text-fill: #FFD0C4;
+}
+
+.victory-defeat .victory-exit-button {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(196, 68, 42, 0.32), rgba(44, 18, 12, 0.92));
+    -fx-border-color: rgba(196, 68, 42, 0.88);
+    -fx-effect: dropshadow(gaussian, rgba(196, 68, 42, 0.28), 22, 0.2, 0, 0);
+}
+
+.victory-defeat .victory-retry-button {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(240, 176, 48, 0.30), rgba(62, 44, 12, 0.92));
+    -fx-border-color: rgba(240, 176, 48, 0.88);
+    -fx-effect: dropshadow(gaussian, rgba(240, 176, 48, 0.28), 22, 0.2, 0, 0);
+}
+
 .pause-overlay-panel {
     -fx-min-width: 420px;
     -fx-pref-width: 420px;
