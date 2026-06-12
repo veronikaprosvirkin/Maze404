@@ -18,7 +18,7 @@ public class GameEngine {
     private boolean paused = false;
 
     private final MovementSystem movementSystem = new MovementSystem();
-    private final logic.system.CollisionDetector collisionDetector = new logic.system.CollisionDetector();
+    private final CollisionDetector collisionDetector = new CollisionDetector();
     private final ScanSystem scanSystem      = new ScanSystem();
     private final RadarSystem      radarSystem     = new RadarSystem();
     private final ShieldSystem     shieldSystem    = new ShieldSystem();
@@ -79,9 +79,9 @@ public class GameEngine {
         fogSystem.updateVisibility(gameState);
         artifactSystem.processArtifacts(gameState);
 
-        collisionDetector.checkEnemyCollisions(gameState);
+        collisionDetector.checkCollisions(gameState);
         moveEnemies();
-        collisionDetector.checkEnemyCollisions(gameState);
+        collisionDetector.checkCollisions(gameState);
 
         radarSystem.onPlayerTurn(gameState);
     }

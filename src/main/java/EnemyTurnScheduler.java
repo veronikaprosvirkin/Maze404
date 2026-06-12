@@ -3,7 +3,7 @@ import enums.Difficulty;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
-import logic.system.CollisionDetector;
+import logic.CollisionDetector;
 import model.GameState;
 import model.Grid;
 import model.Player;
@@ -36,7 +36,7 @@ public class EnemyTurnScheduler {
                             }
                         }
                     }
-                    collisionDetector.checkEnemyCollisions(gameState);
+                    collisionDetector.checkCollisions(gameState);
                 })
         );
         enemyTimer.setCycleCount(javafx.animation.Animation.INDEFINITE);
