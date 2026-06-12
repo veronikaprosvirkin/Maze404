@@ -1,5 +1,6 @@
 import AI.IEnemyAI;
 import enums.CellType;
+import enums.EnemyMode;
 import events.EventBus;
 import logic.ArtifactSystem;
 import logic.*;
@@ -126,6 +127,20 @@ class GameEngineTest {
 
         assertEquals(3, state.getPlayer().getHealth());   // HP не змінився
         assertFalse(state.getPlayer().hasShield());       // щит зламався
+    }
+
+    @Test
+    void repeatedEnemyCollisionUsesCooldown() {
+        GameEngine engine = makeEngine();
+        Grid grid = new Grid(3, 3);
+        Player player = new Player(1, 0);
+        Enemy enemy = new Enemy(1, 1, EnemyMode.CHASE, null);
+        GameState state = new GameState(grid, player, List.of(enemy), List.of(), 1);
+        engine.loadLevel(state);
+
+        engine.processAction(GameAction.MOVE_RIGHT);
+
+        assertEquals(2, state.getPlayer().getHealth());
     }
 
 

@@ -12,8 +12,8 @@ public class CollisionDetector {
 
         for (Enemy enemy : state.getEnemies()) {
             if (enemy.getRow() == player.getRow() && enemy.getCol() == player.getCol()) {
-                player.takeDamage(1); // takeDamage сам перевіряє щит і публікує події
-                break; // 1 зіткнення = 1 удар за хід
+                player.takeEnemyDamage(1);
+                break; // 1 зіткнення = 1 удар за перевірку, а кулдаун блокує миттєві повтори
             }
         }
     }

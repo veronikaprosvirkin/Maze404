@@ -8,6 +8,7 @@ import events.GameEvent;
 
 public class Player {
     private static final int MAX_HEALTH = 3;
+    private static final long ENEMY_DAMAGE_COOLDOWN_NANOS = 1_000_000_000L;
 
     //  Геттери (контракт)
     @Getter
@@ -34,6 +35,7 @@ public class Player {
     private boolean shieldActive = false;
     @Getter
     private boolean hasKey = false;
+    private long lastEnemyDamageAtNanos = Long.MIN_VALUE;
 
     public Player(int row, int col) {
         this.row = row;
@@ -78,6 +80,21 @@ public class Player {
         EventBus.getInstance().publish(new GameEvent(GameEvent.Type.PLAYER_DAMAGED));
         if (health == 0)
             EventBus.getInstance().publish(new GameEvent(GameEvent.Type.PLAYER_DIED));
+    }
+
+    public void takeEnemyDamage(int amount) {
+        takeEnemyDamage(amount, System.nanoTime());
+    }
+
+    boolean takeEnemyDamage(int amount, long nowNanos) {
+        if (lastEnemyDamageAtNanos != Long.MIN_VALUE
+                && nowNanos - lastEnemyDamageAtNanos < ENEMY_DAMAGE_COOLDOWN_NANOS) {
+            return false;
+        }
+
+        lastEnemyDamageAtNanos = nowNanos;
+        takeDamage(amount);
+        return true;
     }
 
     public void heal(int amount) {
