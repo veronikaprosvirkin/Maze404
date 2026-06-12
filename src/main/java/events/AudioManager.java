@@ -1,15 +1,19 @@
 package events;
 
 import enums.Difficulty;
+import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AudioManager {
     private static final double BACKGROUND_VOLUME_SCALE = 0.5;
     private static final double EFFECT_VOLUME_SCALE = 0.7;
 
     private final boolean enabled;
+    private final Map<String, AudioClip> effectCache = new HashMap<>();
     private MediaPlayer backgroundPlayer;
     private String currentBackgroundTrack;
     private boolean isMuted = false;
@@ -71,13 +75,16 @@ public class AudioManager {
     private void play(String filename) {
         if (isMuted) return;
 
-        URL url = getClass().getResource("/sounds/" + filename);
-        if (url == null) return;
+        AudioClip effect = effectCache.computeIfAbsent(filename, this::loadEffect);
+        if (effect == null) return;
 
-        // MediaPlayer для ефектів: створюємо новий, щоб звуки могли накладатися
-        MediaPlayer effectPlayer = new MediaPlayer(new Media(url.toExternalForm()));
-        effectPlayer.setVolume(effectsVolume * EFFECT_VOLUME_SCALE);
-        effectPlayer.play();
+        effect.setVolume(effectsVolume * EFFECT_VOLUME_SCALE);
+        effect.play();
+    }
+
+    private AudioClip loadEffect(String filename) {
+        URL url = getClass().getResource("/sounds/" + filename);
+        return url != null ? new AudioClip(url.toExternalForm()) : null;
     }
 
     public void setMusicVolume(double musicVolume) {

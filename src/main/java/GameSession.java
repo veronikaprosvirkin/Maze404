@@ -3,6 +3,7 @@ import enums.Difficulty;
 import events.AudioManager;
 import events.EventBus;
 import events.GameEvent;
+import javafx.event.EventHandler;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -19,6 +20,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -40,8 +42,8 @@ import model.Player;
 import ui.input.GameAction;
 import ui.input.InputHandler;
 import ui.render.ArtifactVisuals;
-import ui.render.GameAlerts;
 import ui.render.GamePanel;
+import ui.render.LevelIsland;
 import ui.render.StartMenuView;
 
 import java.util.Locale;
@@ -88,7 +90,6 @@ public class GameSession {
         GameState gameState = level.gameState();
         PauseController pauseController = new PauseController(gameState);
         ArtifactSystem artifactSystem = new ArtifactSystem();
-        miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(gameState, player);
         RadarSystem radarSystem = new RadarSystem();
         ShieldSystem shieldSystem = new ShieldSystem();
         BeaconSystem beaconSystem = new BeaconSystem();
@@ -152,6 +153,17 @@ public class GameSession {
         inventoryHud.getChildren().addAll(radarCard, shieldCard, beaconCard, elixirCard);
         updateShieldHudState(shieldCard, player);
 
+        LevelIsland levelIsland = new LevelIsland(getLevelTitle(Difficulty.current));
+        StackPane.setAlignment(levelIsland.getView(), Pos.TOP_CENTER);
+        StackPane.setMargin(levelIsland.getView(), new Insets(24, 0, 0, 0));
+        miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(gameState, player, levelIsland);
+        EventHandler<KeyEvent> miniGamePromptKeyHandler = event -> {
+            if (miniGameManager.handlePromptKey(event.getCode())) {
+                event.consume();
+            }
+        };
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, miniGamePromptKeyHandler);
+
         PauseTransition radarMistRestoreTimer = new PauseTransition(RADAR_REVEAL_DURATION);
         PauseTransition radarBlinkStartTimer = new PauseTransition(RADAR_WARNING_START_DELAY);
         Timeline radarBlinkTimeline = new Timeline(
@@ -169,6 +181,7 @@ public class GameSession {
             radarBlinkTimeline.stop();
             setHudCardState(radarCard, "hud-card-active", false);
             setHudCardState(radarCard, "hud-card-warning", false);
+            levelIsland.hideTinyMessage();
         });
 
         PauseTransition healthDamageHighlightTimer = new PauseTransition(HUD_DAMAGE_HIGHLIGHT_DURATION);
@@ -195,35 +208,7 @@ public class GameSession {
         hudRow.setMaxWidth(Region.USE_PREF_SIZE);
         hudRow.setMaxHeight(Region.USE_PREF_SIZE);
 
-        Label levelTitle = new Label(getLevelTitle(Difficulty.current));
-        levelTitle.getStyleClass().add("pause-title-label");
-        HBox levelTitleBox = new HBox(levelTitle);
-        levelTitleBox.getStyleClass().add("game-hud");
-        levelTitleBox.setAlignment(Pos.CENTER);
-        levelTitleBox.setPadding(new Insets(14, 22, 14, 22));
-        levelTitleBox.setPickOnBounds(false);
-        levelTitleBox.setMaxWidth(Region.USE_PREF_SIZE);
-        levelTitleBox.setMaxHeight(Region.USE_PREF_SIZE);
-        StackPane.setAlignment(levelTitleBox, Pos.TOP_CENTER);
-        StackPane.setMargin(levelTitleBox, new Insets(24, 0, 0, 0));
-
-        Label stealthHintLabel = new Label("STEALTH MODE ACTIVE");
-        stealthHintLabel.getStyleClass().add("stealth-hint-text");
-        stealthHintLabel.setManaged(true);
-        stealthHintLabel.setVisible(true);
-        stealthHintLabel.setMouseTransparent(true);
-        HBox stealthHintBox = new HBox(stealthHintLabel);
-        stealthHintBox.getStyleClass().addAll("game-hud", "stealth-hint");
-        stealthHintBox.setManaged(false);
-        stealthHintBox.setVisible(false);
-        stealthHintBox.setMouseTransparent(true);
-        stealthHintBox.setOpacity(1.0);
-        stealthHintBox.setTranslateY(10.0);
-        stealthHintBox.setAlignment(Pos.CENTER);
-        stealthHintBox.setMaxWidth(Region.USE_PREF_SIZE);
-        stealthHintBox.setMaxHeight(Region.USE_PREF_SIZE);
-
-        VBox bottomHudStack = new VBox(10, stealthHintBox, hudRow);
+        VBox bottomHudStack = new VBox(hudRow);
         bottomHudStack.setPickOnBounds(false);
         bottomHudStack.setMouseTransparent(false);
         bottomHudStack.setAlignment(Pos.BOTTOM_CENTER);
@@ -257,7 +242,7 @@ public class GameSession {
         winLoseOverlay.setVisible(false);
         StackPane.setAlignment(winLoseOverlay, Pos.CENTER);
 
-        Label endBadgeLabel = new Label(levelTitle.getText());
+        Label endBadgeLabel = new Label(levelIsland.getTitle());
         endBadgeLabel.getStyleClass().add("victory-badge");
 
         ImageView successIcon = createMenuIcon("success.png", 42);
@@ -301,7 +286,7 @@ public class GameSession {
 
         int[] currentMistSampleStep = {settings.mistSampleStep()};
 
-        Label pauseOverlayTitle = new Label(levelTitle.getText());
+        Label pauseOverlayTitle = new Label(levelIsland.getTitle());
         pauseOverlayTitle.getStyleClass().add("pause-title-label");
         Label pausedLabel = new Label("Paused");
         pausedLabel.getStyleClass().add("pause-overlay-heading");
@@ -366,8 +351,8 @@ public class GameSession {
         pauseOverlay.getStyleClass().add("pause-overlay");
         pauseOverlay.setVisible(false);
 
-        Consumer<GameEvent> exitBlockedListener = event ->
-                Platform.runLater(GameAlerts::showExitBlockedAlert);
+        Consumer<GameEvent> exitBlockedListener = event -> Platform.runLater(() ->
+                levelIsland.showArtifactMessage(ArtifactType.KEY, "Key required"));
         EventBus.getInstance().subscribe(GameEvent.Type.EXIT_BLOCKED, exitBlockedListener);
 
         Consumer<GameEvent> playerDamagedListener = event -> {
@@ -389,9 +374,36 @@ public class GameSession {
         };
         EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_DAMAGED, playerDamagedListener);
 
+        Consumer<GameEvent> artifactCollectedListener = event -> Platform.runLater(() -> {
+            syncHudValues(
+                    player,
+                    hpValueLabel,
+                    crystalsValueLabel,
+                    radarValueLabel,
+                    shieldValueLabel,
+                    beaconValueLabel,
+                    elixirsValueLabel,
+                    keyValueLabel,
+                    healthCard,
+                    healthDamageHighlightTimer,
+                    lastRenderedHealth
+            );
+            updateShieldHudState(shieldCard, player);
+            gamePanel.redraw(grid, player, enemies);
+        });
+        EventBus.getInstance().subscribe(GameEvent.Type.ARTIFACT_COLLECTED, artifactCollectedListener);
+
+        Consumer<GameEvent> shieldActivatedListener = event -> Platform.runLater(() ->
+                levelIsland.showArtifactMessage(ArtifactType.SHIELD, "Shield equipped"));
+        EventBus.getInstance().subscribe(GameEvent.Type.SHIELD_ACTIVATED, shieldActivatedListener);
+
+        Consumer<GameEvent> beaconActivatedListener = event -> Platform.runLater(() ->
+                levelIsland.showArtifactMessage(ArtifactType.BEACON, "Beacon placed"));
+        EventBus.getInstance().subscribe(GameEvent.Type.BEACON_ACTIVATED, beaconActivatedListener);
+
         Timeline stealthHintTimer = new Timeline(
                 new KeyFrame(STEALTH_HINT_UPDATE_INTERVAL, event ->
-                        updateStealthHint(stealthHintBox, player.isSemiInvisible(), stealthHintVisible))
+                        updateStealthHint(levelIsland, player.isSemiInvisible(), stealthHintVisible))
         );
         stealthHintTimer.setCycleCount(Timeline.INDEFINITE);
         stealthHintTimer.play();
@@ -425,11 +437,19 @@ public class GameSession {
                         radarBlinkStartTimer.playFromStart();
                         radarMistRestoreTimer.stop();
                         radarMistRestoreTimer.playFromStart();
+                        levelIsland.showTinyCountdown(RADAR_REVEAL_DURATION);
                     }
                 }
                 case SHIELD -> shieldSystem.activateShield(gameState);
                 case BEACON -> beaconSystem.placeBeacon(gameState);
-                case ELIXIR -> useElixir(player);
+                case ELIXIR -> {
+                    int elixirsBeforeUse = player.getElixirCount();
+                    int healthBeforeUse = player.getHealth();
+                    useElixir(player);
+                    if (player.getElixirCount() < elixirsBeforeUse && player.getHealth() > healthBeforeUse) {
+                        levelIsland.showArtifactMessage(ArtifactType.ELIXIR, "Elixir used");
+                    }
+                }
                 default -> {
                 }
             }
@@ -461,7 +481,7 @@ public class GameSession {
                     pauseOverlay.setVisible(false);
                     winLoseOverlay.getStyleClass().remove("victory-defeat");
                     winLoseOverlay.getStyleClass().add("victory-complete");
-                    endBadgeLabel.setText(levelTitle.getText());
+                    endBadgeLabel.setText(levelIsland.getTitle());
                     successIcon.setVisible(true);
                     successIcon.setManaged(true);
                     defeatCrossLabel.setVisible(false);
@@ -494,7 +514,7 @@ public class GameSession {
             enemyTimer.stop();
             winLoseOverlay.getStyleClass().remove("victory-complete");
             winLoseOverlay.getStyleClass().add("victory-defeat");
-            endBadgeLabel.setText(levelTitle.getText());
+            endBadgeLabel.setText(levelIsland.getTitle());
             successIcon.setVisible(false);
             successIcon.setManaged(false);
             defeatCrossLabel.setVisible(true);
@@ -514,7 +534,7 @@ public class GameSession {
         Runnable syncPauseUi = () -> {
             boolean paused = pauseController.isPaused();
             pauseOverlay.setVisible(paused);
-            pauseOverlayTitle.setText(levelTitle.getText());
+            pauseOverlayTitle.setText(levelIsland.getTitle());
         };
 
         pauseButton.setOnAction(event -> {
@@ -531,9 +551,15 @@ public class GameSession {
             pauseController.resume();
             enemyTimer.stop();
             stealthHintTimer.stop();
+            gamePanel.dispose();
+            levelIsland.dispose();
             miniGameManager.dispose();
+            scene.removeEventFilter(KeyEvent.KEY_PRESSED, miniGamePromptKeyHandler);
             EventBus.getInstance().unsubscribe(GameEvent.Type.EXIT_BLOCKED, exitBlockedListener);
             EventBus.getInstance().unsubscribe(GameEvent.Type.PLAYER_DAMAGED, playerDamagedListener);
+            EventBus.getInstance().unsubscribe(GameEvent.Type.ARTIFACT_COLLECTED, artifactCollectedListener);
+            EventBus.getInstance().unsubscribe(GameEvent.Type.SHIELD_ACTIVATED, shieldActivatedListener);
+            EventBus.getInstance().unsubscribe(GameEvent.Type.BEACON_ACTIVATED, beaconActivatedListener);
             EventBus.getInstance().unsubscribe(GameEvent.Type.PLAYER_DIED, playerDiedListener);
         };
 
@@ -550,7 +576,7 @@ public class GameSession {
             exitToMenu.run();
         });
 
-        root.getChildren().setAll(gamePanel, levelTitleBox, pauseButtonWrapper, bottomHudStack, pauseOverlay, winLoseOverlay);
+        root.getChildren().setAll(gamePanel, levelIsland.getView(), pauseButtonWrapper, bottomHudStack, pauseOverlay, winLoseOverlay);
         scene.getRoot().requestFocus();
     }
 
@@ -787,27 +813,18 @@ public class GameSession {
         setHudCardState(shieldCard, "hud-card-active", active);
     }
 
-    private static void updateStealthHint(HBox stealthHintBox, boolean stealthActive, boolean[] stealthHintVisible) {
+    private static void updateStealthHint(LevelIsland levelIsland, boolean stealthActive, boolean[] stealthHintVisible) {
         if (stealthHintVisible[0] == stealthActive) {
             return;
         }
 
         stealthHintVisible[0] = stealthActive;
-        stealthHintBox.setVisible(true);
-        stealthHintBox.setManaged(true);
+        if (stealthActive) {
+            levelIsland.showPersistentTextMessage("STEALTH MODE ACTIVE");
+            return;
+        }
 
-        Timeline transition = new Timeline(
-                new KeyFrame(Duration.millis(220),
-                        new KeyValue(stealthHintBox.opacityProperty(), stealthActive ? 1.0 : 0.0, Interpolator.EASE_BOTH),
-                        new KeyValue(stealthHintBox.translateYProperty(), stealthActive ? 0.0 : 10.0, Interpolator.EASE_BOTH))
-        );
-        transition.setOnFinished(event -> {
-            if (!stealthActive) {
-                stealthHintBox.setVisible(false);
-                stealthHintBox.setManaged(false);
-            }
-        });
-        transition.play();
+        levelIsland.hideTextMessage();
     }
 
     private static void toggleHudCardState(VBox card, String styleClass) {

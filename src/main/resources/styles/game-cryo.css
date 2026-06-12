@@ -171,26 +171,132 @@
     -fx-font-weight: 600;
 }
 
-.stealth-hint {
-    -fx-padding: 10 18 10 18;
-    -fx-background-radius: 22;
-    -fx-border-radius: 22;
-    -fx-border-color: rgba(210, 234, 255, 0.16);
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.52), 24, 0.20, 0, 8);
+.level-island {
+    -fx-min-height: 54px;
 }
 
-.stealth-hint-text {
-    -fx-text-fill: #F5FFFB;
-    -fx-font-size: 14px;
-    -fx-font-weight: 800;
-    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
-    -fx-border-color: rgba(101, 242, 160, 0.62);
+.level-island-message {
+    -fx-min-width: 172px;
+    -fx-padding: 7 13 7 11;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(125, 228, 255, 0.20), rgba(101, 242, 160, 0.10));
+    -fx-background-radius: 18;
+    -fx-border-color: rgba(125, 228, 255, 0.50);
     -fx-border-width: 1;
+    -fx-border-radius: 18;
+    -fx-effect: dropshadow(gaussian, rgba(125, 228, 255, 0.24), 18, 0.24, 0, 0);
+}
+
+.level-island-message-radar {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(101, 242, 160, 0.24), rgba(212, 255, 227, 0.10));
+    -fx-border-color: rgba(101, 242, 160, 0.62);
+    -fx-effect: dropshadow(gaussian, rgba(101, 242, 160, 0.28), 18, 0.24, 0, 0);
+}
+
+.level-island-message-shield {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(125, 228, 255, 0.24), rgba(215, 250, 255, 0.10));
+    -fx-border-color: rgba(125, 228, 255, 0.62);
+    -fx-effect: dropshadow(gaussian, rgba(125, 228, 255, 0.28), 18, 0.24, 0, 0);
+}
+
+.level-island-message-beacon {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 142, 82, 0.24), rgba(255, 210, 168, 0.10));
+    -fx-border-color: rgba(255, 142, 82, 0.62);
+    -fx-effect: dropshadow(gaussian, rgba(255, 142, 82, 0.28), 18, 0.24, 0, 0);
+}
+
+.level-island-message-elixir {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(196, 107, 255, 0.24), rgba(240, 200, 255, 0.10));
+    -fx-border-color: rgba(196, 107, 255, 0.62);
+    -fx-effect: dropshadow(gaussian, rgba(196, 107, 255, 0.28), 18, 0.24, 0, 0);
+}
+
+.level-island-message-key {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 216, 160, 0.26), rgba(255, 232, 194, 0.10));
+    -fx-border-color: rgba(255, 216, 160, 0.66);
+    -fx-effect: dropshadow(gaussian, rgba(255, 216, 160, 0.30), 18, 0.24, 0, 0);
+}
+
+.level-island-message-mini-game {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 115, 183, 0.26), rgba(255, 212, 234, 0.10));
+    -fx-border-color: rgba(255, 115, 183, 0.66);
+    -fx-effect: dropshadow(gaussian, rgba(255, 115, 183, 0.30), 18, 0.24, 0, 0);
+}
+
+.level-island-message-choice {
+    -fx-min-width: 330px;
+    -fx-pref-width: 330px;
+    -fx-padding: 9 16 9 14;
+}
+
+.level-island-message-text {
+    -fx-text-fill: #F5FBFF;
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+}
+
+.level-island-choice-content {
+    -fx-alignment: center;
+}
+
+.level-island-crystal-count {
+    -fx-padding: 2 8 2 7;
+    -fx-background-color: rgba(240, 214, 106, 0.16);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(255, 243, 166, 0.42);
+    -fx-border-radius: 12;
+}
+
+.level-island-crystal-count-text {
+    -fx-text-fill: #FFF3A6;
+    -fx-font-size: 12px;
+    -fx-font-weight: 900;
+}
+
+.level-island-actions {
+    -fx-padding: 0 0 8 0;
+}
+
+.level-island-action-button {
+    -fx-min-height: 28px;
+    -fx-pref-height: 28px;
     -fx-background-radius: 14;
     -fx-border-radius: 14;
-    -fx-padding: 8 18 8 18;
-    -fx-effect: dropshadow(gaussian, rgba(101, 242, 160, 0.22), 20, 0.20, 0, 6);
+    -fx-padding: 0 14 0 14;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.level-island-action-primary {
+    -fx-text-fill: #F5FBFF;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 115, 183, 0.34), rgba(255, 212, 234, 0.12));
+    -fx-border-color: rgba(255, 115, 183, 0.72);
+}
+
+.level-island-action-secondary {
+    -fx-text-fill: rgba(245, 251, 255, 0.82);
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-border-color: rgba(210, 234, 255, 0.22);
+}
+
+.level-island-tiny {
+    -fx-min-width: 42px;
+    -fx-pref-width: 42px;
+    -fx-max-width: 42px;
+    -fx-min-height: 42px;
+    -fx-pref-height: 42px;
+    -fx-max-height: 42px;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(101, 242, 160, 0.30), rgba(212, 255, 227, 0.12));
+    -fx-border-color: rgba(101, 242, 160, 0.68);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(101, 242, 160, 0.34), 18, 0.24, 0, 0);
+}
+
+.level-island-tiny-text {
+    -fx-text-fill: #F5FBFF;
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
 }
 
 .pause-overlay {
