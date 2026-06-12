@@ -5,7 +5,7 @@ import model.Position;
 
 import java.util.*;
 
-public class MazeGenerator {
+public class MazeGenerator implements IMazeGenerator {
 
     public Grid generate(int rows, int cols){
         Grid grid = new Grid(rows, cols);
