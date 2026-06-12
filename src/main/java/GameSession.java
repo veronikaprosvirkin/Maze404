@@ -35,6 +35,7 @@ import model.Artifact;
 import model.GameState;
 import model.Grid;
 import model.Player;
+import ui.input.GameAction;
 import ui.input.InputHandler;
 import ui.render.ArtifactVisuals;
 import ui.render.GameAlerts;
@@ -134,7 +135,7 @@ public class GameSession {
         HBox inventoryHud = new HBox(10);
         inventoryHud.getStyleClass().add("game-hud");
         inventoryHud.setPickOnBounds(false);
-        inventoryHud.setMouseTransparent(true);
+        inventoryHud.setMouseTransparent(false);
         inventoryHud.setMaxWidth(Region.USE_PREF_SIZE);
         inventoryHud.setMaxHeight(Region.USE_PREF_SIZE);
         inventoryHud.setPrefHeight(Region.USE_COMPUTED_SIZE);
@@ -186,7 +187,7 @@ public class GameSession {
         }
 
         hudRow.setPickOnBounds(false);
-        hudRow.setMouseTransparent(true);
+        hudRow.setMouseTransparent(false);
         hudRow.setMaxWidth(Region.USE_PREF_SIZE);
         hudRow.setMaxHeight(Region.USE_PREF_SIZE);
 
@@ -220,7 +221,7 @@ public class GameSession {
 
         VBox bottomHudStack = new VBox(10, stealthHintBox, hudRow);
         bottomHudStack.setPickOnBounds(false);
-        bottomHudStack.setMouseTransparent(true);
+        bottomHudStack.setMouseTransparent(false);
         bottomHudStack.setAlignment(Pos.BOTTOM_CENTER);
         bottomHudStack.setMaxWidth(Region.USE_PREF_SIZE);
         bottomHudStack.setMaxHeight(Region.USE_PREF_SIZE);
@@ -358,8 +359,8 @@ public class GameSession {
         stealthHintTimer.setCycleCount(Timeline.INDEFINITE);
         stealthHintTimer.play();
 
-        InputHandler inputHandler = new InputHandler(action -> {
-            if (action == ui.input.GameAction.TOGGLE_PAUSE) {
+        java.util.function.Consumer<GameAction> actionHandler = action -> {
+            if (action == GameAction.TOGGLE_PAUSE) {
                 pauseController.toggle();
                 pauseOverlay.setVisible(pauseController.isPaused());
                 return;
@@ -426,7 +427,14 @@ public class GameSession {
                     winLoseOverlay.setVisible(true);
                 }
             });
-        });
+        };
+
+        attachArtifactHudAction(radarCard, GameAction.RADAR, actionHandler, scene);
+        attachArtifactHudAction(shieldCard, GameAction.SHIELD, actionHandler, scene);
+        attachArtifactHudAction(beaconCard, GameAction.BEACON, actionHandler, scene);
+        attachArtifactHudAction(elixirCard, GameAction.ELIXIR, actionHandler, scene);
+
+        InputHandler inputHandler = new InputHandler(actionHandler);
         inputHandler.attachTo(scene);
 
         Timeline enemyTimer = enemyTurnScheduler.createTimer(gameState, grid, player);
@@ -687,6 +695,18 @@ public class GameSession {
             return;
         }
         card.getStyleClass().remove(styleClass);
+    }
+
+    private static void attachArtifactHudAction(
+            VBox card,
+            GameAction action,
+            java.util.function.Consumer<GameAction> actionHandler,
+            Scene scene
+    ) {
+        card.setOnMouseClicked(event -> {
+            actionHandler.accept(action);
+            scene.getRoot().requestFocus();
+        });
     }
 
     private String getGameStylesheet() {
