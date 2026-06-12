@@ -10,6 +10,7 @@ import model.Player;
 
 public class PlayerRenderer {
     private static final double MOVEMENT_SMOOTHING_SECONDS = 0.18;
+    private static final double SEMI_INVISIBLE_TRANSITION_SECONDS = 0.35;
     private static final double SEMI_INVISIBLE_OPACITY = 0.45;
     private static final long DAMAGE_FLASH_DURATION_NANOS = 1_000_000_000L;
     private static final Color MENU_SKIN_BASE = Color.web("#22103A");
@@ -19,6 +20,7 @@ public class PlayerRenderer {
 
     private double renderX;
     private double renderY;
+    private double visibilityOpacity = 1.0;
     private boolean initialized = false;
     private long damageFlashUntilNanos = 0L;
 
@@ -40,15 +42,20 @@ public class PlayerRenderer {
     public void update(Player player, double tileSize, double deltaSeconds) {
         double targetX = player.getCol() * tileSize;
         double targetY = player.getRow() * tileSize;
+        double targetOpacity = player.isSemiInvisible() ? SEMI_INVISIBLE_OPACITY : 1.0;
 
         if (!initialized) {
             renderX = targetX;
             renderY = targetY;
+            visibilityOpacity = targetOpacity;
             initialized = true;
         } else {
             double smoothingFactor = 1.0 - Math.exp(-deltaSeconds / MOVEMENT_SMOOTHING_SECONDS);
             renderX += (targetX - renderX) * smoothingFactor;
             renderY += (targetY - renderY) * smoothingFactor;
+
+            double opacitySmoothingFactor = 1.0 - Math.exp(-deltaSeconds / SEMI_INVISIBLE_TRANSITION_SECONDS);
+            visibilityOpacity += (targetOpacity - visibilityOpacity) * opacitySmoothingFactor;
         }
     }
 
@@ -61,7 +68,7 @@ public class PlayerRenderer {
         double centerY = renderY + tileSize / 2.0;
         double radius = tileSize * 0.4;
         gc.save();
-        gc.setGlobalAlpha(player.isSemiInvisible() ? SEMI_INVISIBLE_OPACITY : 1.0);
+        gc.setGlobalAlpha(visibilityOpacity);
         if (player.hasShield()) {
             drawShieldRing(gc, diff, centerX, centerY, radius);
         }
