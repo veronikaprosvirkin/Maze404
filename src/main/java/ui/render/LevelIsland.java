@@ -24,6 +24,7 @@ public class LevelIsland {
     private static final double MESSAGE_START_OFFSET = -8.0;
     private static final double MIN_MESSAGE_HEIGHT = 34.0;
     private static final double TINY_MESSAGE_SIZE = 42.0;
+    private static final double TINY_MESSAGE_START_OFFSET = -18.0;
 
     private final String title;
     private final HBox view;
@@ -77,8 +78,8 @@ public class LevelIsland {
         tinyMessageCircle.getStyleClass().addAll("game-hud", "level-island-tiny");
         tinyMessageCircle.setAlignment(Pos.CENTER);
         tinyMessageCircle.setVisible(false);
-        tinyMessageCircle.setManaged(false);
         tinyMessageCircle.setOpacity(0);
+        tinyMessageCircle.setTranslateX(TINY_MESSAGE_START_OFFSET);
         tinyMessageCircle.setScaleX(0.64);
         tinyMessageCircle.setScaleY(0.64);
         tinyMessageCircle.setMinSize(TINY_MESSAGE_SIZE, TINY_MESSAGE_SIZE);
@@ -112,11 +113,11 @@ public class LevelIsland {
 
         tinyMessageLabel.setText(message);
         tinyMessageCircle.setVisible(true);
-        tinyMessageCircle.setManaged(true);
 
         tinyMessageTransition = new Timeline(
                 new KeyFrame(ANIMATION_DURATION,
                         new KeyValue(tinyMessageCircle.opacityProperty(), 1.0, Interpolator.EASE_BOTH),
+                        new KeyValue(tinyMessageCircle.translateXProperty(), 0.0, Interpolator.EASE_BOTH),
                         new KeyValue(tinyMessageCircle.scaleXProperty(), 1.0, Interpolator.EASE_BOTH),
                         new KeyValue(tinyMessageCircle.scaleYProperty(), 1.0, Interpolator.EASE_BOTH))
         );
@@ -151,13 +152,13 @@ public class LevelIsland {
         tinyMessageTransition = new Timeline(
                 new KeyFrame(ANIMATION_DURATION,
                         new KeyValue(tinyMessageCircle.opacityProperty(), 0.0, Interpolator.EASE_BOTH),
+                        new KeyValue(tinyMessageCircle.translateXProperty(), TINY_MESSAGE_START_OFFSET, Interpolator.EASE_BOTH),
                         new KeyValue(tinyMessageCircle.scaleXProperty(), 0.64, Interpolator.EASE_BOTH),
                         new KeyValue(tinyMessageCircle.scaleYProperty(), 0.64, Interpolator.EASE_BOTH))
         );
         tinyMessageTransition.setOnFinished(event -> {
             tinyMessageTransition = null;
             tinyMessageCircle.setVisible(false);
-            tinyMessageCircle.setManaged(false);
         });
         tinyMessageTransition.playFromStart();
     }
