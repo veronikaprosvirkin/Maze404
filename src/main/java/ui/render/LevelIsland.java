@@ -33,6 +33,7 @@ public class LevelIsland {
     private final VBox islandBase;
     private final StackPane messageSlot;
     private final HBox messageBox;
+    private Node messageIcon;
     private final Label messageLabel;
     private final StackPane tinyMessageCircle;
     private final Label tinyMessageLabel;
@@ -57,8 +58,8 @@ public class LevelIsland {
         messageLabel = new Label();
         messageLabel.getStyleClass().add("level-island-message-text");
 
-        Node shieldIcon = ArtifactVisuals.createHudIcon(ArtifactType.SHIELD, 18);
-        messageBox = new HBox(8, shieldIcon, messageLabel);
+        messageIcon = ArtifactVisuals.createHudIcon(ArtifactType.SHIELD, 18);
+        messageBox = new HBox(8, messageIcon, messageLabel);
         messageBox.getStyleClass().add("level-island-message");
         messageBox.setAlignment(Pos.CENTER);
         messageBox.setVisible(false);
@@ -127,8 +128,28 @@ public class LevelIsland {
     }
 
     public void showArtifactMessage(ArtifactType artifactType, String message) {
-        messageBox.getChildren().set(0, ArtifactVisuals.createHudIcon(artifactType, 18));
-        showMessage(message);
+        messageIcon = ArtifactVisuals.createHudIcon(artifactType, 18);
+        messageBox.getChildren().set(0, messageIcon);
+        messageIcon.setVisible(true);
+        messageIcon.setManaged(true);
+        showMessage(message, true);
+    }
+
+    public void showTextMessage(String message) {
+        messageIcon.setVisible(false);
+        messageIcon.setManaged(false);
+        showMessage(message, true);
+    }
+
+    public void showPersistentTextMessage(String message) {
+        messageIcon.setVisible(false);
+        messageIcon.setManaged(false);
+        showMessage(message, false);
+    }
+
+    public void hideTextMessage() {
+        hideTimer.stop();
+        hideMessage();
     }
 
     public void showTinyMessage(String message) {
@@ -193,7 +214,7 @@ public class LevelIsland {
         stopTinyMessageTransition();
     }
 
-    private void showMessage(String message) {
+    private void showMessage(String message, boolean autoHide) {
         hideTimer.stop();
         stopMessageTransition();
 
@@ -213,7 +234,9 @@ public class LevelIsland {
         );
         messageTransition.setOnFinished(event -> {
             messageTransition = null;
-            hideTimer.playFromStart();
+            if (autoHide) {
+                hideTimer.playFromStart();
+            }
         });
         messageTransition.playFromStart();
     }
