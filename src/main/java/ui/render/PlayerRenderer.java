@@ -10,6 +10,7 @@ import model.Player;
 
 public class PlayerRenderer {
     private static final double MOVEMENT_SMOOTHING_SECONDS = 0.18;
+    private static final double SEMI_INVISIBLE_OPACITY = 0.45;
     private static final long DAMAGE_FLASH_DURATION_NANOS = 1_000_000_000L;
     private static final Color MENU_SKIN_BASE = Color.web("#22103A");
     private static final Color MENU_SKIN_GLOW = Color.web("#8F55FF");
@@ -59,10 +60,13 @@ public class PlayerRenderer {
         double centerX = renderX + tileSize / 2.0;
         double centerY = renderY + tileSize / 2.0;
         double radius = tileSize * 0.4;
+        gc.save();
+        gc.setGlobalAlpha(player.isSemiInvisible() ? SEMI_INVISIBLE_OPACITY : 1.0);
         if (player.hasShield()) {
             drawShieldRing(gc, diff, centerX, centerY, radius);
         }
         drawSkin(gc, player.getSkin(), getCurrentPalette(diff), centerX, centerY, radius);
+        gc.restore();
     }
 
     public double getRenderCenterX(double tileSize) {

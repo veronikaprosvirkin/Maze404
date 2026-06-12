@@ -9,13 +9,12 @@ import events.GameEvent;
 public class Player {
     private static final int MAX_HEALTH = 3;
     private static final long ENEMY_DAMAGE_COOLDOWN_NANOS = 1_000_000_000L;
+    private static final long SEMI_INVISIBLE_IDLE_NANOS = 5_000_000_000L;
 
     //  Геттери (контракт)
     @Getter
-    @Setter
     private int row;
     @Getter
-    @Setter
     private int col;
     @Getter
     private int health = MAX_HEALTH;
@@ -36,6 +35,7 @@ public class Player {
     @Getter
     private boolean hasKey = false;
     private long lastEnemyDamageAtNanos = Long.MIN_VALUE;
+    private long lastPositionChangeAtNanos = System.nanoTime();
 
     public Player(int row, int col) {
         this.row = row;
@@ -45,6 +45,23 @@ public class Player {
     public boolean hasShield()       { return shieldActive; }
     public boolean hasKey() { return hasKey; }
     public void setHasKey(boolean hasKey) { this.hasKey = hasKey; }
+    public void setRow(int row) {
+        if (this.row != row) {
+            this.row = row;
+            lastPositionChangeAtNanos = System.nanoTime();
+        }
+    }
+
+    public void setCol(int col) {
+        if (this.col != col) {
+            this.col = col;
+            lastPositionChangeAtNanos = System.nanoTime();
+        }
+    }
+
+    public boolean isSemiInvisible() {
+        return isSemiInvisible(System.nanoTime());
+    }
 
     //adding artifacts
     public void addCrystals(int amount)    { crystals += amount; }
@@ -70,6 +87,13 @@ public class Player {
     }
 
     public void takeDamage(int amount) {
+        takeDamage(amount, System.nanoTime());
+    }
+
+    void takeDamage(int amount, long nowNanos) {
+        if (isSemiInvisible(nowNanos)) {
+            return;
+        }
         if (shieldActive) {
             // Щит поглинає 1 удар і ламається
             shieldActive = false;
@@ -87,14 +111,21 @@ public class Player {
     }
 
     boolean takeEnemyDamage(int amount, long nowNanos) {
+        if (isSemiInvisible(nowNanos)) {
+            return false;
+        }
         if (lastEnemyDamageAtNanos != Long.MIN_VALUE
                 && nowNanos - lastEnemyDamageAtNanos < ENEMY_DAMAGE_COOLDOWN_NANOS) {
             return false;
         }
 
         lastEnemyDamageAtNanos = nowNanos;
-        takeDamage(amount);
+        takeDamage(amount, nowNanos);
         return true;
+    }
+
+    boolean isSemiInvisible(long nowNanos) {
+        return nowNanos - lastPositionChangeAtNanos >= SEMI_INVISIBLE_IDLE_NANOS;
     }
 
     public void heal(int amount) {
