@@ -411,7 +411,6 @@ public class GameSession {
                         radarBlinkStartTimer.playFromStart();
                         radarMistRestoreTimer.stop();
                         radarMistRestoreTimer.playFromStart();
-                        levelIsland.showArtifactMessage(ArtifactType.RADAR, "Radar activated");
                         levelIsland.showTinyCountdown(RADAR_REVEAL_DURATION);
                     }
                 }
