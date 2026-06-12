@@ -171,6 +171,26 @@
     -fx-font-weight: 600;
 }
 
+.level-island {
+    -fx-min-height: 54px;
+}
+
+.level-island-action {
+    -fx-padding: 7 13 7 11;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(125, 228, 255, 0.20), rgba(101, 242, 160, 0.10));
+    -fx-background-radius: 18;
+    -fx-border-color: rgba(125, 228, 255, 0.50);
+    -fx-border-width: 1;
+    -fx-border-radius: 18;
+    -fx-effect: dropshadow(gaussian, rgba(125, 228, 255, 0.24), 18, 0.24, 0, 0);
+}
+
+.level-island-action-text {
+    -fx-text-fill: #F5FBFF;
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+}
+
 .stealth-hint {
     -fx-padding: 10 18 10 18;
     -fx-background-radius: 22;
