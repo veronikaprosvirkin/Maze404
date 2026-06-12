@@ -9,6 +9,7 @@ import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -24,6 +25,8 @@ public class LevelIsland {
     private static final String MESSAGE_BEACON_CLASS = "level-island-message-beacon";
     private static final String MESSAGE_ELIXIR_CLASS = "level-island-message-elixir";
     private static final String MESSAGE_KEY_CLASS = "level-island-message-key";
+    private static final String MESSAGE_MINI_GAME_CLASS = "level-island-message-mini-game";
+    private static final String MESSAGE_CHOICE_CLASS = "level-island-message-choice";
     private static final String MESSAGE_DEFAULT_CLASS = "level-island-message-default";
     private static final Duration ANIMATION_DURATION = Duration.millis(260);
     private static final Duration MESSAGE_DURATION = Duration.seconds(2.4);
@@ -32,6 +35,10 @@ public class LevelIsland {
     private static final double MESSAGE_BOX_HEIGHT = 34.0;
     private static final double MESSAGE_BOTTOM_PADDING = 8.0;
     private static final double MESSAGE_SLOT_HEIGHT = MESSAGE_BOX_HEIGHT + MESSAGE_BOTTOM_PADDING;
+    private static final double CHOICE_MESSAGE_BOX_HEIGHT = 58.0;
+    private static final double CHOICE_MESSAGE_SLOT_HEIGHT = CHOICE_MESSAGE_BOX_HEIGHT + MESSAGE_BOTTOM_PADDING;
+    private static final double ACTION_SLOT_HEIGHT = 42.0;
+    private static final double ACTION_START_OFFSET = -8.0;
     private static final double TINY_MESSAGE_SIZE = 42.0;
     private static final double TINY_MESSAGE_START_OFFSET = -18.0;
 
@@ -42,12 +49,18 @@ public class LevelIsland {
     private final HBox messageBox;
     private Node messageIcon;
     private final Label messageLabel;
+    private final StackPane actionSlot;
+    private final HBox actionBox;
+    private final Button secondaryActionButton;
+    private final Button primaryActionButton;
     private final StackPane tinyMessageCircle;
     private final Label tinyMessageLabel;
     private final PauseTransition hideTimer = new PauseTransition(MESSAGE_DURATION);
     private Timeline messageTransition;
+    private Timeline actionTransition;
     private Timeline tinyMessageTransition;
     private Timeline tinyCountdownTimeline;
+    private boolean choiceActive = false;
 
     public LevelIsland(String title) {
         this.title = title;
@@ -64,6 +77,7 @@ public class LevelIsland {
 
         messageLabel = new Label();
         messageLabel.getStyleClass().add("level-island-message-text");
+        messageLabel.setWrapText(true);
 
         messageIcon = ArtifactVisuals.createHudIcon(ArtifactType.SHIELD, 18);
         messageBox = new HBox(8, messageIcon, messageLabel);
@@ -95,7 +109,32 @@ public class LevelIsland {
         messageSlotClip.heightProperty().bind(messageSlot.heightProperty());
         messageSlot.setClip(messageSlotClip);
 
-        islandBase = new VBox(0, titleSlot, messageSlot);
+        secondaryActionButton = new Button();
+        secondaryActionButton.getStyleClass().addAll("level-island-action-button", "level-island-action-secondary");
+        secondaryActionButton.setFocusTraversable(false);
+
+        primaryActionButton = new Button();
+        primaryActionButton.getStyleClass().addAll("level-island-action-button", "level-island-action-primary");
+        primaryActionButton.setFocusTraversable(false);
+
+        actionBox = new HBox(10, secondaryActionButton, primaryActionButton);
+        actionBox.getStyleClass().add("level-island-actions");
+        actionBox.setAlignment(Pos.CENTER);
+        actionBox.setOpacity(0);
+        actionBox.setTranslateY(ACTION_START_OFFSET);
+
+        actionSlot = new StackPane(actionBox);
+        actionSlot.setAlignment(Pos.TOP_CENTER);
+        actionSlot.setVisible(false);
+        actionSlot.setManaged(false);
+        setActionSlotHeight(0);
+        actionSlot.setPickOnBounds(false);
+        Rectangle actionSlotClip = new Rectangle();
+        actionSlotClip.widthProperty().bind(actionSlot.widthProperty());
+        actionSlotClip.heightProperty().bind(actionSlot.heightProperty());
+        actionSlot.setClip(actionSlotClip);
+
+        islandBase = new VBox(0, titleSlot, messageSlot, actionSlot);
         islandBase.getStyleClass().addAll("game-hud", "level-island");
         islandBase.setAlignment(Pos.TOP_CENTER);
         islandBase.setPadding(new Insets(0, 18, 0, 18));
@@ -135,31 +174,86 @@ public class LevelIsland {
     }
 
     public void showArtifactMessage(ArtifactType artifactType, String message) {
+        if (choiceActive) {
+            return;
+        }
+        hideActions();
         setArtifactMessageStyle(artifactType);
         messageIcon = ArtifactVisuals.createHudIcon(artifactType, 18);
         messageBox.getChildren().set(0, messageIcon);
         messageIcon.setVisible(true);
         messageIcon.setManaged(true);
-        showMessage(message, true);
+        showMessage(message, true, MESSAGE_BOX_HEIGHT, MESSAGE_SLOT_HEIGHT);
     }
 
     public void showTextMessage(String message) {
+        if (choiceActive) {
+            return;
+        }
+        hideActions();
         setDefaultMessageStyle();
         messageIcon.setVisible(false);
         messageIcon.setManaged(false);
-        showMessage(message, true);
+        showMessage(message, true, MESSAGE_BOX_HEIGHT, MESSAGE_SLOT_HEIGHT);
     }
 
     public void showPersistentTextMessage(String message) {
+        if (choiceActive) {
+            return;
+        }
+        hideActions();
         setDefaultMessageStyle();
         messageIcon.setVisible(false);
         messageIcon.setManaged(false);
-        showMessage(message, false);
+        showMessage(message, false, MESSAGE_BOX_HEIGHT, MESSAGE_SLOT_HEIGHT);
     }
 
     public void hideTextMessage() {
+        if (choiceActive) {
+            return;
+        }
         hideTimer.stop();
+        hideActions();
         hideMessage();
+    }
+
+    public void hideChoiceMessage() {
+        if (!choiceActive) {
+            return;
+        }
+
+        closeChoiceMessage();
+    }
+
+    public void showChoiceMessage(
+            ArtifactType artifactType,
+            String message,
+            String secondaryText,
+            Runnable secondaryAction,
+            String primaryText,
+            Runnable primaryAction
+    ) {
+        choiceActive = true;
+        setArtifactMessageStyle(artifactType);
+        messageBox.getStyleClass().add(MESSAGE_CHOICE_CLASS);
+        messageIcon = ArtifactVisuals.createHudIcon(artifactType, 18);
+        messageBox.getChildren().set(0, messageIcon);
+        messageIcon.setVisible(true);
+        messageIcon.setManaged(true);
+
+        secondaryActionButton.setText(secondaryText);
+        secondaryActionButton.setOnAction(event -> {
+            closeChoiceMessage();
+            secondaryAction.run();
+        });
+        primaryActionButton.setText(primaryText);
+        primaryActionButton.setOnAction(event -> {
+            closeChoiceMessage();
+            primaryAction.run();
+        });
+
+        showMessage(message, false, CHOICE_MESSAGE_BOX_HEIGHT, CHOICE_MESSAGE_SLOT_HEIGHT);
+        showActions();
     }
 
     public void showTinyMessage(String message) {
@@ -220,15 +314,17 @@ public class LevelIsland {
     public void dispose() {
         hideTimer.stop();
         stopMessageTransition();
+        stopActionTransition();
         stopTinyCountdown();
         stopTinyMessageTransition();
     }
 
-    private void showMessage(String message, boolean autoHide) {
+    private void showMessage(String message, boolean autoHide, double messageBoxHeight, double messageSlotHeight) {
         hideTimer.stop();
         stopMessageTransition();
 
         messageLabel.setText(message);
+        setMessageBoxHeight(messageBoxHeight);
         messageSlot.setVisible(true);
         messageSlot.setManaged(true);
         messageBox.setVisible(true);
@@ -236,9 +332,9 @@ public class LevelIsland {
 
         messageTransition = new Timeline(
                 new KeyFrame(ANIMATION_DURATION,
-                        new KeyValue(messageSlot.minHeightProperty(), MESSAGE_SLOT_HEIGHT, Interpolator.EASE_BOTH),
-                        new KeyValue(messageSlot.prefHeightProperty(), MESSAGE_SLOT_HEIGHT, Interpolator.EASE_BOTH),
-                        new KeyValue(messageSlot.maxHeightProperty(), MESSAGE_SLOT_HEIGHT, Interpolator.EASE_BOTH),
+                        new KeyValue(messageSlot.minHeightProperty(), messageSlotHeight, Interpolator.EASE_BOTH),
+                        new KeyValue(messageSlot.prefHeightProperty(), messageSlotHeight, Interpolator.EASE_BOTH),
+                        new KeyValue(messageSlot.maxHeightProperty(), messageSlotHeight, Interpolator.EASE_BOTH),
                         new KeyValue(messageBox.opacityProperty(), 1.0, Interpolator.EASE_BOTH),
                         new KeyValue(messageBox.translateYProperty(), 0.0, Interpolator.EASE_BOTH))
         );
@@ -251,6 +347,32 @@ public class LevelIsland {
         messageTransition.playFromStart();
     }
 
+    private void showActions() {
+        stopActionTransition();
+
+        actionSlot.setVisible(true);
+        actionSlot.setManaged(true);
+
+        actionTransition = new Timeline(
+                new KeyFrame(ANIMATION_DURATION,
+                        new KeyValue(actionSlot.minHeightProperty(), ACTION_SLOT_HEIGHT, Interpolator.EASE_BOTH),
+                        new KeyValue(actionSlot.prefHeightProperty(), ACTION_SLOT_HEIGHT, Interpolator.EASE_BOTH),
+                        new KeyValue(actionSlot.maxHeightProperty(), ACTION_SLOT_HEIGHT, Interpolator.EASE_BOTH),
+                        new KeyValue(actionBox.opacityProperty(), 1.0, Interpolator.EASE_BOTH),
+                        new KeyValue(actionBox.translateYProperty(), 0.0, Interpolator.EASE_BOTH))
+        );
+        actionTransition.setOnFinished(event -> actionTransition = null);
+        actionTransition.playFromStart();
+    }
+
+    private void closeChoiceMessage() {
+        choiceActive = false;
+        messageBox.getStyleClass().remove(MESSAGE_CHOICE_CLASS);
+        hideTimer.stop();
+        hideActions();
+        hideMessage();
+    }
+
     private void setArtifactMessageStyle(ArtifactType artifactType) {
         clearMessageVariantStyles();
         messageBox.getStyleClass().add(switch (artifactType) {
@@ -259,6 +381,7 @@ public class LevelIsland {
             case BEACON -> MESSAGE_BEACON_CLASS;
             case ELIXIR -> MESSAGE_ELIXIR_CLASS;
             case KEY -> MESSAGE_KEY_CLASS;
+            case MINI_GAME -> MESSAGE_MINI_GAME_CLASS;
             default -> MESSAGE_DEFAULT_CLASS;
         });
     }
@@ -275,8 +398,32 @@ public class LevelIsland {
                 MESSAGE_BEACON_CLASS,
                 MESSAGE_ELIXIR_CLASS,
                 MESSAGE_KEY_CLASS,
+                MESSAGE_MINI_GAME_CLASS,
+                MESSAGE_CHOICE_CLASS,
                 MESSAGE_DEFAULT_CLASS
         );
+    }
+
+    private void hideActions() {
+        if (!actionSlot.isVisible() && !actionSlot.isManaged()) {
+            return;
+        }
+
+        stopActionTransition();
+        actionTransition = new Timeline(
+                new KeyFrame(ANIMATION_DURATION,
+                        new KeyValue(actionSlot.minHeightProperty(), 0.0, Interpolator.EASE_BOTH),
+                        new KeyValue(actionSlot.prefHeightProperty(), 0.0, Interpolator.EASE_BOTH),
+                        new KeyValue(actionSlot.maxHeightProperty(), 0.0, Interpolator.EASE_BOTH),
+                        new KeyValue(actionBox.opacityProperty(), 0.0, Interpolator.EASE_BOTH),
+                        new KeyValue(actionBox.translateYProperty(), ACTION_START_OFFSET, Interpolator.EASE_BOTH))
+        );
+        actionTransition.setOnFinished(event -> {
+            actionTransition = null;
+            actionSlot.setVisible(false);
+            actionSlot.setManaged(false);
+        });
+        actionTransition.playFromStart();
     }
 
     private void hideMessage() {
@@ -305,10 +452,29 @@ public class LevelIsland {
         messageSlot.setMaxHeight(height);
     }
 
+    private void setMessageBoxHeight(double height) {
+        messageBox.setMinHeight(height);
+        messageBox.setPrefHeight(height);
+        messageBox.setMaxHeight(height);
+    }
+
+    private void setActionSlotHeight(double height) {
+        actionSlot.setMinHeight(height);
+        actionSlot.setPrefHeight(height);
+        actionSlot.setMaxHeight(height);
+    }
+
     private void stopMessageTransition() {
         if (messageTransition != null) {
             messageTransition.stop();
             messageTransition = null;
+        }
+    }
+
+    private void stopActionTransition() {
+        if (actionTransition != null) {
+            actionTransition.stop();
+            actionTransition = null;
         }
     }
 

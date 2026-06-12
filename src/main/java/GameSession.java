@@ -3,6 +3,7 @@ import enums.Difficulty;
 import events.AudioManager;
 import events.EventBus;
 import events.GameEvent;
+import javafx.event.EventHandler;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -19,6 +20,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -88,7 +90,6 @@ public class GameSession {
         GameState gameState = level.gameState();
         PauseController pauseController = new PauseController(gameState);
         ArtifactSystem artifactSystem = new ArtifactSystem();
-        miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(gameState, player);
         RadarSystem radarSystem = new RadarSystem();
         ShieldSystem shieldSystem = new ShieldSystem();
         BeaconSystem beaconSystem = new BeaconSystem();
@@ -155,6 +156,13 @@ public class GameSession {
         LevelIsland levelIsland = new LevelIsland(getLevelTitle(Difficulty.current));
         StackPane.setAlignment(levelIsland.getView(), Pos.TOP_CENTER);
         StackPane.setMargin(levelIsland.getView(), new Insets(24, 0, 0, 0));
+        miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(gameState, player, levelIsland);
+        EventHandler<KeyEvent> miniGamePromptKeyHandler = event -> {
+            if (miniGameManager.handlePromptKey(event.getCode())) {
+                event.consume();
+            }
+        };
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, miniGamePromptKeyHandler);
 
         PauseTransition radarMistRestoreTimer = new PauseTransition(RADAR_REVEAL_DURATION);
         PauseTransition radarBlinkStartTimer = new PauseTransition(RADAR_WARNING_START_DELAY);
@@ -526,6 +534,7 @@ public class GameSession {
             stealthHintTimer.stop();
             levelIsland.dispose();
             miniGameManager.dispose();
+            scene.removeEventFilter(KeyEvent.KEY_PRESSED, miniGamePromptKeyHandler);
             EventBus.getInstance().unsubscribe(GameEvent.Type.EXIT_BLOCKED, exitBlockedListener);
             EventBus.getInstance().unsubscribe(GameEvent.Type.PLAYER_DAMAGED, playerDamagedListener);
             EventBus.getInstance().unsubscribe(GameEvent.Type.SHIELD_ACTIVATED, shieldActivatedListener);

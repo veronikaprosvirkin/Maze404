@@ -216,10 +216,48 @@
     -fx-effect: dropshadow(gaussian, rgba(255, 216, 160, 0.30), 18, 0.24, 0, 0);
 }
 
+.level-island-message-mini-game {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 115, 183, 0.26), rgba(255, 212, 234, 0.10));
+    -fx-border-color: rgba(255, 115, 183, 0.66);
+    -fx-effect: dropshadow(gaussian, rgba(255, 115, 183, 0.30), 18, 0.24, 0, 0);
+}
+
+.level-island-message-choice {
+    -fx-min-width: 330px;
+    -fx-pref-width: 330px;
+    -fx-padding: 9 16 9 14;
+}
+
 .level-island-message-text {
     -fx-text-fill: #FFF0F4;
     -fx-font-size: 13px;
     -fx-font-weight: 800;
+}
+
+.level-island-actions {
+    -fx-padding: 0 0 8 0;
+}
+
+.level-island-action-button {
+    -fx-min-height: 28px;
+    -fx-pref-height: 28px;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-padding: 0 14 0 14;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.level-island-action-primary {
+    -fx-text-fill: #FFF0F4;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255, 115, 183, 0.34), rgba(255, 212, 234, 0.12));
+    -fx-border-color: rgba(255, 115, 183, 0.72);
+}
+
+.level-island-action-secondary {
+    -fx-text-fill: rgba(255, 240, 244, 0.82);
+    -fx-background-color: rgba(255, 225, 232, 0.08);
+    -fx-border-color: rgba(212, 168, 176, 0.22);
 }
 
 .level-island-tiny {
