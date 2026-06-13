@@ -83,9 +83,6 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>${main.class}</mainClass>
-                    <options>
-                        <option>-XX:ErrorFile=logs/hs_err_pid%p.log</option>
-                    </options>
                 </configuration>
             </plugin>
 
