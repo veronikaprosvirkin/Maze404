@@ -140,10 +140,10 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${maven.surefire.plugin.version}</version>
 				<configuration>
+                    <argLine>-XX:ErrorFile=logs/hs_err_pid%p.log</argLine>
 					<useModulePath>false</useModulePath>
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 </project>
-
