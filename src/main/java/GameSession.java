@@ -3,6 +3,8 @@ import enums.Difficulty;
 import events.AudioManager;
 import events.EventBus;
 import events.GameEvent;
+import gameHistory.VictoryHistoryManager;
+import gameHistory.VictoryRecord;
 import javafx.event.EventHandler;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -505,6 +507,19 @@ public class GameSession {
                     endGroupLabel.setText(getCompletionTitle(Difficulty.current));
 
                     long totalSeconds = gameState.getTotalPlayTimeSeconds();
+
+                    java.util.Map<String, Integer> artifactsMap = new java.util.HashMap<>();
+                    artifactsMap.put("Crystals ◆", player.getCrystals());
+                    artifactsMap.put("Shields 🛡", player.getShieldCount());
+                    artifactsMap.put("Radars ⏱", player.getRadarCharges());
+                    artifactsMap.put("Beacons ⌖", player.getBeaconCount());
+                    artifactsMap.put("Elixirs 🧪", player.getElixirCount());
+
+                    String currentDate = java.time.LocalDate.now().toString();
+                    int currentLevelNum = (Difficulty.current == Difficulty.EASY) ? 1 : ((Difficulty.current == Difficulty.MEDIUM) ? 2 : 3);
+
+                    VictoryRecord newRecord = new VictoryRecord(currentLevelNum, totalSeconds, artifactsMap, currentDate);
+                    VictoryHistoryManager.saveRecord(newRecord);
                     long minutes = totalSeconds / 60;
                     long seconds = totalSeconds % 60;
                     String timeText = String.format("%02d:%02d", minutes, seconds);
