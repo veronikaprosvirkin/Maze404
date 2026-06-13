@@ -96,6 +96,7 @@ public class StartMenuView extends StackPane {
     private int currentSkinIndex = 0;
     private int currentLevelIndex = 0;
     private double backgroundBlend = 1.0;
+    private Consumer<Integer> onShowHistory = level -> { };
     private MenuPalette currentMenuPalette = DEFAULT_MENU_PALETTE;
     private MenuPalette transitionStartPalette = DEFAULT_MENU_PALETTE;
     private MenuPalette transitionTargetPalette = DEFAULT_MENU_PALETTE;
@@ -211,20 +212,24 @@ public class StartMenuView extends StackPane {
     };
 
     public StartMenuView(Runnable onPlay, Runnable onSettings, Runnable onExit) {
-        this(settings -> onPlay.run(), onExit, DEFAULT_MUSIC_VOLUME, value -> { }, DEFAULT_SOUND_EFFECTS_VOLUME, value -> { });
+        this(settings -> onPlay.run(), onExit, level -> {}, DEFAULT_MUSIC_VOLUME, value -> { }, DEFAULT_SOUND_EFFECTS_VOLUME, value -> { });
     }
 
     public StartMenuView(Consumer<MenuSettings> onPlay, Runnable onExit) {
-        this(onPlay, onExit, DEFAULT_MUSIC_VOLUME, value -> { }, DEFAULT_SOUND_EFFECTS_VOLUME, value -> { });
+        this(onPlay, onExit, level -> {}, DEFAULT_MUSIC_VOLUME, value -> { }, DEFAULT_SOUND_EFFECTS_VOLUME, value -> { });
     }
 
     public StartMenuView(
             Consumer<MenuSettings> onPlay,
             Runnable onExit,
+            Consumer<Integer> onShowHistory,
             double initialMusicVolume,
             DoubleConsumer onMusicVolumeChanged,
             double initialSoundEffectsVolume,
             DoubleConsumer onSoundEffectsVolumeChanged) {
+
+        this.onShowHistory = onShowHistory != null ? onShowHistory : level -> {}; // Зберігаємо логіку переходу
+
         this.musicVolume = clamp(initialMusicVolume, 0.0, 100.0);
         this.soundEffectsVolume = clamp(initialSoundEffectsVolume, 0.0, 100.0);
         this.onMusicVolumeChanged = onMusicVolumeChanged != null ? onMusicVolumeChanged : value -> { };
@@ -397,6 +402,12 @@ public class StartMenuView extends StackPane {
             onBack.run();
         });
 
+        Button historyButton = new Button("History ⏱");
+        historyButton.getStyleClass().addAll("settings-exit-button", "levels-back-button");
+        historyButton.setOnAction(event -> {
+            onShowHistory.accept(currentLevelIndex + 1);
+        });
+
         levelFrame.setFocusTraversable(true);
         levelFrame.setOnMouseClicked(event -> levelFrame.requestFocus());
         levelFrame.setOnKeyPressed(event -> {
@@ -418,7 +429,11 @@ public class StartMenuView extends StackPane {
 
         StackPane.setAlignment(backButton, Pos.TOP_LEFT);
         StackPane.setMargin(backButton, new Insets(0, 0, 0, 24));
-        levelFrame.getChildren().addAll(levelSwitcher, backButton);
+
+        StackPane.setAlignment(historyButton, Pos.TOP_RIGHT);
+        StackPane.setMargin(historyButton, new Insets(24, 24, 0, 0));
+
+        levelFrame.getChildren().addAll(levelSwitcher, backButton, historyButton);
         return levelFrame;
     }
 

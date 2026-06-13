@@ -1,4 +1,5 @@
 import events.AudioManager;
+import gameHistory.VictoryHistoryView;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -55,12 +56,25 @@ public class MainApp extends Application {
         StartMenuView startMenu = new StartMenuView(
                 settings -> new GameSession(root, scene, () -> showStartMenu(root, scene), audioManager).start(settings),
                 Platform::exit,
+                levelNum -> showVictoryHistory(root, scene, levelNum),
                 audioManager.getMusicVolume() * 100.0,
                 audioManager::setMusicVolume,
                 audioManager.getEffectsVolume() * 100.0,
                 audioManager::setEffectsVolume
         );
         root.getChildren().setAll(startMenu);
+        scene.getRoot().requestFocus();
+    }
+    // Оновлений метод
+    private void showVictoryHistory(StackPane root, Scene scene, int levelNumber) {
+        VictoryHistoryView[] historyViewRef = new VictoryHistoryView[1];
+        historyViewRef[0] = new VictoryHistoryView(levelNumber, () -> {
+
+            root.getChildren().remove(historyViewRef[0]);
+            scene.getRoot().requestFocus();
+        });
+
+        root.getChildren().add(historyViewRef[0]);
         scene.getRoot().requestFocus();
     }
 }
