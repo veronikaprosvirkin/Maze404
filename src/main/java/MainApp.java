@@ -60,6 +60,7 @@ public class MainApp extends Application {
         StartMenuView startMenu = new StartMenuView(
                 settings -> new GameSession(root, scene, () -> showStartMenu(root, scene), audioManager).start(settings),
                 this::shutdown,
+                levelNum -> showVictoryHistory(root, scene, levelNum),
                 audioManager.getMusicVolume() * 100.0,
                 audioManager::setMusicVolume,
                 audioManager.getEffectsVolume() * 100.0,
@@ -68,16 +69,17 @@ public class MainApp extends Application {
         root.getChildren().setAll(startMenu);
         scene.getRoot().requestFocus();
     }
+
     private void showVictoryHistory(StackPane root, Scene scene, int levelNumber) {
         VictoryHistoryView[] historyViewRef = new VictoryHistoryView[1];
         historyViewRef[0] = new VictoryHistoryView(levelNumber, () -> {
-
             root.getChildren().remove(historyViewRef[0]);
             scene.getRoot().requestFocus();
         });
 
         root.getChildren().add(historyViewRef[0]);
         scene.getRoot().requestFocus();
+    }
 
     @Override
     public void stop() {
