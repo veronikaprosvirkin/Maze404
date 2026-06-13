@@ -35,14 +35,14 @@ public class LevelIsland {
     private static final Duration MESSAGE_DURATION = Duration.seconds(2.4);
     private static final double TITLE_SLOT_HEIGHT = 54.0;
     private static final double MIN_ISLAND_HEADER_WIDTH = 180.0;
-    private static final double ISLAND_MESSAGE_WIDTH = 300.0;
+    private static final double ISLAND_MESSAGE_WIDTH = 350.0;
     private static final double ISLAND_CHOICE_WIDTH = 430.0;
     private static final double ISLAND_HORIZONTAL_PADDING = 36.0;
     private static final double TITLE_HORIZONTAL_PADDING = 28.0;
     private static final Font TITLE_MEASURE_FONT = Font.font("System", FontWeight.SEMI_BOLD, 16.0);
     private static final double MESSAGE_START_OFFSET = -8.0;
     private static final double MESSAGE_BOX_HEIGHT = 42.0;
-    private static final double MESSAGE_BOTTOM_PADDING = 8.0;
+    private static final double MESSAGE_BOTTOM_PADDING = 15.0;
     private static final double MESSAGE_SLOT_HEIGHT = MESSAGE_BOX_HEIGHT + MESSAGE_BOTTOM_PADDING;
     private static final double CHOICE_MESSAGE_BOX_HEIGHT = 72.0;
     private static final double CHOICE_MESSAGE_SLOT_HEIGHT = CHOICE_MESSAGE_BOX_HEIGHT + MESSAGE_BOTTOM_PADDING;
