@@ -96,6 +96,15 @@ public class VictoryHistoryView extends StackPane {
             Label timeLabel = new Label("⏱ " + timeStr);
             timeLabel.getStyleClass().add("hud-card-value");
 
+            int hp = r.getHealth();
+            String stars;
+            if (hp >= 3 || hp <= 0) stars = "★★★";
+            else if (hp == 2) stars = "★★☆";
+            else stars = "★☆☆";
+
+            Label starsLabel = new Label(stars);
+            starsLabel.setStyle("-fx-text-fill: #FFD700; -fx-font-size: 16px; -fx-letter-spacing: 2px;"); // Золотий колір
+
             Label dateLabel = new Label("Date: " + r.getDate());
             dateLabel.getStyleClass().add("hud-card-title");
 
@@ -109,7 +118,10 @@ public class VictoryHistoryView extends StackPane {
             artLabel.getStyleClass().add("victory-subtitle");
             artLabel.setStyle("-fx-font-size: 13px;");
 
-            VBox leftBox = new VBox(4, dateLabel, artLabel);
+            HBox dateAndStars = new HBox(12, dateLabel, starsLabel);
+            dateAndStars.setAlignment(Pos.CENTER_LEFT);
+
+            VBox leftBox = new VBox(6, dateAndStars, artLabel);
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
 

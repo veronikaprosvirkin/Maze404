@@ -517,8 +517,9 @@ public class GameSession {
 
                     String currentDate = java.time.LocalDate.now().toString();
                     int currentLevelNum = (Difficulty.current == Difficulty.EASY) ? 1 : ((Difficulty.current == Difficulty.MEDIUM) ? 2 : 3);
+                    int finalHealth = player.getHealth();
 
-                    VictoryRecord newRecord = new VictoryRecord(currentLevelNum, totalSeconds, artifactsMap, currentDate);
+                    VictoryRecord newRecord = new VictoryRecord(currentLevelNum, totalSeconds, artifactsMap, currentDate, finalHealth);
                     VictoryHistoryManager.saveRecord(newRecord);
                     long minutes = totalSeconds / 60;
                     long seconds = totalSeconds % 60;
