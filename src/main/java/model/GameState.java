@@ -21,6 +21,8 @@ public class GameState {
     private boolean levelComplete = false;
     private boolean paused = false;
 
+    private long totalPlayTimeSeconds = 0;
+
     public GameState(Grid grid, Player player,
                      List<Enemy> enemies, List<Artifact> artifacts,
                      int level) {
@@ -49,8 +51,14 @@ public class GameState {
     public boolean isPaused() { return paused; }
     public void setPaused(boolean paused) { this.paused = paused; }
 
-    /*public Difficulty getDifficulty() {
-        this.
-    }*/
+    public long getTotalPlayTimeSeconds() {
+        return totalPlayTimeSeconds;
+    }
+
+    public void incrementPlayTime(){
+        this.totalPlayTimeSeconds++;
+    }
+
+
 }
 
