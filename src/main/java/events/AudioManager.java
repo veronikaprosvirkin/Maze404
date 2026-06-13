@@ -104,6 +104,10 @@ public class AudioManager {
         return effectsVolume;
     }
 
+    public void shutdown() {
+        stopBackground();
+    }
+
     private void applyBackgroundVolume() {
         if (backgroundPlayer != null) {
             backgroundPlayer.setVolume(musicVolume * BACKGROUND_VOLUME_SCALE);

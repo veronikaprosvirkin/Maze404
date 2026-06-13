@@ -18,6 +18,8 @@ public class MainApp extends Application {
     private static final double MIN_WINDOW_HEIGHT = 680;
     private static final CountDownLatch START_LATCH = new CountDownLatch(1);
     private final AudioManager audioManager = new AudioManager(true);
+    private Stage primaryStage;
+    private boolean shuttingDown;
 
     @SuppressWarnings("unused")
     public static void waitForStart() {
@@ -30,6 +32,7 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
         GameWindows.setPrimaryStage(primaryStage);
         audioManager.setMusicVolume(0.75);
         audioManager.setEffectsVolume(0.75);
@@ -43,6 +46,7 @@ public class MainApp extends Application {
         primaryStage.setResizable(true);
         primaryStage.setMinWidth(MIN_WINDOW_WIDTH);
         primaryStage.setMinHeight(MIN_WINDOW_HEIGHT);
+        primaryStage.setOnCloseRequest(event -> shutdown());
         primaryStage.toFront();
         primaryStage.show();
         primaryStage.requestFocus();
@@ -54,7 +58,7 @@ public class MainApp extends Application {
         audioManager.playMenuMusic();
         StartMenuView startMenu = new StartMenuView(
                 settings -> new GameSession(root, scene, () -> showStartMenu(root, scene), audioManager).start(settings),
-                Platform::exit,
+                this::shutdown,
                 audioManager.getMusicVolume() * 100.0,
                 audioManager::setMusicVolume,
                 audioManager.getEffectsVolume() * 100.0,
@@ -62,5 +66,28 @@ public class MainApp extends Application {
         );
         root.getChildren().setAll(startMenu);
         scene.getRoot().requestFocus();
+    }
+
+    @Override
+    public void stop() {
+        shutdownResources();
+    }
+
+    private void shutdown() {
+        if (shuttingDown) {
+            return;
+        }
+
+        shuttingDown = true;
+        GameWindows.beginShutdown();
+        shutdownResources();
+        if (primaryStage != null) {
+            primaryStage.hide();
+        }
+        Platform.exit();
+    }
+
+    private void shutdownResources() {
+        audioManager.shutdown();
     }
 }
