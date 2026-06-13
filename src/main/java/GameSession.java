@@ -111,6 +111,22 @@ public class GameSession {
         Label elixirsValueLabel = createHudValueLabel();
         Label keyValueLabel = createHudValueLabel();
 
+        //---TIMER---
+        Label timeValueLabel = createHudValueLabel();
+        timeValueLabel.setText("00:00");
+
+        Label clockIcon = new Label("⏱");
+        clockIcon.getStyleClass().addAll("hud-card-icon");
+
+        VBox timerCard = createHudCard("Time", clockIcon, timeValueLabel, "health"); // Використовуємо стиль "health" для красивого кольору
+        timerCard.getStyleClass().add("game-hud");
+        timerCard.setPickOnBounds(false);
+        timerCard.setMouseTransparent(true);
+        timerCard.setMaxWidth(Region.USE_PREF_SIZE);
+
+        StackPane.setAlignment(timerCard, Pos.TOP_RIGHT);
+        StackPane.setMargin(timerCard, new Insets(24, 24, 0, 0));
+
         updateHudValues(
                 player,
                 hpValueLabel,
@@ -487,6 +503,15 @@ public class GameSession {
                     defeatCrossLabel.setVisible(false);
                     defeatCrossLabel.setManaged(false);
                     endGroupLabel.setText(getCompletionTitle(Difficulty.current));
+
+                    long totalSeconds = gameState.getTotalPlayTimeSeconds();
+                    long minutes = totalSeconds / 60;
+                    long seconds = totalSeconds % 60;
+                    String timeText = String.format("%02d:%02d", minutes, seconds);
+
+                    String originalSubtitle = getCompletionSubtitle(Difficulty.current);
+                    endSubtitleLabel.setText(originalSubtitle + "\nClear Time: " + timeText);
+
                     endSubtitleLabel.setText(getCompletionSubtitle(Difficulty.current));
                     retryLevelBtn.setManaged(false);
                     retryLevelBtn.setVisible(false);
@@ -505,6 +530,17 @@ public class GameSession {
         inputHandler.attachTo(scene);
 
         Timeline enemyTimer = enemyTurnScheduler.createTimer(gameState, grid, player);
+
+        Timeline gameStopwatch = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+
+            if (!gameState.isPaused() && !gameState.isGameOver() && !gameState.isLevelComplete()) {
+                gameState.incrementPlayTime();
+                timeValueLabel.setText(formatTime(gameState.getTotalPlayTimeSeconds()));
+            }
+        }));
+        gameStopwatch.setCycleCount(Timeline.INDEFINITE);
+        gameStopwatch.play();
+
         enemyTimer.play();
 
         Runnable showDefeatOverlay = () -> {
@@ -565,6 +601,7 @@ public class GameSession {
 
         exitButton.setOnAction(event -> {
             closeSession.run();
+            gameStopwatch.stop();
             exitToMenu.run();
         });
         retryLevelBtn.setOnAction(event -> {
@@ -573,10 +610,12 @@ public class GameSession {
         });
         returnToMenuBtn.setOnAction(event -> {
             closeSession.run();
+            gameStopwatch.stop();
             exitToMenu.run();
         });
 
-        root.getChildren().setAll(gamePanel, levelIsland.getView(), pauseButtonWrapper, bottomHudStack, pauseOverlay, winLoseOverlay);
+        root.getChildren().setAll(gamePanel, levelIsland.getView(), pauseButtonWrapper, bottomHudStack, pauseOverlay,
+                winLoseOverlay, timerCard);
         scene.getRoot().requestFocus();
     }
 
@@ -911,4 +950,9 @@ public class GameSession {
         return String.format(Locale.US, "%.0f%%", value);
     }
 
+    private static String formatTime(long totalSeconds) {
+        long minutes = totalSeconds / 60;
+        long seconds = totalSeconds % 60;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
 }
