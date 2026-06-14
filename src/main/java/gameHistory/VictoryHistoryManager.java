@@ -39,7 +39,8 @@ public class VictoryHistoryManager {
         if (!file.exists()) return new ArrayList<>();
 
         try (Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
-            return gson.fromJson(reader, new TypeToken<List<VictoryRecord>>(){}.getType());
+            List<VictoryRecord> records = gson.fromJson(reader, new TypeToken<List<VictoryRecord>>(){}.getType());
+            return records != null ? records : new ArrayList<>();
         } catch (IOException e) {
             System.err.println("[HistoryManager] Failed to load records: " + e.getMessage());
             return new ArrayList<>();

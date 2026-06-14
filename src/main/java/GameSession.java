@@ -527,8 +527,6 @@ public class GameSession {
 
                     String originalSubtitle = getCompletionSubtitle(Difficulty.current);
                     endSubtitleLabel.setText(originalSubtitle + "\nClear Time: " + timeText);
-
-                    endSubtitleLabel.setText(getCompletionSubtitle(Difficulty.current));
                     retryLevelBtn.setManaged(false);
                     retryLevelBtn.setVisible(false);
                     returnToMenuBtn.setText("Exit");
