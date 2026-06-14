@@ -36,3 +36,5 @@ Thumbs.db
 project_plan/
 
 *.md
+
+src/main/resources/history/
