@@ -14,8 +14,6 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -23,7 +21,6 @@ import javafx.scene.control.Slider;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -45,13 +42,11 @@ import model.Grid;
 import model.Player;
 import ui.input.GameAction;
 import ui.input.InputHandler;
-import ui.render.ArtifactVisuals;
+import ui.render.GameHud;
 import ui.render.GamePanel;
 import ui.render.LevelIsland;
 import ui.render.StartMenuView;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 
@@ -61,25 +56,7 @@ public class GameSession {
     private static final Duration RADAR_REVEAL_DURATION = Duration.seconds(10);
     private static final Duration RADAR_WARNING_START_DELAY = Duration.seconds(7);
     private static final Duration RADAR_BLINK_INTERVAL = Duration.seconds(0.35);
-    private static final Duration HUD_DAMAGE_HIGHLIGHT_DURATION = Duration.seconds(1);
-    private static final Duration HUD_AUTO_MINIMIZE_DELAY = Duration.seconds(3);
-    private static final Duration HUD_MINIMIZE_ANIMATION_DURATION = Duration.millis(380);
-    private static final Duration HUD_HOTKEY_REVEAL_DELAY = Duration.seconds(0.8);
-    private static final Duration HUD_HOTKEY_REVEAL_DURATION = Duration.millis(180);
     private static final Duration STEALTH_HINT_UPDATE_INTERVAL = Duration.millis(100);
-    private static final double HUD_CARD_EXPANDED_MIN_WIDTH = 96;
-    private static final double HUD_MINIMIZED_HEALTH_CARD_MIN_WIDTH = 90;
-    private static final double HUD_MINIMIZED_SCALE = 0.76;
-    private static final double HUD_ANIMATION_CLIP_PADDING = 64;
-    private static final double HUD_MINIMIZED_WIDTH_RATIO = 0.76;
-    private static final double HUD_MINIMIZED_EASY_MIN_WIDTH = 470;
-    private static final double HUD_MINIMIZED_EASY_MAX_WIDTH = 560;
-    private static final double HUD_MINIMIZED_FULL_MIN_WIDTH = 600;
-    private static final double HUD_MINIMIZED_FULL_MAX_WIDTH = 700;
-    private static final String HUD_MINIMIZED_STATE_KEY = "hudMinimized";
-    private static final String HUD_HOTKEY_REVEAL_TIMER_KEY = "hudHotkeyRevealTimer";
-    private static final String HUD_HOTKEY_REVEAL_ANIMATION_KEY = "hudHotkeyRevealAnimation";
-    private static final String HUD_ARTIFACT_HOTKEY_CLASS = "hud-artifact-hotkey-badge";
 
     private final StackPane root;
     private final Scene scene;
@@ -126,55 +103,7 @@ public class GameSession {
         gamePanel.setMistDensity(mistDensity);
         gamePanel.setGameVolume(settings.soundEffectsVolume());
 
-        Label hpValueLabel = createHudValueLabel();
-        Label crystalsValueLabel = createHudValueLabel();
-        Label radarValueLabel = createHudValueLabel();
-        Label shieldValueLabel = createHudValueLabel();
-        Label beaconValueLabel = createHudValueLabel();
-        Label elixirsValueLabel = createHudValueLabel();
-        Label keyValueLabel = createHudValueLabel();
-
-        updateHudValues(
-                player,
-                hpValueLabel,
-                crystalsValueLabel,
-                radarValueLabel,
-                shieldValueLabel,
-                beaconValueLabel,
-                elixirsValueLabel,
-                keyValueLabel
-        );
-
-        HBox healthHud = new HBox();
-        healthHud.getStyleClass().add("game-hud");
-        healthHud.setPickOnBounds(false);
-        healthHud.setMouseTransparent(true);
-        healthHud.setMaxWidth(Region.USE_PREF_SIZE);
-        healthHud.setMaxHeight(Region.USE_PREF_SIZE);
-        healthHud.setPrefHeight(Region.USE_COMPUTED_SIZE);
-        healthHud.setPadding(new Insets(14, 18, 14, 18));
-        healthHud.setSpacing(10);
-        VBox healthCard = createHudCard("Health", createHealthIcon(), hpValueLabel, "health");
-        healthHud.getChildren().addAll(
-                healthCard,
-                createHudCard("Crystals", ArtifactVisuals.createHudIcon(ArtifactType.CRYSTAL, 24), crystalsValueLabel, "crystals")
-        );
-
-        HBox inventoryHud = new HBox(10);
-        inventoryHud.getStyleClass().add("game-hud");
-        inventoryHud.setPickOnBounds(false);
-        inventoryHud.setMouseTransparent(false);
-        inventoryHud.setMaxWidth(Region.USE_PREF_SIZE);
-        inventoryHud.setMaxHeight(Region.USE_PREF_SIZE);
-        inventoryHud.setPrefHeight(Region.USE_COMPUTED_SIZE);
-        inventoryHud.setPadding(new Insets(14, 18, 14, 18));
-
-        VBox radarCard = createHudCard("Radar", ArtifactVisuals.createHudIcon(ArtifactType.RADAR, 24), radarValueLabel, "radar", "1");
-        VBox shieldCard = createHudCard("Shield", ArtifactVisuals.createHudIcon(ArtifactType.SHIELD, 24), shieldValueLabel, "shield", "2");
-        VBox beaconCard = createHudCard("Beacon", ArtifactVisuals.createHudIcon(ArtifactType.BEACON, 24), beaconValueLabel, "beacon", "3");
-        VBox elixirCard = createHudCard("Elixir", ArtifactVisuals.createHudIcon(ArtifactType.ELIXIR, 24), elixirsValueLabel, "elixir", "4");
-        inventoryHud.getChildren().addAll(radarCard, shieldCard, beaconCard, elixirCard);
-        updateShieldHudState(shieldCard, player);
+        GameHud gameHud = new GameHud(scene, Difficulty.current, player);
 
         LevelIsland levelIsland = new LevelIsland(getLevelTitle(Difficulty.current));
         levelIsland.setTimerText("00:00");
@@ -196,12 +125,10 @@ public class GameSession {
 
         PauseTransition radarMistRestoreTimer = new PauseTransition(RADAR_REVEAL_DURATION);
         PauseTransition radarBlinkStartTimer = new PauseTransition(RADAR_WARNING_START_DELAY);
-        Timeline radarBlinkTimeline = new Timeline(
-                new KeyFrame(RADAR_BLINK_INTERVAL, event -> toggleHudCardState(radarCard, "hud-card-warning"))
-        );
+        Timeline radarBlinkTimeline = new Timeline(new KeyFrame(RADAR_BLINK_INTERVAL, event -> gameHud.toggleRadarWarning()));
         radarBlinkTimeline.setCycleCount(Timeline.INDEFINITE);
         radarBlinkStartTimer.setOnFinished(event -> {
-            setHudCardState(radarCard, "hud-card-warning", true);
+            gameHud.setRadarWarning(true);
             radarBlinkTimeline.playFromStart();
         });
         radarMistRestoreTimer.setOnFinished(event -> {
@@ -209,45 +136,15 @@ public class GameSession {
             gamePanel.setRadarActive(false);
             radarBlinkStartTimer.stop();
             radarBlinkTimeline.stop();
-            setHudCardState(radarCard, "hud-card-active", false);
-            setHudCardState(radarCard, "hud-card-warning", false);
+            gameHud.setRadarActive(false);
+            gameHud.setRadarWarning(false);
             levelIsland.hideTinyMessage();
         });
 
-        PauseTransition healthDamageHighlightTimer = new PauseTransition(HUD_DAMAGE_HIGHLIGHT_DURATION);
-        healthDamageHighlightTimer.setOnFinished(event -> setHudCardState(healthCard, "hud-card-active", false));
-        int[] lastRenderedHealth = {player.getHealth()};
         boolean[] stealthHintVisible = {false};
-
-        HBox hudRow = new HBox(12, healthHud, inventoryHud);
-        if (Difficulty.current != Difficulty.EASY) {
-            HBox keyHud = new HBox();
-            keyHud.getStyleClass().add("game-hud");
-            keyHud.setPickOnBounds(false);
-            keyHud.setMouseTransparent(true);
-            keyHud.setMaxWidth(Region.USE_PREF_SIZE);
-            keyHud.setMaxHeight(Region.USE_PREF_SIZE);
-            keyHud.setPrefHeight(Region.USE_COMPUTED_SIZE);
-            keyHud.setPadding(new Insets(14, 18, 14, 18));
-            keyHud.getChildren().add(createHudCard("Key", ArtifactVisuals.createHudIcon(ArtifactType.KEY, 24), keyValueLabel, "key"));
-            hudRow.getChildren().add(keyHud);
-        }
-
-        hudRow.setPickOnBounds(false);
-        hudRow.setMouseTransparent(false);
-        hudRow.setAlignment(Pos.CENTER);
-        hudRow.setMaxWidth(Region.USE_PREF_SIZE);
-        hudRow.setMaxHeight(Region.USE_PREF_SIZE);
-
-        VBox bottomHudStack = new VBox(hudRow);
-        bottomHudStack.setPickOnBounds(false);
-        bottomHudStack.setMouseTransparent(false);
-        bottomHudStack.setAlignment(Pos.BOTTOM_CENTER);
-        bottomHudStack.setMaxWidth(Region.USE_PREF_SIZE);
-        bottomHudStack.setMaxHeight(Region.USE_PREF_SIZE);
+        VBox bottomHudStack = gameHud.getView();
         StackPane.setAlignment(bottomHudStack, Pos.BOTTOM_CENTER);
         StackPane.setMargin(bottomHudStack, new Insets(0, 0, 24, 0));
-        installBottomHudAutoMinimize(scene, bottomHudStack, hudRow);
 
         StackPane winLoseOverlay = new StackPane();
         winLoseOverlay.getStyleClass().add("victory-overlay");
@@ -369,40 +266,14 @@ public class GameSession {
 
         Consumer<GameEvent> playerDamagedListener = event -> {
             Platform.runLater(() -> {
-                syncHudValues(
-                        player,
-                        hpValueLabel,
-                        crystalsValueLabel,
-                        radarValueLabel,
-                        shieldValueLabel,
-                        beaconValueLabel,
-                        elixirsValueLabel,
-                        keyValueLabel,
-                        levelIsland,
-                        healthCard,
-                        healthDamageHighlightTimer,
-                        lastRenderedHealth
-                );
+                gameHud.sync(player, levelIsland);
             });
         };
         EventBus.getInstance().subscribe(GameEvent.Type.PLAYER_DAMAGED, playerDamagedListener);
 
         Consumer<GameEvent> artifactCollectedListener = event -> Platform.runLater(() -> {
-            syncHudValues(
-                    player,
-                    hpValueLabel,
-                    crystalsValueLabel,
-                    radarValueLabel,
-                    shieldValueLabel,
-                    beaconValueLabel,
-                    elixirsValueLabel,
-                    keyValueLabel,
-                    levelIsland,
-                    healthCard,
-                    healthDamageHighlightTimer,
-                    lastRenderedHealth
-            );
-            updateShieldHudState(shieldCard, player);
+            gameHud.sync(player, levelIsland);
+            gameHud.refreshShield(player);
             gamePanel.redraw(grid, player, enemies);
         });
         EventBus.getInstance().subscribe(GameEvent.Type.ARTIFACT_COLLECTED, artifactCollectedListener);
@@ -446,8 +317,8 @@ public class GameSession {
                         gamePanel.setRadarActive(true);
                         radarBlinkStartTimer.stop();
                         radarBlinkTimeline.stop();
-                        setHudCardState(radarCard, "hud-card-active", true);
-                        setHudCardState(radarCard, "hud-card-warning", false);
+                        gameHud.setRadarActive(true);
+                        gameHud.setRadarWarning(false);
                         radarBlinkStartTimer.playFromStart();
                         radarMistRestoreTimer.stop();
                         radarMistRestoreTimer.playFromStart();
@@ -471,21 +342,8 @@ public class GameSession {
             artifactSystem.processArtifacts(gameState);
 
             Platform.runLater(() -> {
-                syncHudValues(
-                        player,
-                        hpValueLabel,
-                        crystalsValueLabel,
-                        radarValueLabel,
-                        shieldValueLabel,
-                        beaconValueLabel,
-                        elixirsValueLabel,
-                        keyValueLabel,
-                        levelIsland,
-                        healthCard,
-                        healthDamageHighlightTimer,
-                        lastRenderedHealth
-                );
-                updateShieldHudState(shieldCard, player);
+                gameHud.sync(player, levelIsland);
+                gameHud.refreshShield(player);
 
                 if (gameState.isGameOver() || player.getHealth() <= 0) {
                     if (showDefeatOverlayRef[0] != null) {
@@ -532,10 +390,7 @@ public class GameSession {
             });
         };
 
-        attachArtifactHudAction(radarCard, GameAction.RADAR, actionHandler, scene);
-        attachArtifactHudAction(shieldCard, GameAction.SHIELD, actionHandler, scene);
-        attachArtifactHudAction(beaconCard, GameAction.BEACON, actionHandler, scene);
-        attachArtifactHudAction(elixirCard, GameAction.ELIXIR, actionHandler, scene);
+        gameHud.attachArtifactActions(actionHandler);
 
         InputHandler inputHandler = new InputHandler(actionHandler);
         inputHandler.attachTo(scene);
@@ -599,6 +454,7 @@ public class GameSession {
             enemyTimer.stop();
             stealthHintTimer.stop();
             gamePanel.dispose();
+            gameHud.dispose();
             levelIsland.dispose();
             miniGameManager.dispose();
             scene.removeEventFilter(KeyEvent.KEY_PRESSED, miniGamePromptKeyHandler);
@@ -736,129 +592,6 @@ public class GameSession {
         return icon;
     }
 
-    private static VBox createHudCard(String title, Node iconNode, Label valueLabel, String accentStyleClass) {
-        Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("hud-card-title");
-        Label hotkeyPlaceholder = new Label();
-        hotkeyPlaceholder.getStyleClass().add("hud-hotkey-badge");
-        hotkeyPlaceholder.setOpacity(0);
-        return createHudCard(titleLabel, hotkeyPlaceholder, iconNode, valueLabel, accentStyleClass);
-    }
-
-    private static VBox createHudCard(String title, Node iconNode, Label valueLabel, String accentStyleClass, String hotkey) {
-        Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("hud-card-title");
-
-        Label hotkeyLabel = new Label(hotkey);
-        hotkeyLabel.getStyleClass().addAll("hud-hotkey-badge", HUD_ARTIFACT_HOTKEY_CLASS);
-        hotkeyLabel.setOpacity(0.0);
-
-        return createHudCard(titleLabel, hotkeyLabel, iconNode, valueLabel, accentStyleClass);
-    }
-
-    private static VBox createHudCard(
-            Label titleLabel,
-            Label hotkeyLabel,
-            Node iconNode,
-            Label valueLabel,
-            String accentStyleClass
-    ) {
-        titleLabel.setMaxWidth(Double.MAX_VALUE);
-
-        StackPane titleRow = new StackPane(titleLabel, hotkeyLabel);
-        titleRow.getStyleClass().add("hud-card-title-row");
-        StackPane.setAlignment(titleLabel, Pos.CENTER_LEFT);
-        StackPane.setAlignment(hotkeyLabel, Pos.CENTER_RIGHT);
-        titleRow.setMaxWidth(Double.MAX_VALUE);
-
-        iconNode.getStyleClass().add("hud-card-icon");
-
-        HBox valueRow = new HBox(8, iconNode, valueLabel);
-        valueRow.getStyleClass().add("hud-card-value-row");
-        valueRow.setAlignment(Pos.CENTER_LEFT);
-
-        VBox card = new VBox(5, titleRow, valueRow);
-        card.getStyleClass().addAll("hud-card", "hud-" + accentStyleClass);
-        card.setAlignment(Pos.CENTER_LEFT);
-        card.setPadding(new Insets(8, 12, 8, 12));
-        card.setMinWidth(HUD_CARD_EXPANDED_MIN_WIDTH);
-        card.setMaxHeight(Region.USE_PREF_SIZE);
-        return card;
-    }
-
-    private static Label createHudValueLabel() {
-        Label valueLabel = new Label();
-        valueLabel.getStyleClass().add("hud-card-value");
-        valueLabel.setMinWidth(Region.USE_PREF_SIZE);
-        return valueLabel;
-    }
-
-    private static Label createHealthIcon() {
-        Label iconLabel = new Label("❤");
-        iconLabel.getStyleClass().addAll("hud-card-icon", "hud-icon-health");
-        return iconLabel;
-    }
-
-    private static void updateHudValues(
-            Player player,
-            Label hpValueLabel,
-            Label crystalsValueLabel,
-            Label radarValueLabel,
-            Label shieldValueLabel,
-            Label beaconValueLabel,
-            Label elixirsValueLabel,
-            Label keyValueLabel
-    ) {
-        hpValueLabel.setText(player.getHealth() + " / " + PLAYER_MAX_HEALTH);
-        crystalsValueLabel.setText(String.valueOf(player.getCrystals()));
-        radarValueLabel.setText(String.valueOf(player.getRadarCharges()));
-        shieldValueLabel.setText(String.valueOf(player.getShieldCount()));
-        beaconValueLabel.setText(String.valueOf(player.getBeaconCount()));
-        elixirsValueLabel.setText(String.valueOf(player.getElixirCount()));
-        keyValueLabel.setText(player.hasKey() ? "Found" : "Empty");
-    }
-
-    private static void syncHudValues(
-            Player player,
-            Label hpValueLabel,
-            Label crystalsValueLabel,
-            Label radarValueLabel,
-            Label shieldValueLabel,
-            Label beaconValueLabel,
-            Label elixirsValueLabel,
-            Label keyValueLabel,
-            LevelIsland levelIsland,
-            VBox healthCard,
-            PauseTransition healthDamageHighlightTimer,
-            int[] lastRenderedHealth
-    ) {
-        int currentHealth = player.getHealth();
-        int previousHealth = lastRenderedHealth[0];
-        boolean healthChanged = currentHealth != previousHealth;
-        boolean damageTaken = currentHealth < previousHealth;
-        lastRenderedHealth[0] = currentHealth;
-
-        updateHudValues(
-                player,
-                hpValueLabel,
-                crystalsValueLabel,
-                radarValueLabel,
-                shieldValueLabel,
-                beaconValueLabel,
-                elixirsValueLabel,
-                keyValueLabel
-        );
-
-        if (healthChanged) {
-            setHudCardState(healthCard, "hud-card-active", true);
-            healthDamageHighlightTimer.stop();
-            healthDamageHighlightTimer.playFromStart();
-            if (damageTaken) {
-                levelIsland.playDamagePulse();
-            }
-        }
-    }
-
     private static void useElixir(Player player) {
         if (player.getElixirCount() <= 0 || player.getHealth() >= PLAYER_MAX_HEALTH) {
             return;
@@ -866,11 +599,6 @@ public class GameSession {
 
         player.useElixir();
         player.heal(1);
-    }
-
-    private static void updateShieldHudState(VBox shieldCard, Player player) {
-        boolean active = player.hasShield();
-        setHudCardState(shieldCard, "hud-card-active", active);
     }
 
     private static void updateStealthHint(LevelIsland levelIsland, boolean stealthActive, boolean[] stealthHintVisible) {
@@ -885,465 +613,6 @@ public class GameSession {
         }
 
         levelIsland.hideTextMessage();
-    }
-
-    private static void toggleHudCardState(VBox card, String styleClass) {
-        setHudCardState(card, styleClass, !card.getStyleClass().contains(styleClass));
-    }
-
-    private static void installBottomHudAutoMinimize(Scene scene, VBox bottomHudStack, HBox hudRow) {
-        PauseTransition autoMinimizeTimer = new PauseTransition(HUD_AUTO_MINIMIZE_DELAY);
-        boolean[] canMinimize = {false};
-        boolean[] tabExpanding = {false};
-
-        scheduleBottomHudHotkeyReveal(bottomHudStack, hudRow);
-
-        autoMinimizeTimer.setOnFinished(event -> {
-            canMinimize[0] = true;
-            if (!tabExpanding[0]) {
-                setBottomHudMinimized(bottomHudStack, hudRow, true);
-            }
-        });
-
-        bottomHudStack.setOnMouseEntered(event -> {
-            if (canMinimize[0]) {
-                setBottomHudMinimized(bottomHudStack, hudRow, false);
-            }
-        });
-
-        bottomHudStack.setOnMouseExited(event -> {
-            if (canMinimize[0]) {
-                setBottomHudMinimized(bottomHudStack, hudRow, true);
-            }
-        });
-
-        scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.getCode() != KeyCode.TAB) {
-                return;
-            }
-
-            tabExpanding[0] = true;
-            if (canMinimize[0]) {
-                setBottomHudMinimized(bottomHudStack, hudRow, false);
-            }
-            event.consume();
-        });
-
-        scene.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
-            if (event.getCode() != KeyCode.TAB) {
-                return;
-            }
-
-            tabExpanding[0] = false;
-            if (canMinimize[0]) {
-                setBottomHudMinimized(bottomHudStack, hudRow, true);
-            }
-            event.consume();
-        });
-
-        autoMinimizeTimer.playFromStart();
-    }
-
-    private static void setBottomHudMinimized(VBox bottomHudStack, HBox hudRow, boolean minimized) {
-        Object runningAnimation = bottomHudStack.getProperties().get("hudMinimizeAnimation");
-        if (runningAnimation instanceof Timeline timeline) {
-            timeline.stop();
-        }
-        hideBottomHudArtifactHotkeys(bottomHudStack, hudRow);
-        bottomHudStack.setClip(null);
-
-        setHudCardState(hudRow, "hud-row-minimized", false);
-
-        boolean startMinimized = Boolean.TRUE.equals(bottomHudStack.getProperties().get(HUD_MINIMIZED_STATE_KEY));
-        HudSize startSize = measureCurrentBottomHudSize(bottomHudStack);
-        HudSize expandedSize = measureBottomHudSizeForState(bottomHudStack, hudRow, false, startMinimized);
-        HudSize minimizedSize = measureBottomHudSizeForState(bottomHudStack, hudRow, true, startMinimized);
-        HudSize targetSize = minimized
-                ? new HudSize(getManualBottomHudMinimizedWidth(expandedSize.width(), hudRow), minimizedSize.height())
-                : expandedSize;
-
-        setBottomHudFixedSize(bottomHudStack, startSize.width(), startSize.height());
-        List<HudTitleRowAnimation> titleRowAnimations = prepareBottomHudTitleRowAnimations(hudRow, minimized);
-        prepareBottomHudCompactLayout(hudRow, minimized);
-        bottomHudStack.setClip(createBottomHudAnimationClip(bottomHudStack));
-
-        Interpolator hudInterpolator = Interpolator.SPLINE(0.22, 0.0, 0.16, 1.0);
-        double targetScale = minimized ? HUD_MINIMIZED_SCALE : 1.0;
-        List<KeyValue> startValues = new ArrayList<>();
-        startValues.add(new KeyValue(bottomHudStack.minWidthProperty(), startSize.width(), hudInterpolator));
-        startValues.add(new KeyValue(bottomHudStack.prefWidthProperty(), startSize.width(), hudInterpolator));
-        startValues.add(new KeyValue(bottomHudStack.maxWidthProperty(), startSize.width(), hudInterpolator));
-        startValues.add(new KeyValue(bottomHudStack.minHeightProperty(), startSize.height(), hudInterpolator));
-        startValues.add(new KeyValue(bottomHudStack.prefHeightProperty(), startSize.height(), hudInterpolator));
-        startValues.add(new KeyValue(bottomHudStack.maxHeightProperty(), startSize.height(), hudInterpolator));
-        startValues.add(new KeyValue(bottomHudStack.scaleXProperty(), bottomHudStack.getScaleX(), hudInterpolator));
-        startValues.add(new KeyValue(bottomHudStack.scaleYProperty(), bottomHudStack.getScaleY(), hudInterpolator));
-        startValues.add(new KeyValue(bottomHudStack.opacityProperty(), bottomHudStack.getOpacity(), hudInterpolator));
-        startValues.add(new KeyValue(bottomHudStack.translateYProperty(), bottomHudStack.getTranslateY(), hudInterpolator));
-
-        List<KeyValue> targetValues = new ArrayList<>();
-        targetValues.add(new KeyValue(bottomHudStack.minWidthProperty(), targetSize.width(), hudInterpolator));
-        targetValues.add(new KeyValue(bottomHudStack.prefWidthProperty(), targetSize.width(), hudInterpolator));
-        targetValues.add(new KeyValue(bottomHudStack.maxWidthProperty(), targetSize.width(), hudInterpolator));
-        targetValues.add(new KeyValue(bottomHudStack.minHeightProperty(), targetSize.height(), hudInterpolator));
-        targetValues.add(new KeyValue(bottomHudStack.prefHeightProperty(), targetSize.height(), hudInterpolator));
-        targetValues.add(new KeyValue(bottomHudStack.maxHeightProperty(), targetSize.height(), hudInterpolator));
-        targetValues.add(new KeyValue(bottomHudStack.scaleXProperty(), targetScale, hudInterpolator));
-        targetValues.add(new KeyValue(bottomHudStack.scaleYProperty(), targetScale, hudInterpolator));
-        targetValues.add(new KeyValue(bottomHudStack.opacityProperty(), minimized ? 0.94 : 1.0, hudInterpolator));
-        targetValues.add(new KeyValue(bottomHudStack.translateYProperty(), minimized ? 10.0 : 0.0, hudInterpolator));
-
-        for (HudTitleRowAnimation titleRowAnimation : titleRowAnimations) {
-            Region titleRow = titleRowAnimation.titleRow();
-            startValues.add(new KeyValue(titleRow.minWidthProperty(), titleRowAnimation.startWidth(), hudInterpolator));
-            startValues.add(new KeyValue(titleRow.prefWidthProperty(), titleRowAnimation.startWidth(), hudInterpolator));
-            startValues.add(new KeyValue(titleRow.maxWidthProperty(), titleRowAnimation.startWidth(), hudInterpolator));
-            startValues.add(new KeyValue(titleRow.minHeightProperty(), titleRowAnimation.startHeight(), hudInterpolator));
-            startValues.add(new KeyValue(titleRow.prefHeightProperty(), titleRowAnimation.startHeight(), hudInterpolator));
-            startValues.add(new KeyValue(titleRow.maxHeightProperty(), titleRowAnimation.startHeight(), hudInterpolator));
-            startValues.add(new KeyValue(titleRow.opacityProperty(), titleRowAnimation.startOpacity(), hudInterpolator));
-            targetValues.add(new KeyValue(titleRow.minWidthProperty(), titleRowAnimation.targetWidth(), hudInterpolator));
-            targetValues.add(new KeyValue(titleRow.prefWidthProperty(), titleRowAnimation.targetWidth(), hudInterpolator));
-            targetValues.add(new KeyValue(titleRow.maxWidthProperty(), titleRowAnimation.targetWidth(), hudInterpolator));
-            targetValues.add(new KeyValue(titleRow.minHeightProperty(), titleRowAnimation.targetHeight(), hudInterpolator));
-            targetValues.add(new KeyValue(titleRow.prefHeightProperty(), titleRowAnimation.targetHeight(), hudInterpolator));
-            targetValues.add(new KeyValue(titleRow.maxHeightProperty(), titleRowAnimation.targetHeight(), hudInterpolator));
-            targetValues.add(new KeyValue(titleRow.opacityProperty(), titleRowAnimation.targetOpacity(), hudInterpolator));
-        }
-
-        Timeline animation = new Timeline(
-                new KeyFrame(
-                        Duration.ZERO,
-                        startValues.toArray(new KeyValue[0])
-                ),
-                new KeyFrame(
-                        HUD_MINIMIZE_ANIMATION_DURATION,
-                        targetValues.toArray(new KeyValue[0])
-                )
-        );
-        bottomHudStack.getProperties().put("hudMinimizeAnimation", animation);
-        animation.setOnFinished(event -> {
-            if (bottomHudStack.getProperties().get("hudMinimizeAnimation") == animation) {
-                applyBottomHudMinimizedState(hudRow, minimized);
-                bottomHudStack.getProperties().put(HUD_MINIMIZED_STATE_KEY, minimized);
-                if (minimized) {
-                    setBottomHudFixedSize(bottomHudStack, targetSize.width(), targetSize.height());
-                } else {
-                    bottomHudStack.setMinWidth(Region.USE_COMPUTED_SIZE);
-                    bottomHudStack.setPrefWidth(Region.USE_COMPUTED_SIZE);
-                    bottomHudStack.setMaxWidth(Region.USE_PREF_SIZE);
-                    bottomHudStack.setMinHeight(Region.USE_COMPUTED_SIZE);
-                    bottomHudStack.setPrefHeight(Region.USE_COMPUTED_SIZE);
-                    bottomHudStack.setMaxHeight(Region.USE_PREF_SIZE);
-                    scheduleBottomHudHotkeyReveal(bottomHudStack, hudRow);
-                }
-                bottomHudStack.setClip(null);
-            }
-        });
-        animation.play();
-    }
-
-    private static double getManualBottomHudMinimizedWidth(double expandedWidth, HBox hudRow) {
-        boolean hasKeyHud = hudRow.getChildren().size() > 2;
-        double minWidth = hasKeyHud ? HUD_MINIMIZED_FULL_MIN_WIDTH : HUD_MINIMIZED_EASY_MIN_WIDTH;
-        double maxWidth = hasKeyHud ? HUD_MINIMIZED_FULL_MAX_WIDTH : HUD_MINIMIZED_EASY_MAX_WIDTH;
-        return Math.ceil(Math.max(minWidth, Math.min(maxWidth, expandedWidth * HUD_MINIMIZED_WIDTH_RATIO)));
-    }
-
-    private static Rectangle createBottomHudAnimationClip(VBox bottomHudStack) {
-        Rectangle clip = new Rectangle();
-        clip.setX(-HUD_ANIMATION_CLIP_PADDING);
-        clip.setY(-HUD_ANIMATION_CLIP_PADDING);
-        clip.widthProperty().bind(bottomHudStack.widthProperty().add(HUD_ANIMATION_CLIP_PADDING * 2));
-        clip.heightProperty().bind(bottomHudStack.heightProperty().add(HUD_ANIMATION_CLIP_PADDING * 2));
-        return clip;
-    }
-
-    private static HudSize measureCurrentBottomHudSize(VBox bottomHudStack) {
-        HudSize measuredSize = measureBottomHudSize(bottomHudStack);
-        double width = bottomHudStack.getWidth() > 0 ? bottomHudStack.getWidth() : measuredSize.width();
-        double height = bottomHudStack.getHeight() > 0 ? bottomHudStack.getHeight() : measuredSize.height();
-        return new HudSize(Math.ceil(width), Math.ceil(height));
-    }
-
-    private static HudSize measureBottomHudSizeForState(
-            VBox bottomHudStack,
-            HBox hudRow,
-            boolean minimized,
-            boolean restoreMinimized
-    ) {
-        applyBottomHudMinimizedState(hudRow, minimized);
-        HudSize size = measureBottomHudSize(bottomHudStack);
-        applyBottomHudMinimizedState(hudRow, restoreMinimized);
-        bottomHudStack.applyCss();
-        return size;
-    }
-
-    private static HudSize measureBottomHudSize(VBox bottomHudStack) {
-        bottomHudStack.setMinWidth(Region.USE_COMPUTED_SIZE);
-        bottomHudStack.setPrefWidth(Region.USE_COMPUTED_SIZE);
-        bottomHudStack.setMaxWidth(Region.USE_PREF_SIZE);
-        bottomHudStack.setMinHeight(Region.USE_COMPUTED_SIZE);
-        bottomHudStack.setPrefHeight(Region.USE_COMPUTED_SIZE);
-        bottomHudStack.setMaxHeight(Region.USE_PREF_SIZE);
-        bottomHudStack.applyCss();
-        return new HudSize(Math.ceil(bottomHudStack.prefWidth(-1)), Math.ceil(bottomHudStack.prefHeight(-1)));
-    }
-
-    private static void setBottomHudFixedSize(VBox bottomHudStack, double width, double height) {
-        bottomHudStack.setMinWidth(width);
-        bottomHudStack.setPrefWidth(width);
-        bottomHudStack.setMaxWidth(width);
-        bottomHudStack.setMinHeight(height);
-        bottomHudStack.setPrefHeight(height);
-        bottomHudStack.setMaxHeight(height);
-    }
-
-    private record HudSize(double width, double height) {
-    }
-
-    private static List<HudTitleRowAnimation> prepareBottomHudTitleRowAnimations(HBox hudRow, boolean minimized) {
-        List<HudTitleRowAnimation> animations = new ArrayList<>();
-        for (Region titleRow : findBottomHudTitleRows(hudRow)) {
-            double expandedHeight = measureExpandedTitleRowHeight(titleRow);
-            double expandedWidth = measureExpandedTitleRowWidth(titleRow);
-            double currentHeight = titleRow.isManaged() && titleRow.getHeight() > 0
-                    ? titleRow.getHeight()
-                    : 0.0;
-            double currentWidth = titleRow.isManaged() && titleRow.getWidth() > 0
-                    ? titleRow.getWidth()
-                    : 0.0;
-            double startHeight = Math.ceil(currentHeight);
-            double startWidth = Math.ceil(currentWidth);
-            double targetHeight = minimized ? 0.0 : expandedHeight;
-            double targetWidth = minimized ? 0.0 : expandedWidth;
-            double startOpacity = titleRow.getOpacity();
-            double targetOpacity = minimized ? 0.0 : 1.0;
-
-            titleRow.setManaged(true);
-            setFixedTitleRowSize(titleRow, startWidth, startHeight);
-            titleRow.setOpacity(startOpacity);
-            animations.add(new HudTitleRowAnimation(
-                    titleRow,
-                    startWidth,
-                    targetWidth,
-                    startHeight,
-                    targetHeight,
-                    startOpacity,
-                    targetOpacity
-            ));
-        }
-        return animations;
-    }
-
-    private static double measureExpandedTitleRowHeight(Region titleRow) {
-        double minHeight = titleRow.getMinHeight();
-        double prefHeight = titleRow.getPrefHeight();
-        double maxHeight = titleRow.getMaxHeight();
-        titleRow.setMinHeight(Region.USE_COMPUTED_SIZE);
-        titleRow.setPrefHeight(Region.USE_COMPUTED_SIZE);
-        titleRow.setMaxHeight(Region.USE_COMPUTED_SIZE);
-        titleRow.applyCss();
-        double measuredHeight = Math.ceil(titleRow.prefHeight(-1));
-        titleRow.setMinHeight(minHeight);
-        titleRow.setPrefHeight(prefHeight);
-        titleRow.setMaxHeight(maxHeight);
-        return measuredHeight;
-    }
-
-    private static double measureExpandedTitleRowWidth(Region titleRow) {
-        double minWidth = titleRow.getMinWidth();
-        double prefWidth = titleRow.getPrefWidth();
-        double maxWidth = titleRow.getMaxWidth();
-        titleRow.setMinWidth(Region.USE_COMPUTED_SIZE);
-        titleRow.setPrefWidth(Region.USE_COMPUTED_SIZE);
-        titleRow.setMaxWidth(Region.USE_COMPUTED_SIZE);
-        titleRow.applyCss();
-        double measuredWidth = Math.ceil(titleRow.prefWidth(-1));
-        titleRow.setMinWidth(minWidth);
-        titleRow.setPrefWidth(prefWidth);
-        titleRow.setMaxWidth(maxWidth);
-        return measuredWidth;
-    }
-
-    private static void setFixedTitleRowSize(Region titleRow, double width, double height) {
-        titleRow.setMinWidth(width);
-        titleRow.setPrefWidth(width);
-        titleRow.setMaxWidth(width);
-        titleRow.setMinHeight(height);
-        titleRow.setPrefHeight(height);
-        titleRow.setMaxHeight(height);
-    }
-
-    private static List<Region> findBottomHudTitleRows(Node node) {
-        List<Region> titleRows = new ArrayList<>();
-        collectBottomHudTitleRows(node, titleRows);
-        return titleRows;
-    }
-
-    private static void collectBottomHudTitleRows(Node node, List<Region> titleRows) {
-        if (node instanceof Region region && node.getStyleClass().contains("hud-card-title-row")) {
-            titleRows.add(region);
-        }
-
-        if (node instanceof Parent parent) {
-            for (Node child : parent.getChildrenUnmodifiable()) {
-                collectBottomHudTitleRows(child, titleRows);
-            }
-        }
-    }
-
-    private static void scheduleBottomHudHotkeyReveal(VBox bottomHudStack, HBox hudRow) {
-        stopBottomHudHotkeyReveal(bottomHudStack);
-        setBottomHudArtifactHotkeyOpacity(hudRow, 0.0);
-
-        PauseTransition revealDelay = new PauseTransition(HUD_HOTKEY_REVEAL_DELAY);
-        revealDelay.setOnFinished(event -> {
-            Timeline revealAnimation = new Timeline(
-                    new KeyFrame(
-                            HUD_HOTKEY_REVEAL_DURATION,
-                            getBottomHudArtifactHotkeys(hudRow).stream()
-                                    .map(hotkey -> new KeyValue(hotkey.opacityProperty(), 1.0, Interpolator.EASE_BOTH))
-                                    .toArray(KeyValue[]::new)
-                    )
-            );
-            bottomHudStack.getProperties().put(HUD_HOTKEY_REVEAL_ANIMATION_KEY, revealAnimation);
-            revealAnimation.setOnFinished(done -> {
-                if (bottomHudStack.getProperties().get(HUD_HOTKEY_REVEAL_ANIMATION_KEY) == revealAnimation) {
-                    bottomHudStack.getProperties().remove(HUD_HOTKEY_REVEAL_ANIMATION_KEY);
-                }
-            });
-            revealAnimation.playFromStart();
-        });
-        bottomHudStack.getProperties().put(HUD_HOTKEY_REVEAL_TIMER_KEY, revealDelay);
-        revealDelay.playFromStart();
-    }
-
-    private static void hideBottomHudArtifactHotkeys(VBox bottomHudStack, HBox hudRow) {
-        stopBottomHudHotkeyReveal(bottomHudStack);
-        setBottomHudArtifactHotkeyOpacity(hudRow, 0.0);
-    }
-
-    private static void stopBottomHudHotkeyReveal(VBox bottomHudStack) {
-        Object revealDelay = bottomHudStack.getProperties().remove(HUD_HOTKEY_REVEAL_TIMER_KEY);
-        if (revealDelay instanceof PauseTransition pauseTransition) {
-            pauseTransition.stop();
-        }
-
-        Object revealAnimation = bottomHudStack.getProperties().remove(HUD_HOTKEY_REVEAL_ANIMATION_KEY);
-        if (revealAnimation instanceof Timeline timeline) {
-            timeline.stop();
-        }
-    }
-
-    private static void setBottomHudArtifactHotkeyOpacity(HBox hudRow, double opacity) {
-        for (Label hotkey : getBottomHudArtifactHotkeys(hudRow)) {
-            hotkey.setOpacity(opacity);
-        }
-    }
-
-    private static List<Label> getBottomHudArtifactHotkeys(Node node) {
-        List<Label> hotkeys = new ArrayList<>();
-        collectBottomHudArtifactHotkeys(node, hotkeys);
-        return hotkeys;
-    }
-
-    private static void collectBottomHudArtifactHotkeys(Node node, List<Label> hotkeys) {
-        if (node instanceof Label label && label.getStyleClass().contains(HUD_ARTIFACT_HOTKEY_CLASS)) {
-            hotkeys.add(label);
-        }
-
-        if (node instanceof Parent parent) {
-            for (Node child : parent.getChildrenUnmodifiable()) {
-                collectBottomHudArtifactHotkeys(child, hotkeys);
-            }
-        }
-    }
-
-    private record HudTitleRowAnimation(
-            Region titleRow,
-            double startWidth,
-            double targetWidth,
-            double startHeight,
-            double targetHeight,
-            double startOpacity,
-            double targetOpacity
-    ) {
-    }
-
-    private static void applyBottomHudMinimizedState(HBox hudRow, boolean minimized) {
-        applyBottomHudStyleState(hudRow, minimized);
-        applyBottomHudTitleRowState(hudRow, minimized);
-    }
-
-    private static void applyBottomHudStyleState(HBox hudRow, boolean minimized) {
-        prepareBottomHudCompactLayout(hudRow, minimized);
-        setHudCardState(hudRow, "hud-row-minimized", false);
-    }
-
-    private static void applyBottomHudTitleRowState(HBox hudRow, boolean minimized) {
-        for (Region titleRow : findBottomHudTitleRows(hudRow)) {
-            titleRow.setManaged(true);
-            titleRow.setOpacity(minimized ? 0.0 : 1.0);
-            if (minimized) {
-                setFixedTitleRowSize(titleRow, 0.0, 0.0);
-            } else {
-                titleRow.setMinWidth(Region.USE_COMPUTED_SIZE);
-                titleRow.setPrefWidth(Region.USE_COMPUTED_SIZE);
-                titleRow.setMaxWidth(Region.USE_COMPUTED_SIZE);
-                titleRow.setMinHeight(Region.USE_COMPUTED_SIZE);
-                titleRow.setPrefHeight(Region.USE_COMPUTED_SIZE);
-                titleRow.setMaxHeight(Region.USE_COMPUTED_SIZE);
-            }
-        }
-    }
-
-    private static void prepareBottomHudCompactLayout(Node node, boolean minimized) {
-        if (node instanceof Region region && region.getStyleClass().contains("hud-card")) {
-            if (minimized && region.getStyleClass().contains("hud-health")) {
-                region.setMinWidth(HUD_MINIMIZED_HEALTH_CARD_MIN_WIDTH);
-            } else {
-                region.setMinWidth(minimized ? Region.USE_COMPUTED_SIZE : HUD_CARD_EXPANDED_MIN_WIDTH);
-            }
-        }
-
-        if (node instanceof Parent parent) {
-            for (Node child : parent.getChildrenUnmodifiable()) {
-                prepareBottomHudCompactLayout(child, minimized);
-            }
-        }
-    }
-
-    private static void setHudCardState(VBox card, String styleClass, boolean active) {
-        if (active) {
-            if (!card.getStyleClass().contains(styleClass)) {
-                card.getStyleClass().add(styleClass);
-            }
-            return;
-        }
-        card.getStyleClass().remove(styleClass);
-    }
-
-    private static void setHudCardState(HBox card, String styleClass, boolean active) {
-        if (active) {
-            if (!card.getStyleClass().contains(styleClass)) {
-                card.getStyleClass().add(styleClass);
-            }
-            return;
-        }
-        card.getStyleClass().remove(styleClass);
-    }
-
-    private static void attachArtifactHudAction(
-            VBox card,
-            GameAction action,
-            java.util.function.Consumer<GameAction> actionHandler,
-            Scene scene
-    ) {
-        card.setOnMouseClicked(event -> {
-            actionHandler.accept(action);
-            scene.getRoot().requestFocus();
-        });
     }
 
     private String getGameStylesheet() {
