@@ -11,10 +11,12 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -51,7 +53,7 @@ public class LevelIsland {
     private static final double CHOICE_MESSAGE_SLOT_HEIGHT = CHOICE_MESSAGE_BOX_HEIGHT + MESSAGE_BOTTOM_PADDING;
     private static final double ACTION_SLOT_HEIGHT = 50.0;
     private static final double ACTION_START_OFFSET = -8.0;
-    private static final double TINY_MESSAGE_SIZE = 42.0;
+    private static final double TINY_MESSAGE_SIZE = TITLE_SLOT_HEIGHT;
     private static final double TINY_MESSAGE_START_OFFSET = -18.0;
 
     private final String title;
@@ -79,6 +81,7 @@ public class LevelIsland {
     private Timeline actionTransition;
     private Timeline tinyMessageTransition;
     private Timeline tinyCountdownTimeline;
+    private Timeline damagePulseTransition;
     private final double headerWidth;
     private boolean choiceActive = false;
 
@@ -220,7 +223,7 @@ public class LevelIsland {
         tinyMessageCircle.setMaxSize(TINY_MESSAGE_SIZE, TINY_MESSAGE_SIZE);
 
         view = new HBox(TIMER_GAP, timerCapsule, islandBase, tinyMessageCircle);
-        view.setAlignment(Pos.CENTER);
+        view.setAlignment(Pos.TOP_CENTER);
         view.setFillHeight(false);
         view.setPickOnBounds(false);
         view.setMaxWidth(Region.USE_PREF_SIZE);
@@ -387,6 +390,38 @@ public class LevelIsland {
         tinyMessageTransition.playFromStart();
     }
 
+    public void playDamagePulse() {
+        stopDamagePulseTransition();
+
+        DropShadow damageShadow = new DropShadow();
+        damageShadow.setColor(Color.rgb(255, 86, 86, 0.0));
+        damageShadow.setRadius(18);
+        damageShadow.setSpread(0.08);
+        damageShadow.setOffsetX(0);
+        damageShadow.setOffsetY(0);
+        islandBase.setEffect(damageShadow);
+
+        damagePulseTransition = new Timeline(
+                new KeyFrame(Duration.ZERO,
+                        new KeyValue(damageShadow.radiusProperty(), 18, Interpolator.EASE_BOTH),
+                        new KeyValue(damageShadow.spreadProperty(), 0.08, Interpolator.EASE_BOTH),
+                        new KeyValue(damageShadow.colorProperty(), Color.rgb(255, 86, 86, 0.0), Interpolator.EASE_BOTH)),
+                new KeyFrame(Duration.millis(220),
+                        new KeyValue(damageShadow.radiusProperty(), 38, Interpolator.EASE_BOTH),
+                        new KeyValue(damageShadow.spreadProperty(), 0.26, Interpolator.EASE_BOTH),
+                        new KeyValue(damageShadow.colorProperty(), Color.rgb(255, 86, 86, 0.58), Interpolator.EASE_BOTH)),
+                new KeyFrame(Duration.millis(620),
+                        new KeyValue(damageShadow.radiusProperty(), 22, Interpolator.EASE_BOTH),
+                        new KeyValue(damageShadow.spreadProperty(), 0.10, Interpolator.EASE_BOTH),
+                        new KeyValue(damageShadow.colorProperty(), Color.rgb(255, 86, 86, 0.0), Interpolator.EASE_BOTH))
+        );
+        damagePulseTransition.setOnFinished(event -> {
+            damagePulseTransition = null;
+            islandBase.setEffect(null);
+        });
+        damagePulseTransition.playFromStart();
+    }
+
     public void dispose() {
         hideTimer.stop();
         stopWidthTransition();
@@ -394,6 +429,7 @@ public class LevelIsland {
         stopActionTransition();
         stopTinyCountdown();
         stopTinyMessageTransition();
+        stopDamagePulseTransition();
     }
 
     private void showMessage(
@@ -654,5 +690,13 @@ public class LevelIsland {
             tinyCountdownTimeline.stop();
             tinyCountdownTimeline = null;
         }
+    }
+
+    private void stopDamagePulseTransition() {
+        if (damagePulseTransition != null) {
+            damagePulseTransition.stop();
+            damagePulseTransition = null;
+        }
+        islandBase.setEffect(null);
     }
 }

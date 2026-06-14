@@ -369,6 +369,7 @@ public class GameSession {
                         beaconValueLabel,
                         elixirsValueLabel,
                         keyValueLabel,
+                        levelIsland,
                         healthCard,
                         healthDamageHighlightTimer,
                         lastRenderedHealth
@@ -387,6 +388,7 @@ public class GameSession {
                     beaconValueLabel,
                     elixirsValueLabel,
                     keyValueLabel,
+                    levelIsland,
                     healthCard,
                     healthDamageHighlightTimer,
                     lastRenderedHealth
@@ -469,6 +471,7 @@ public class GameSession {
                         beaconValueLabel,
                         elixirsValueLabel,
                         keyValueLabel,
+                        levelIsland,
                         healthCard,
                         healthDamageHighlightTimer,
                         lastRenderedHealth
@@ -811,12 +814,15 @@ public class GameSession {
             Label beaconValueLabel,
             Label elixirsValueLabel,
             Label keyValueLabel,
+            LevelIsland levelIsland,
             VBox healthCard,
             PauseTransition healthDamageHighlightTimer,
             int[] lastRenderedHealth
     ) {
         int currentHealth = player.getHealth();
-        boolean healthChanged = currentHealth != lastRenderedHealth[0];
+        int previousHealth = lastRenderedHealth[0];
+        boolean healthChanged = currentHealth != previousHealth;
+        boolean damageTaken = currentHealth < previousHealth;
         lastRenderedHealth[0] = currentHealth;
 
         updateHudValues(
@@ -834,6 +840,9 @@ public class GameSession {
             setHudCardState(healthCard, "hud-card-active", true);
             healthDamageHighlightTimer.stop();
             healthDamageHighlightTimer.playFromStart();
+            if (damageTaken) {
+                levelIsland.playDamagePulse();
+            }
         }
     }
 
