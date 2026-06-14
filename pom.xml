@@ -144,6 +144,34 @@
 					<useModulePath>false</useModulePath>
 				</configuration>
 			</plugin>
+            <plugin>
+                <groupId>org.panteleyev</groupId>
+                <artifactId>jpackage-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <configuration>
+                    <name>Maze404</name>
+                    <appVersion>1.0.0</appVersion>
+                    <vendor>Veronika Prosvirkin, Mykhailo Pulov</vendor>
+
+                    <destination>${project.build.directory}/dist</destination>
+
+                    <input>${project.build.directory}</input>
+                    <mainJar>${project.build.finalName}.jar</mainJar>
+                    <mainClass>${main.class}</mainClass>
+
+                    <type>APP_IMAGE</type>
+
+                    <winConsole>false</winConsole>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>jpackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 		</plugins>
 	</build>
 </project>
