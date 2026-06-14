@@ -60,9 +60,12 @@ public class GameSession {
     private static final Duration RADAR_BLINK_INTERVAL = Duration.seconds(0.35);
     private static final Duration HUD_DAMAGE_HIGHLIGHT_DURATION = Duration.seconds(1);
     private static final Duration HUD_AUTO_MINIMIZE_DELAY = Duration.seconds(3);
-    private static final Duration HUD_MINIMIZE_ANIMATION_DURATION = Duration.millis(220);
+    private static final Duration HUD_MINIMIZE_ANIMATION_DURATION = Duration.millis(380);
+    private static final Duration HUD_STATE_SWITCH_DELAY = Duration.millis(110);
     private static final Duration STEALTH_HINT_UPDATE_INTERVAL = Duration.millis(100);
     private static final double HUD_CARD_EXPANDED_MIN_WIDTH = 96;
+    private static final double HUD_MINIMIZED_SCALE = 0.76;
+    private static final double HUD_ANIMATION_CLIP_PADDING = 64;
 
     private final StackPane root;
     private final Scene scene;
@@ -901,48 +904,117 @@ public class GameSession {
         if (runningAnimation instanceof Timeline timeline) {
             timeline.stop();
         }
+        bottomHudStack.setClip(null);
 
-        double startWidth = bottomHudStack.getWidth() > 0
-                ? bottomHudStack.getWidth()
-                : measureBottomHudWidth(bottomHudStack);
+        boolean startMinimized = hudRow.getStyleClass().contains("hud-row-minimized");
+        HudSize startSize = measureCurrentBottomHudSize(bottomHudStack);
+        HudSize targetSize = measureBottomHudSizeForState(bottomHudStack, hudRow, minimized, startMinimized);
 
-        prepareBottomHudCompactLayout(hudRow, minimized);
-        setHudCardState(hudRow, "hud-row-minimized", minimized);
-        double targetWidth = measureBottomHudWidth(bottomHudStack);
+        setBottomHudFixedSize(bottomHudStack, startSize.width(), startSize.height());
+        bottomHudStack.setClip(createBottomHudAnimationClip(bottomHudStack));
 
-        bottomHudStack.setMinWidth(startWidth);
-        bottomHudStack.setPrefWidth(startWidth);
-        bottomHudStack.setMaxWidth(startWidth);
-
-        Interpolator smoothInterpolator = Interpolator.SPLINE(0.22, 0.0, 0.18, 1.0);
+        Interpolator hudInterpolator = Interpolator.SPLINE(0.22, 0.0, 0.16, 1.0);
+        double targetScale = minimized ? HUD_MINIMIZED_SCALE : 1.0;
         Timeline animation = new Timeline(
                 new KeyFrame(
+                        Duration.ZERO,
+                        new KeyValue(bottomHudStack.minWidthProperty(), startSize.width(), hudInterpolator),
+                        new KeyValue(bottomHudStack.prefWidthProperty(), startSize.width(), hudInterpolator),
+                        new KeyValue(bottomHudStack.maxWidthProperty(), startSize.width(), hudInterpolator),
+                        new KeyValue(bottomHudStack.minHeightProperty(), startSize.height(), hudInterpolator),
+                        new KeyValue(bottomHudStack.prefHeightProperty(), startSize.height(), hudInterpolator),
+                        new KeyValue(bottomHudStack.maxHeightProperty(), startSize.height(), hudInterpolator),
+                        new KeyValue(bottomHudStack.scaleXProperty(), bottomHudStack.getScaleX(), hudInterpolator),
+                        new KeyValue(bottomHudStack.scaleYProperty(), bottomHudStack.getScaleY(), hudInterpolator),
+                        new KeyValue(bottomHudStack.opacityProperty(), bottomHudStack.getOpacity(), hudInterpolator),
+                        new KeyValue(bottomHudStack.translateYProperty(), bottomHudStack.getTranslateY(), hudInterpolator)
+                ),
+                new KeyFrame(HUD_STATE_SWITCH_DELAY, event -> applyBottomHudMinimizedState(hudRow, minimized)),
+                new KeyFrame(
                         HUD_MINIMIZE_ANIMATION_DURATION,
-                        new KeyValue(bottomHudStack.minWidthProperty(), targetWidth, smoothInterpolator),
-                        new KeyValue(bottomHudStack.prefWidthProperty(), targetWidth, smoothInterpolator),
-                        new KeyValue(bottomHudStack.maxWidthProperty(), targetWidth, smoothInterpolator),
-                        new KeyValue(bottomHudStack.scaleYProperty(), 1.0, smoothInterpolator),
-                        new KeyValue(bottomHudStack.opacityProperty(), minimized ? 0.94 : 1.0, Interpolator.EASE_BOTH),
-                        new KeyValue(bottomHudStack.translateYProperty(), minimized ? 10.0 : 0.0, smoothInterpolator)
+                        new KeyValue(bottomHudStack.minWidthProperty(), targetSize.width(), hudInterpolator),
+                        new KeyValue(bottomHudStack.prefWidthProperty(), targetSize.width(), hudInterpolator),
+                        new KeyValue(bottomHudStack.maxWidthProperty(), targetSize.width(), hudInterpolator),
+                        new KeyValue(bottomHudStack.minHeightProperty(), targetSize.height(), hudInterpolator),
+                        new KeyValue(bottomHudStack.prefHeightProperty(), targetSize.height(), hudInterpolator),
+                        new KeyValue(bottomHudStack.maxHeightProperty(), targetSize.height(), hudInterpolator),
+                        new KeyValue(bottomHudStack.scaleXProperty(), targetScale, hudInterpolator),
+                        new KeyValue(bottomHudStack.scaleYProperty(), targetScale, hudInterpolator),
+                        new KeyValue(bottomHudStack.opacityProperty(), minimized ? 0.94 : 1.0, hudInterpolator),
+                        new KeyValue(bottomHudStack.translateYProperty(), minimized ? 10.0 : 0.0, hudInterpolator)
                 )
         );
         bottomHudStack.getProperties().put("hudMinimizeAnimation", animation);
         animation.setOnFinished(event -> {
             if (bottomHudStack.getProperties().get("hudMinimizeAnimation") == animation) {
+                applyBottomHudMinimizedState(hudRow, minimized);
                 bottomHudStack.setMinWidth(Region.USE_COMPUTED_SIZE);
                 bottomHudStack.setPrefWidth(Region.USE_COMPUTED_SIZE);
                 bottomHudStack.setMaxWidth(Region.USE_PREF_SIZE);
+                bottomHudStack.setMinHeight(Region.USE_COMPUTED_SIZE);
+                bottomHudStack.setPrefHeight(Region.USE_COMPUTED_SIZE);
+                bottomHudStack.setMaxHeight(Region.USE_PREF_SIZE);
+                bottomHudStack.setClip(null);
             }
         });
         animation.play();
     }
 
-    private static double measureBottomHudWidth(VBox bottomHudStack) {
+    private static Rectangle createBottomHudAnimationClip(VBox bottomHudStack) {
+        Rectangle clip = new Rectangle();
+        clip.setX(-HUD_ANIMATION_CLIP_PADDING);
+        clip.setY(-HUD_ANIMATION_CLIP_PADDING);
+        clip.widthProperty().bind(bottomHudStack.widthProperty().add(HUD_ANIMATION_CLIP_PADDING * 2));
+        clip.heightProperty().bind(bottomHudStack.heightProperty().add(HUD_ANIMATION_CLIP_PADDING * 2));
+        return clip;
+    }
+
+    private static HudSize measureCurrentBottomHudSize(VBox bottomHudStack) {
+        HudSize measuredSize = measureBottomHudSize(bottomHudStack);
+        double width = bottomHudStack.getWidth() > 0 ? bottomHudStack.getWidth() : measuredSize.width();
+        double height = bottomHudStack.getHeight() > 0 ? bottomHudStack.getHeight() : measuredSize.height();
+        return new HudSize(Math.ceil(width), Math.ceil(height));
+    }
+
+    private static HudSize measureBottomHudSizeForState(
+            VBox bottomHudStack,
+            HBox hudRow,
+            boolean minimized,
+            boolean restoreMinimized
+    ) {
+        applyBottomHudMinimizedState(hudRow, minimized);
+        HudSize size = measureBottomHudSize(bottomHudStack);
+        applyBottomHudMinimizedState(hudRow, restoreMinimized);
+        bottomHudStack.applyCss();
+        return size;
+    }
+
+    private static HudSize measureBottomHudSize(VBox bottomHudStack) {
         bottomHudStack.setMinWidth(Region.USE_COMPUTED_SIZE);
         bottomHudStack.setPrefWidth(Region.USE_COMPUTED_SIZE);
         bottomHudStack.setMaxWidth(Region.USE_PREF_SIZE);
+        bottomHudStack.setMinHeight(Region.USE_COMPUTED_SIZE);
+        bottomHudStack.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        bottomHudStack.setMaxHeight(Region.USE_PREF_SIZE);
         bottomHudStack.applyCss();
-        return Math.ceil(bottomHudStack.prefWidth(-1));
+        return new HudSize(Math.ceil(bottomHudStack.prefWidth(-1)), Math.ceil(bottomHudStack.prefHeight(-1)));
+    }
+
+    private static void setBottomHudFixedSize(VBox bottomHudStack, double width, double height) {
+        bottomHudStack.setMinWidth(width);
+        bottomHudStack.setPrefWidth(width);
+        bottomHudStack.setMaxWidth(width);
+        bottomHudStack.setMinHeight(height);
+        bottomHudStack.setPrefHeight(height);
+        bottomHudStack.setMaxHeight(height);
+    }
+
+    private record HudSize(double width, double height) {
+    }
+
+    private static void applyBottomHudMinimizedState(HBox hudRow, boolean minimized) {
+        prepareBottomHudCompactLayout(hudRow, minimized);
+        setHudCardState(hudRow, "hud-row-minimized", minimized);
     }
 
     private static void prepareBottomHudCompactLayout(Node node, boolean minimized) {
