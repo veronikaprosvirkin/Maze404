@@ -1,10 +1,10 @@
 import enums.CellType;
 import logic.generation.MazeGenerator;
 import model.Grid;
+import model.Position;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MazeGeneratorTest {
     @Test
@@ -19,8 +19,24 @@ public class MazeGeneratorTest {
         assertEquals(cols, grid.getWidth());
         assertEquals(rows, grid.getHeight());
 
-        // Перевіряємо контрактне розміщення виходу (EXIT)
-        assertEquals(CellType.EXIT, grid.getCell(rows - 2, cols - 2).getType());
+        // Проходимо по сітці та шукаємо вихід
+        int exitCount = 0;
+        Position exitPos = null;
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                if (grid.getCell(r, c).getType() == CellType.EXIT) {
+                    exitCount++;
+                    exitPos = new Position(r, c);
+                }
+            }
+        }
+
+        assertEquals(1, exitCount, "На карті має бути згенерований рівно один EXIT");
+        assertNotNull(exitPos, "Координати виходу не повинні бути null");
+
+        Position start = new Position(1, 1);
+        int distance = start.manhattanDistance(exitPos);
+        assertTrue(distance >= (rows + cols) / 2, "Вихід має бути розміщений далеко від старту");
     }
 
     @Test
@@ -28,7 +44,6 @@ public class MazeGeneratorTest {
         MazeGenerator generator = new MazeGenerator();
         Grid grid = generator.generate(11, 11);
 
-        // Точка старту гравця завжди має бути вільною
         assertEquals(CellType.FLOOR, grid.getCell(1, 1).getType());
     }
 }

@@ -83,9 +83,9 @@ class GameEngineTest {
         GameState state = new GameState(grid, player, List.of(), List.of(), 1);
         engine.loadLevel(state);
 
-        engine.processAction(GameAction.MOVE_RIGHT); // наступає на TRAP
+        engine.processAction(GameAction.MOVE_RIGHT);
 
-        assertEquals(2, state.getPlayer().getHealth()); // 3 - 1 = 2
+        assertEquals(2, state.getPlayer().getHealth());
     }
 
     @Test
@@ -103,7 +103,7 @@ class GameEngineTest {
 
         engine.processAction(GameAction.MOVE_RIGHT); // HP = 2
         engine.processAction(GameAction.MOVE_RIGHT); // HP = 1
-        engine.processAction(GameAction.MOVE_RIGHT); // HP = 0 → PLAYER_DIED
+        engine.processAction(GameAction.MOVE_RIGHT);
 
         assertEquals(0, state.getPlayer().getHealth());
         assertTrue(state.isGameOver());
@@ -117,14 +117,13 @@ class GameEngineTest {
         grid.setType(0, 2, CellType.TRAP);
         Player player = new Player(0, 1);
 
-        // ДОДАНО: Спочатку кладемо 1 заряд щита в інвентар гравця!
         player.addShield(1);
 
         GameState state = new GameState(grid, player, List.of(), List.of(), 1);
         engine.loadLevel(state);
 
         engine.processAction(GameAction.SHIELD);          // активуємо щит
-        assertTrue(state.getPlayer().hasShield());        // ТЕПЕР ЦЕ БУДЕ TRUE!
+        assertTrue(state.getPlayer().hasShield());
 
         engine.processAction(GameAction.MOVE_RIGHT);      // наступаємо на TRAP
 
@@ -181,8 +180,6 @@ class GameEngineTest {
 
     @Test
     void exitBlockedOnLevel2WithoutKey() {
-        // 1. Явно вказуємо, що поточна складність гри - СЕРЕДНЯ (Medium),
-        // щоб обійти умову Difficulty.current == Difficulty.EASY
         enums.Difficulty.current = enums.Difficulty.MEDIUM;
 
         GameEngine engine = makeEngine();
@@ -190,12 +187,11 @@ class GameEngineTest {
         grid.setType(2, 2, CellType.EXIT);
         Player player = new Player(2, 1);
 
-        // Рівень 2, ключа немає
         GameState state = new GameState(grid, player, List.of(), List.of(), 2);
         engine.loadLevel(state);
 
-        engine.processAction(GameAction.MOVE_RIGHT); // гравець робить крок на двері
+        engine.processAction(GameAction.MOVE_RIGHT);
 
-        assertFalse(state.isLevelComplete()); // Тепер тест буде успішним, вихід заблоковано!
+        assertFalse(state.isLevelComplete());
     }
 }
