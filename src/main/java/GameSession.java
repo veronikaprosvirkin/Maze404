@@ -159,6 +159,12 @@ public class GameSession {
         levelIsland.setTimerText("00:00");
         StackPane.setAlignment(levelIsland.getView(), Pos.TOP_CENTER);
         StackPane.setMargin(levelIsland.getView(), new Insets(24, 0, 0, 0));
+        HBox timerButton = levelIsland.getTimerView();
+        timerButton.setMaxWidth(Region.USE_PREF_SIZE);
+        timerButton.setMaxHeight(Region.USE_PREF_SIZE);
+        timerButton.setPickOnBounds(true);
+        StackPane.setAlignment(timerButton, Pos.TOP_LEFT);
+        StackPane.setMargin(timerButton, new Insets(24, 0, 0, 24));
         miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(gameState, player, levelIsland);
         EventHandler<KeyEvent> miniGamePromptKeyHandler = event -> {
             if (miniGameManager.handlePromptKey(event.getCode())) {
@@ -219,26 +225,6 @@ public class GameSession {
         bottomHudStack.setMaxHeight(Region.USE_PREF_SIZE);
         StackPane.setAlignment(bottomHudStack, Pos.BOTTOM_CENTER);
         StackPane.setMargin(bottomHudStack, new Insets(0, 0, 24, 0));
-
-        Button pauseButton = new Button("Pause");
-        pauseButton.getStyleClass().addAll("hud-card", "pause-hud-button");
-        pauseButton.setFocusTraversable(false);
-
-        Label pauseHint = new Label("Esc");
-        pauseHint.getStyleClass().add("hud-hotkey-badge");
-        pauseHint.getStyleClass().add("pause-hotkey-badge");
-
-        StackPane pauseButtonWrapper = new StackPane(pauseButton, pauseHint);
-        pauseButtonWrapper.getStyleClass().addAll("game-hud", "pause-button-wrapper");
-        pauseButtonWrapper.setPadding(new Insets(8, 8, 8, 8));
-        pauseButtonWrapper.setMaxWidth(Region.USE_PREF_SIZE);
-        pauseButtonWrapper.setMaxHeight(Region.USE_PREF_SIZE);
-        StackPane.setAlignment(pauseButton, Pos.CENTER_LEFT);
-        StackPane.setAlignment(pauseHint, Pos.BOTTOM_CENTER);
-        pauseHint.setTranslateX(40);
-        pauseHint.setTranslateY(-3);
-        StackPane.setAlignment(pauseButtonWrapper, Pos.TOP_LEFT);
-        StackPane.setMargin(pauseButtonWrapper, new Insets(24, 0, 0, 24));
 
         StackPane winLoseOverlay = new StackPane();
         winLoseOverlay.getStyleClass().add("victory-overlay");
@@ -575,7 +561,7 @@ public class GameSession {
             pauseOverlayTitle.setText(levelIsland.getTitle());
         };
 
-        pauseButton.setOnAction(event -> {
+        timerButton.setOnMouseClicked(event -> {
             pauseController.pause();
             syncPauseUi.run();
             scene.getRoot().requestFocus();
@@ -616,7 +602,7 @@ public class GameSession {
             exitToMenu.run();
         });
 
-        root.getChildren().setAll(gamePanel, levelIsland.getView(), pauseButtonWrapper, bottomHudStack, pauseOverlay,
+        root.getChildren().setAll(gamePanel, levelIsland.getView(), timerButton, bottomHudStack, pauseOverlay,
                 winLoseOverlay);
         scene.getRoot().requestFocus();
     }

@@ -222,7 +222,7 @@ public class LevelIsland {
         tinyMessageCircle.setPrefSize(TINY_MESSAGE_SIZE, TINY_MESSAGE_SIZE);
         tinyMessageCircle.setMaxSize(TINY_MESSAGE_SIZE, TINY_MESSAGE_SIZE);
 
-        view = new HBox(TIMER_GAP, timerCapsule, islandBase, tinyMessageCircle);
+        view = new HBox(TIMER_GAP, islandBase, tinyMessageCircle);
         view.setAlignment(Pos.TOP_CENTER);
         view.setFillHeight(false);
         view.setPickOnBounds(false);
@@ -238,6 +238,10 @@ public class LevelIsland {
 
     public String getTitle() {
         return title;
+    }
+
+    public HBox getTimerView() {
+        return timerCapsule;
     }
 
     public void setTimerText(String timerText) {
