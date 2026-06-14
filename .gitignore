@@ -37,4 +37,4 @@ project_plan/
 
 *.md
 
-src/main/resources/history/
+/src/main/resources/history/
