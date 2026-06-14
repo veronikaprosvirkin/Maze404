@@ -113,15 +113,6 @@ public class GameSession {
         Label elixirsValueLabel = createHudValueLabel();
         Label keyValueLabel = createHudValueLabel();
 
-        //---TIMER---
-        Label timeValueLabel = new Label();
-        timeValueLabel.getStyleClass().add("timer-island-value");
-        timeValueLabel.setText("00:00");
-        HBox timerCard = createTimerIsland(timeValueLabel);
-        timerCard.setPickOnBounds(false);
-        timerCard.setMouseTransparent(true);
-        timerCard.setMaxWidth(Region.USE_PREF_SIZE);
-
         updateHudValues(
                 player,
                 hpValueLabel,
@@ -165,14 +156,9 @@ public class GameSession {
         updateShieldHudState(shieldCard, player);
 
         LevelIsland levelIsland = new LevelIsland(getLevelTitle(Difficulty.current));
-        HBox topHeader = new HBox(12, timerCard, levelIsland.getView());
-        topHeader.setAlignment(Pos.TOP_CENTER);
-        topHeader.setPickOnBounds(false);
-        topHeader.setMouseTransparent(true);
-        topHeader.setMaxWidth(Region.USE_PREF_SIZE);
-        topHeader.setMaxHeight(Region.USE_PREF_SIZE);
-        StackPane.setAlignment(topHeader, Pos.TOP_CENTER);
-        StackPane.setMargin(topHeader, new Insets(24, 0, 0, 0));
+        levelIsland.setTimerText("00:00");
+        StackPane.setAlignment(levelIsland.getView(), Pos.TOP_CENTER);
+        StackPane.setMargin(levelIsland.getView(), new Insets(24, 0, 0, 0));
         miniGames.MiniGameManager miniGameManager = new miniGames.MiniGameManager(gameState, player, levelIsland);
         EventHandler<KeyEvent> miniGamePromptKeyHandler = event -> {
             if (miniGameManager.handlePromptKey(event.getCode())) {
@@ -548,7 +534,7 @@ public class GameSession {
 
             if (!gameState.isPaused() && !gameState.isGameOver() && !gameState.isLevelComplete()) {
                 gameState.incrementPlayTime();
-                timeValueLabel.setText(formatTime(gameState.getTotalPlayTimeSeconds()));
+                levelIsland.setTimerText(formatTime(gameState.getTotalPlayTimeSeconds()));
             }
         }));
         gameStopwatch.setCycleCount(Timeline.INDEFINITE);
@@ -627,7 +613,7 @@ public class GameSession {
             exitToMenu.run();
         });
 
-        root.getChildren().setAll(gamePanel, topHeader, pauseButtonWrapper, bottomHudStack, pauseOverlay,
+        root.getChildren().setAll(gamePanel, levelIsland.getView(), pauseButtonWrapper, bottomHudStack, pauseOverlay,
                 winLoseOverlay);
         scene.getRoot().requestFocus();
     }
@@ -783,31 +769,6 @@ public class GameSession {
         card.setMinWidth(96);
         card.setMaxHeight(Region.USE_PREF_SIZE);
         return card;
-    }
-
-    private static HBox createTimerIsland(Label valueLabel) {
-        Label kickerLabel = new Label("RUN TIME");
-        kickerLabel.getStyleClass().add("timer-island-kicker");
-
-        Label iconLabel = new Label("⏱");
-        iconLabel.getStyleClass().add("timer-island-icon");
-
-        StackPane iconShell = new StackPane(iconLabel);
-        iconShell.getStyleClass().add("timer-island-icon-shell");
-        iconShell.setMinSize(34, 34);
-        iconShell.setPrefSize(34, 34);
-        iconShell.setMaxSize(34, 34);
-
-        VBox copyBlock = new VBox(1, kickerLabel, valueLabel);
-        copyBlock.setAlignment(Pos.CENTER_LEFT);
-
-        HBox timerIsland = new HBox(10, iconShell, copyBlock);
-        timerIsland.getStyleClass().addAll("game-hud", "timer-island");
-        timerIsland.setAlignment(Pos.CENTER_LEFT);
-        timerIsland.setPadding(new Insets(10, 16, 10, 12));
-        timerIsland.setMinHeight(54);
-        timerIsland.setMaxHeight(54);
-        return timerIsland;
     }
 
     private static Label createHudValueLabel() {

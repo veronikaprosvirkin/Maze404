@@ -39,6 +39,9 @@ public class LevelIsland {
     private static final double ISLAND_CHOICE_WIDTH = 430.0;
     private static final double ISLAND_HORIZONTAL_PADDING = 36.0;
     private static final double TITLE_HORIZONTAL_PADDING = 28.0;
+    private static final double TIMER_GAP = 10.0;
+    private static final double TIMER_CAPSULE_WIDTH = 132.0;
+    private static final double TIMER_ICON_SIZE = 34.0;
     private static final Font TITLE_MEASURE_FONT = Font.font("System", FontWeight.SEMI_BOLD, 16.0);
     private static final double MESSAGE_START_OFFSET = -8.0;
     private static final double MESSAGE_BOX_HEIGHT = 42.0;
@@ -53,21 +56,23 @@ public class LevelIsland {
 
     private final String title;
     private final HBox view;
+    private final HBox timerCapsule;
     private final VBox islandBase;
     private final StackPane titleSlot;
-    private final StackPane messageSlot;
     private final HBox messageBox;
     private final VBox messageContent;
     private Node messageIcon;
     private final Label messageLabel;
     private final HBox crystalCountBadge;
     private final Label crystalCountLabel;
+    private final StackPane messageSlot;
     private final StackPane actionSlot;
     private final HBox actionBox;
     private final Button secondaryActionButton;
     private final Button primaryActionButton;
     private final StackPane tinyMessageCircle;
     private final Label tinyMessageLabel;
+    private final Label timerCapsuleValueLabel;
     private final PauseTransition hideTimer = new PauseTransition(MESSAGE_DURATION);
     private Timeline widthTransition;
     private Timeline messageTransition;
@@ -83,6 +88,35 @@ public class LevelIsland {
 
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("pause-title-label");
+
+        timerCapsuleValueLabel = new Label("00:00");
+        timerCapsuleValueLabel.getStyleClass().add("level-island-header-timer-value");
+
+        Label timerKickerLabel = new Label("RUN TIME");
+        timerKickerLabel.getStyleClass().add("level-island-header-timer-kicker");
+
+        Label timerIconLabel = new Label("⏱");
+        timerIconLabel.getStyleClass().add("level-island-header-timer-icon");
+
+        StackPane timerIconShell = new StackPane(timerIconLabel);
+        timerIconShell.getStyleClass().add("level-island-header-timer-icon-shell");
+        timerIconShell.setMinSize(TIMER_ICON_SIZE, TIMER_ICON_SIZE);
+        timerIconShell.setPrefSize(TIMER_ICON_SIZE, TIMER_ICON_SIZE);
+        timerIconShell.setMaxSize(TIMER_ICON_SIZE, TIMER_ICON_SIZE);
+
+        VBox timerCopyBlock = new VBox(1, timerKickerLabel, timerCapsuleValueLabel);
+        timerCopyBlock.setAlignment(Pos.CENTER_LEFT);
+
+        timerCapsule = new HBox(8, timerIconShell, timerCopyBlock);
+        timerCapsule.getStyleClass().addAll("game-hud", "level-island-header-timer");
+        timerCapsule.setAlignment(Pos.CENTER_LEFT);
+        timerCapsule.setPadding(new Insets(10, 16, 10, 12));
+        timerCapsule.setMinHeight(TITLE_SLOT_HEIGHT);
+        timerCapsule.setPrefHeight(TITLE_SLOT_HEIGHT);
+        timerCapsule.setMaxHeight(TITLE_SLOT_HEIGHT);
+        timerCapsule.setMinWidth(TIMER_CAPSULE_WIDTH);
+        timerCapsule.setPrefWidth(TIMER_CAPSULE_WIDTH);
+        timerCapsule.setMaxWidth(TIMER_CAPSULE_WIDTH);
 
         titleSlot = new StackPane(titleLabel);
         titleSlot.setAlignment(Pos.CENTER);
@@ -185,8 +219,9 @@ public class LevelIsland {
         tinyMessageCircle.setPrefSize(TINY_MESSAGE_SIZE, TINY_MESSAGE_SIZE);
         tinyMessageCircle.setMaxSize(TINY_MESSAGE_SIZE, TINY_MESSAGE_SIZE);
 
-        view = new HBox(8, islandBase, tinyMessageCircle);
+        view = new HBox(TIMER_GAP, timerCapsule, islandBase, tinyMessageCircle);
         view.setAlignment(Pos.CENTER);
+        view.setFillHeight(false);
         view.setPickOnBounds(false);
         view.setMaxWidth(Region.USE_PREF_SIZE);
         view.setMaxHeight(Region.USE_PREF_SIZE);
@@ -200,6 +235,10 @@ public class LevelIsland {
 
     public String getTitle() {
         return title;
+    }
+
+    public void setTimerText(String timerText) {
+        timerCapsuleValueLabel.setText(timerText);
     }
 
     public void showArtifactMessage(ArtifactType artifactType, String message) {
@@ -253,7 +292,6 @@ public class LevelIsland {
         if (!choiceActive) {
             return;
         }
-
         closeChoiceMessage();
     }
 
