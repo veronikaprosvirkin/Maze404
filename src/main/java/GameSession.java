@@ -23,6 +23,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -63,11 +64,22 @@ public class GameSession {
     private static final Duration HUD_DAMAGE_HIGHLIGHT_DURATION = Duration.seconds(1);
     private static final Duration HUD_AUTO_MINIMIZE_DELAY = Duration.seconds(3);
     private static final Duration HUD_MINIMIZE_ANIMATION_DURATION = Duration.millis(380);
-    private static final Duration HUD_STATE_SWITCH_DELAY = Duration.millis(110);
+    private static final Duration HUD_HOTKEY_REVEAL_DELAY = Duration.seconds(0.8);
+    private static final Duration HUD_HOTKEY_REVEAL_DURATION = Duration.millis(180);
     private static final Duration STEALTH_HINT_UPDATE_INTERVAL = Duration.millis(100);
     private static final double HUD_CARD_EXPANDED_MIN_WIDTH = 96;
+    private static final double HUD_MINIMIZED_HEALTH_CARD_MIN_WIDTH = 90;
     private static final double HUD_MINIMIZED_SCALE = 0.76;
     private static final double HUD_ANIMATION_CLIP_PADDING = 64;
+    private static final double HUD_MINIMIZED_WIDTH_RATIO = 0.76;
+    private static final double HUD_MINIMIZED_EASY_MIN_WIDTH = 470;
+    private static final double HUD_MINIMIZED_EASY_MAX_WIDTH = 560;
+    private static final double HUD_MINIMIZED_FULL_MIN_WIDTH = 600;
+    private static final double HUD_MINIMIZED_FULL_MAX_WIDTH = 700;
+    private static final String HUD_MINIMIZED_STATE_KEY = "hudMinimized";
+    private static final String HUD_HOTKEY_REVEAL_TIMER_KEY = "hudHotkeyRevealTimer";
+    private static final String HUD_HOTKEY_REVEAL_ANIMATION_KEY = "hudHotkeyRevealAnimation";
+    private static final String HUD_ARTIFACT_HOTKEY_CLASS = "hud-artifact-hotkey-badge";
 
     private final StackPane root;
     private final Scene scene;
@@ -235,7 +247,7 @@ public class GameSession {
         bottomHudStack.setMaxHeight(Region.USE_PREF_SIZE);
         StackPane.setAlignment(bottomHudStack, Pos.BOTTOM_CENTER);
         StackPane.setMargin(bottomHudStack, new Insets(0, 0, 24, 0));
-        installBottomHudAutoMinimize(bottomHudStack, hudRow);
+        installBottomHudAutoMinimize(scene, bottomHudStack, hudRow);
 
         StackPane winLoseOverlay = new StackPane();
         winLoseOverlay.getStyleClass().add("victory-overlay");
@@ -738,7 +750,8 @@ public class GameSession {
         titleLabel.getStyleClass().add("hud-card-title");
 
         Label hotkeyLabel = new Label(hotkey);
-        hotkeyLabel.getStyleClass().add("hud-hotkey-badge");
+        hotkeyLabel.getStyleClass().addAll("hud-hotkey-badge", HUD_ARTIFACT_HOTKEY_CLASS);
+        hotkeyLabel.setOpacity(0.0);
 
         return createHudCard(titleLabel, hotkeyLabel, iconNode, valueLabel, accentStyleClass);
     }
@@ -776,6 +789,7 @@ public class GameSession {
     private static Label createHudValueLabel() {
         Label valueLabel = new Label();
         valueLabel.getStyleClass().add("hud-card-value");
+        valueLabel.setMinWidth(Region.USE_PREF_SIZE);
         return valueLabel;
     }
 
@@ -877,13 +891,18 @@ public class GameSession {
         setHudCardState(card, styleClass, !card.getStyleClass().contains(styleClass));
     }
 
-    private static void installBottomHudAutoMinimize(VBox bottomHudStack, HBox hudRow) {
+    private static void installBottomHudAutoMinimize(Scene scene, VBox bottomHudStack, HBox hudRow) {
         PauseTransition autoMinimizeTimer = new PauseTransition(HUD_AUTO_MINIMIZE_DELAY);
         boolean[] canMinimize = {false};
+        boolean[] tabExpanding = {false};
+
+        scheduleBottomHudHotkeyReveal(bottomHudStack, hudRow);
 
         autoMinimizeTimer.setOnFinished(event -> {
             canMinimize[0] = true;
-            setBottomHudMinimized(bottomHudStack, hudRow, true);
+            if (!tabExpanding[0]) {
+                setBottomHudMinimized(bottomHudStack, hudRow, true);
+            }
         });
 
         bottomHudStack.setOnMouseEntered(event -> {
@@ -898,6 +917,30 @@ public class GameSession {
             }
         });
 
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() != KeyCode.TAB) {
+                return;
+            }
+
+            tabExpanding[0] = true;
+            if (canMinimize[0]) {
+                setBottomHudMinimized(bottomHudStack, hudRow, false);
+            }
+            event.consume();
+        });
+
+        scene.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
+            if (event.getCode() != KeyCode.TAB) {
+                return;
+            }
+
+            tabExpanding[0] = false;
+            if (canMinimize[0]) {
+                setBottomHudMinimized(bottomHudStack, hudRow, true);
+            }
+            event.consume();
+        });
+
         autoMinimizeTimer.playFromStart();
     }
 
@@ -906,14 +949,22 @@ public class GameSession {
         if (runningAnimation instanceof Timeline timeline) {
             timeline.stop();
         }
+        hideBottomHudArtifactHotkeys(bottomHudStack, hudRow);
         bottomHudStack.setClip(null);
 
-        boolean startMinimized = hudRow.getStyleClass().contains("hud-row-minimized");
+        setHudCardState(hudRow, "hud-row-minimized", false);
+
+        boolean startMinimized = Boolean.TRUE.equals(bottomHudStack.getProperties().get(HUD_MINIMIZED_STATE_KEY));
         HudSize startSize = measureCurrentBottomHudSize(bottomHudStack);
-        HudSize targetSize = measureBottomHudSizeForState(bottomHudStack, hudRow, minimized, startMinimized);
+        HudSize expandedSize = measureBottomHudSizeForState(bottomHudStack, hudRow, false, startMinimized);
+        HudSize minimizedSize = measureBottomHudSizeForState(bottomHudStack, hudRow, true, startMinimized);
+        HudSize targetSize = minimized
+                ? new HudSize(getManualBottomHudMinimizedWidth(expandedSize.width(), hudRow), minimizedSize.height())
+                : expandedSize;
 
         setBottomHudFixedSize(bottomHudStack, startSize.width(), startSize.height());
         List<HudTitleRowAnimation> titleRowAnimations = prepareBottomHudTitleRowAnimations(hudRow, minimized);
+        prepareBottomHudCompactLayout(hudRow, minimized);
         bottomHudStack.setClip(createBottomHudAnimationClip(bottomHudStack));
 
         Interpolator hudInterpolator = Interpolator.SPLINE(0.22, 0.0, 0.16, 1.0);
@@ -944,10 +995,16 @@ public class GameSession {
 
         for (HudTitleRowAnimation titleRowAnimation : titleRowAnimations) {
             Region titleRow = titleRowAnimation.titleRow();
+            startValues.add(new KeyValue(titleRow.minWidthProperty(), titleRowAnimation.startWidth(), hudInterpolator));
+            startValues.add(new KeyValue(titleRow.prefWidthProperty(), titleRowAnimation.startWidth(), hudInterpolator));
+            startValues.add(new KeyValue(titleRow.maxWidthProperty(), titleRowAnimation.startWidth(), hudInterpolator));
             startValues.add(new KeyValue(titleRow.minHeightProperty(), titleRowAnimation.startHeight(), hudInterpolator));
             startValues.add(new KeyValue(titleRow.prefHeightProperty(), titleRowAnimation.startHeight(), hudInterpolator));
             startValues.add(new KeyValue(titleRow.maxHeightProperty(), titleRowAnimation.startHeight(), hudInterpolator));
             startValues.add(new KeyValue(titleRow.opacityProperty(), titleRowAnimation.startOpacity(), hudInterpolator));
+            targetValues.add(new KeyValue(titleRow.minWidthProperty(), titleRowAnimation.targetWidth(), hudInterpolator));
+            targetValues.add(new KeyValue(titleRow.prefWidthProperty(), titleRowAnimation.targetWidth(), hudInterpolator));
+            targetValues.add(new KeyValue(titleRow.maxWidthProperty(), titleRowAnimation.targetWidth(), hudInterpolator));
             targetValues.add(new KeyValue(titleRow.minHeightProperty(), titleRowAnimation.targetHeight(), hudInterpolator));
             targetValues.add(new KeyValue(titleRow.prefHeightProperty(), titleRowAnimation.targetHeight(), hudInterpolator));
             targetValues.add(new KeyValue(titleRow.maxHeightProperty(), titleRowAnimation.targetHeight(), hudInterpolator));
@@ -959,7 +1016,6 @@ public class GameSession {
                         Duration.ZERO,
                         startValues.toArray(new KeyValue[0])
                 ),
-                new KeyFrame(HUD_STATE_SWITCH_DELAY, event -> applyBottomHudStyleState(hudRow, minimized)),
                 new KeyFrame(
                         HUD_MINIMIZE_ANIMATION_DURATION,
                         targetValues.toArray(new KeyValue[0])
@@ -969,16 +1025,29 @@ public class GameSession {
         animation.setOnFinished(event -> {
             if (bottomHudStack.getProperties().get("hudMinimizeAnimation") == animation) {
                 applyBottomHudMinimizedState(hudRow, minimized);
-                bottomHudStack.setMinWidth(Region.USE_COMPUTED_SIZE);
-                bottomHudStack.setPrefWidth(Region.USE_COMPUTED_SIZE);
-                bottomHudStack.setMaxWidth(Region.USE_PREF_SIZE);
-                bottomHudStack.setMinHeight(Region.USE_COMPUTED_SIZE);
-                bottomHudStack.setPrefHeight(Region.USE_COMPUTED_SIZE);
-                bottomHudStack.setMaxHeight(Region.USE_PREF_SIZE);
+                bottomHudStack.getProperties().put(HUD_MINIMIZED_STATE_KEY, minimized);
+                if (minimized) {
+                    setBottomHudFixedSize(bottomHudStack, targetSize.width(), targetSize.height());
+                } else {
+                    bottomHudStack.setMinWidth(Region.USE_COMPUTED_SIZE);
+                    bottomHudStack.setPrefWidth(Region.USE_COMPUTED_SIZE);
+                    bottomHudStack.setMaxWidth(Region.USE_PREF_SIZE);
+                    bottomHudStack.setMinHeight(Region.USE_COMPUTED_SIZE);
+                    bottomHudStack.setPrefHeight(Region.USE_COMPUTED_SIZE);
+                    bottomHudStack.setMaxHeight(Region.USE_PREF_SIZE);
+                    scheduleBottomHudHotkeyReveal(bottomHudStack, hudRow);
+                }
                 bottomHudStack.setClip(null);
             }
         });
         animation.play();
+    }
+
+    private static double getManualBottomHudMinimizedWidth(double expandedWidth, HBox hudRow) {
+        boolean hasKeyHud = hudRow.getChildren().size() > 2;
+        double minWidth = hasKeyHud ? HUD_MINIMIZED_FULL_MIN_WIDTH : HUD_MINIMIZED_EASY_MIN_WIDTH;
+        double maxWidth = hasKeyHud ? HUD_MINIMIZED_FULL_MAX_WIDTH : HUD_MINIMIZED_EASY_MAX_WIDTH;
+        return Math.ceil(Math.max(minWidth, Math.min(maxWidth, expandedWidth * HUD_MINIMIZED_WIDTH_RATIO)));
     }
 
     private static Rectangle createBottomHudAnimationClip(VBox bottomHudStack) {
@@ -1037,18 +1106,32 @@ public class GameSession {
         List<HudTitleRowAnimation> animations = new ArrayList<>();
         for (Region titleRow : findBottomHudTitleRows(hudRow)) {
             double expandedHeight = measureExpandedTitleRowHeight(titleRow);
+            double expandedWidth = measureExpandedTitleRowWidth(titleRow);
             double currentHeight = titleRow.isManaged() && titleRow.getHeight() > 0
                     ? titleRow.getHeight()
                     : 0.0;
+            double currentWidth = titleRow.isManaged() && titleRow.getWidth() > 0
+                    ? titleRow.getWidth()
+                    : 0.0;
             double startHeight = Math.ceil(currentHeight);
+            double startWidth = Math.ceil(currentWidth);
             double targetHeight = minimized ? 0.0 : expandedHeight;
+            double targetWidth = minimized ? 0.0 : expandedWidth;
             double startOpacity = titleRow.getOpacity();
             double targetOpacity = minimized ? 0.0 : 1.0;
 
             titleRow.setManaged(true);
-            setFixedTitleRowHeight(titleRow, startHeight);
+            setFixedTitleRowSize(titleRow, startWidth, startHeight);
             titleRow.setOpacity(startOpacity);
-            animations.add(new HudTitleRowAnimation(titleRow, startHeight, targetHeight, startOpacity, targetOpacity));
+            animations.add(new HudTitleRowAnimation(
+                    titleRow,
+                    startWidth,
+                    targetWidth,
+                    startHeight,
+                    targetHeight,
+                    startOpacity,
+                    targetOpacity
+            ));
         }
         return animations;
     }
@@ -1068,7 +1151,25 @@ public class GameSession {
         return measuredHeight;
     }
 
-    private static void setFixedTitleRowHeight(Region titleRow, double height) {
+    private static double measureExpandedTitleRowWidth(Region titleRow) {
+        double minWidth = titleRow.getMinWidth();
+        double prefWidth = titleRow.getPrefWidth();
+        double maxWidth = titleRow.getMaxWidth();
+        titleRow.setMinWidth(Region.USE_COMPUTED_SIZE);
+        titleRow.setPrefWidth(Region.USE_COMPUTED_SIZE);
+        titleRow.setMaxWidth(Region.USE_COMPUTED_SIZE);
+        titleRow.applyCss();
+        double measuredWidth = Math.ceil(titleRow.prefWidth(-1));
+        titleRow.setMinWidth(minWidth);
+        titleRow.setPrefWidth(prefWidth);
+        titleRow.setMaxWidth(maxWidth);
+        return measuredWidth;
+    }
+
+    private static void setFixedTitleRowSize(Region titleRow, double width, double height) {
+        titleRow.setMinWidth(width);
+        titleRow.setPrefWidth(width);
+        titleRow.setMaxWidth(width);
         titleRow.setMinHeight(height);
         titleRow.setPrefHeight(height);
         titleRow.setMaxHeight(height);
@@ -1092,8 +1193,77 @@ public class GameSession {
         }
     }
 
+    private static void scheduleBottomHudHotkeyReveal(VBox bottomHudStack, HBox hudRow) {
+        stopBottomHudHotkeyReveal(bottomHudStack);
+        setBottomHudArtifactHotkeyOpacity(hudRow, 0.0);
+
+        PauseTransition revealDelay = new PauseTransition(HUD_HOTKEY_REVEAL_DELAY);
+        revealDelay.setOnFinished(event -> {
+            Timeline revealAnimation = new Timeline(
+                    new KeyFrame(
+                            HUD_HOTKEY_REVEAL_DURATION,
+                            getBottomHudArtifactHotkeys(hudRow).stream()
+                                    .map(hotkey -> new KeyValue(hotkey.opacityProperty(), 1.0, Interpolator.EASE_BOTH))
+                                    .toArray(KeyValue[]::new)
+                    )
+            );
+            bottomHudStack.getProperties().put(HUD_HOTKEY_REVEAL_ANIMATION_KEY, revealAnimation);
+            revealAnimation.setOnFinished(done -> {
+                if (bottomHudStack.getProperties().get(HUD_HOTKEY_REVEAL_ANIMATION_KEY) == revealAnimation) {
+                    bottomHudStack.getProperties().remove(HUD_HOTKEY_REVEAL_ANIMATION_KEY);
+                }
+            });
+            revealAnimation.playFromStart();
+        });
+        bottomHudStack.getProperties().put(HUD_HOTKEY_REVEAL_TIMER_KEY, revealDelay);
+        revealDelay.playFromStart();
+    }
+
+    private static void hideBottomHudArtifactHotkeys(VBox bottomHudStack, HBox hudRow) {
+        stopBottomHudHotkeyReveal(bottomHudStack);
+        setBottomHudArtifactHotkeyOpacity(hudRow, 0.0);
+    }
+
+    private static void stopBottomHudHotkeyReveal(VBox bottomHudStack) {
+        Object revealDelay = bottomHudStack.getProperties().remove(HUD_HOTKEY_REVEAL_TIMER_KEY);
+        if (revealDelay instanceof PauseTransition pauseTransition) {
+            pauseTransition.stop();
+        }
+
+        Object revealAnimation = bottomHudStack.getProperties().remove(HUD_HOTKEY_REVEAL_ANIMATION_KEY);
+        if (revealAnimation instanceof Timeline timeline) {
+            timeline.stop();
+        }
+    }
+
+    private static void setBottomHudArtifactHotkeyOpacity(HBox hudRow, double opacity) {
+        for (Label hotkey : getBottomHudArtifactHotkeys(hudRow)) {
+            hotkey.setOpacity(opacity);
+        }
+    }
+
+    private static List<Label> getBottomHudArtifactHotkeys(Node node) {
+        List<Label> hotkeys = new ArrayList<>();
+        collectBottomHudArtifactHotkeys(node, hotkeys);
+        return hotkeys;
+    }
+
+    private static void collectBottomHudArtifactHotkeys(Node node, List<Label> hotkeys) {
+        if (node instanceof Label label && label.getStyleClass().contains(HUD_ARTIFACT_HOTKEY_CLASS)) {
+            hotkeys.add(label);
+        }
+
+        if (node instanceof Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                collectBottomHudArtifactHotkeys(child, hotkeys);
+            }
+        }
+    }
+
     private record HudTitleRowAnimation(
             Region titleRow,
+            double startWidth,
+            double targetWidth,
             double startHeight,
             double targetHeight,
             double startOpacity,
@@ -1108,7 +1278,7 @@ public class GameSession {
 
     private static void applyBottomHudStyleState(HBox hudRow, boolean minimized) {
         prepareBottomHudCompactLayout(hudRow, minimized);
-        setHudCardState(hudRow, "hud-row-minimized", minimized);
+        setHudCardState(hudRow, "hud-row-minimized", false);
     }
 
     private static void applyBottomHudTitleRowState(HBox hudRow, boolean minimized) {
@@ -1116,8 +1286,11 @@ public class GameSession {
             titleRow.setManaged(true);
             titleRow.setOpacity(minimized ? 0.0 : 1.0);
             if (minimized) {
-                setFixedTitleRowHeight(titleRow, 0.0);
+                setFixedTitleRowSize(titleRow, 0.0, 0.0);
             } else {
+                titleRow.setMinWidth(Region.USE_COMPUTED_SIZE);
+                titleRow.setPrefWidth(Region.USE_COMPUTED_SIZE);
+                titleRow.setMaxWidth(Region.USE_COMPUTED_SIZE);
                 titleRow.setMinHeight(Region.USE_COMPUTED_SIZE);
                 titleRow.setPrefHeight(Region.USE_COMPUTED_SIZE);
                 titleRow.setMaxHeight(Region.USE_COMPUTED_SIZE);
@@ -1127,7 +1300,11 @@ public class GameSession {
 
     private static void prepareBottomHudCompactLayout(Node node, boolean minimized) {
         if (node instanceof Region region && region.getStyleClass().contains("hud-card")) {
-            region.setMinWidth(minimized ? Region.USE_COMPUTED_SIZE : HUD_CARD_EXPANDED_MIN_WIDTH);
+            if (minimized && region.getStyleClass().contains("hud-health")) {
+                region.setMinWidth(HUD_MINIMIZED_HEALTH_CARD_MIN_WIDTH);
+            } else {
+                region.setMinWidth(minimized ? Region.USE_COMPUTED_SIZE : HUD_CARD_EXPANDED_MIN_WIDTH);
+            }
         }
 
         if (node instanceof Parent parent) {
