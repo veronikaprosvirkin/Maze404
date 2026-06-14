@@ -49,6 +49,8 @@ import ui.render.GamePanel;
 import ui.render.LevelIsland;
 import ui.render.StartMenuView;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 
@@ -911,37 +913,56 @@ public class GameSession {
         HudSize targetSize = measureBottomHudSizeForState(bottomHudStack, hudRow, minimized, startMinimized);
 
         setBottomHudFixedSize(bottomHudStack, startSize.width(), startSize.height());
+        List<HudTitleRowAnimation> titleRowAnimations = prepareBottomHudTitleRowAnimations(hudRow, minimized);
         bottomHudStack.setClip(createBottomHudAnimationClip(bottomHudStack));
 
         Interpolator hudInterpolator = Interpolator.SPLINE(0.22, 0.0, 0.16, 1.0);
         double targetScale = minimized ? HUD_MINIMIZED_SCALE : 1.0;
+        List<KeyValue> startValues = new ArrayList<>();
+        startValues.add(new KeyValue(bottomHudStack.minWidthProperty(), startSize.width(), hudInterpolator));
+        startValues.add(new KeyValue(bottomHudStack.prefWidthProperty(), startSize.width(), hudInterpolator));
+        startValues.add(new KeyValue(bottomHudStack.maxWidthProperty(), startSize.width(), hudInterpolator));
+        startValues.add(new KeyValue(bottomHudStack.minHeightProperty(), startSize.height(), hudInterpolator));
+        startValues.add(new KeyValue(bottomHudStack.prefHeightProperty(), startSize.height(), hudInterpolator));
+        startValues.add(new KeyValue(bottomHudStack.maxHeightProperty(), startSize.height(), hudInterpolator));
+        startValues.add(new KeyValue(bottomHudStack.scaleXProperty(), bottomHudStack.getScaleX(), hudInterpolator));
+        startValues.add(new KeyValue(bottomHudStack.scaleYProperty(), bottomHudStack.getScaleY(), hudInterpolator));
+        startValues.add(new KeyValue(bottomHudStack.opacityProperty(), bottomHudStack.getOpacity(), hudInterpolator));
+        startValues.add(new KeyValue(bottomHudStack.translateYProperty(), bottomHudStack.getTranslateY(), hudInterpolator));
+
+        List<KeyValue> targetValues = new ArrayList<>();
+        targetValues.add(new KeyValue(bottomHudStack.minWidthProperty(), targetSize.width(), hudInterpolator));
+        targetValues.add(new KeyValue(bottomHudStack.prefWidthProperty(), targetSize.width(), hudInterpolator));
+        targetValues.add(new KeyValue(bottomHudStack.maxWidthProperty(), targetSize.width(), hudInterpolator));
+        targetValues.add(new KeyValue(bottomHudStack.minHeightProperty(), targetSize.height(), hudInterpolator));
+        targetValues.add(new KeyValue(bottomHudStack.prefHeightProperty(), targetSize.height(), hudInterpolator));
+        targetValues.add(new KeyValue(bottomHudStack.maxHeightProperty(), targetSize.height(), hudInterpolator));
+        targetValues.add(new KeyValue(bottomHudStack.scaleXProperty(), targetScale, hudInterpolator));
+        targetValues.add(new KeyValue(bottomHudStack.scaleYProperty(), targetScale, hudInterpolator));
+        targetValues.add(new KeyValue(bottomHudStack.opacityProperty(), minimized ? 0.94 : 1.0, hudInterpolator));
+        targetValues.add(new KeyValue(bottomHudStack.translateYProperty(), minimized ? 10.0 : 0.0, hudInterpolator));
+
+        for (HudTitleRowAnimation titleRowAnimation : titleRowAnimations) {
+            Region titleRow = titleRowAnimation.titleRow();
+            startValues.add(new KeyValue(titleRow.minHeightProperty(), titleRowAnimation.startHeight(), hudInterpolator));
+            startValues.add(new KeyValue(titleRow.prefHeightProperty(), titleRowAnimation.startHeight(), hudInterpolator));
+            startValues.add(new KeyValue(titleRow.maxHeightProperty(), titleRowAnimation.startHeight(), hudInterpolator));
+            startValues.add(new KeyValue(titleRow.opacityProperty(), titleRowAnimation.startOpacity(), hudInterpolator));
+            targetValues.add(new KeyValue(titleRow.minHeightProperty(), titleRowAnimation.targetHeight(), hudInterpolator));
+            targetValues.add(new KeyValue(titleRow.prefHeightProperty(), titleRowAnimation.targetHeight(), hudInterpolator));
+            targetValues.add(new KeyValue(titleRow.maxHeightProperty(), titleRowAnimation.targetHeight(), hudInterpolator));
+            targetValues.add(new KeyValue(titleRow.opacityProperty(), titleRowAnimation.targetOpacity(), hudInterpolator));
+        }
+
         Timeline animation = new Timeline(
                 new KeyFrame(
                         Duration.ZERO,
-                        new KeyValue(bottomHudStack.minWidthProperty(), startSize.width(), hudInterpolator),
-                        new KeyValue(bottomHudStack.prefWidthProperty(), startSize.width(), hudInterpolator),
-                        new KeyValue(bottomHudStack.maxWidthProperty(), startSize.width(), hudInterpolator),
-                        new KeyValue(bottomHudStack.minHeightProperty(), startSize.height(), hudInterpolator),
-                        new KeyValue(bottomHudStack.prefHeightProperty(), startSize.height(), hudInterpolator),
-                        new KeyValue(bottomHudStack.maxHeightProperty(), startSize.height(), hudInterpolator),
-                        new KeyValue(bottomHudStack.scaleXProperty(), bottomHudStack.getScaleX(), hudInterpolator),
-                        new KeyValue(bottomHudStack.scaleYProperty(), bottomHudStack.getScaleY(), hudInterpolator),
-                        new KeyValue(bottomHudStack.opacityProperty(), bottomHudStack.getOpacity(), hudInterpolator),
-                        new KeyValue(bottomHudStack.translateYProperty(), bottomHudStack.getTranslateY(), hudInterpolator)
+                        startValues.toArray(new KeyValue[0])
                 ),
-                new KeyFrame(HUD_STATE_SWITCH_DELAY, event -> applyBottomHudMinimizedState(hudRow, minimized)),
+                new KeyFrame(HUD_STATE_SWITCH_DELAY, event -> applyBottomHudStyleState(hudRow, minimized)),
                 new KeyFrame(
                         HUD_MINIMIZE_ANIMATION_DURATION,
-                        new KeyValue(bottomHudStack.minWidthProperty(), targetSize.width(), hudInterpolator),
-                        new KeyValue(bottomHudStack.prefWidthProperty(), targetSize.width(), hudInterpolator),
-                        new KeyValue(bottomHudStack.maxWidthProperty(), targetSize.width(), hudInterpolator),
-                        new KeyValue(bottomHudStack.minHeightProperty(), targetSize.height(), hudInterpolator),
-                        new KeyValue(bottomHudStack.prefHeightProperty(), targetSize.height(), hudInterpolator),
-                        new KeyValue(bottomHudStack.maxHeightProperty(), targetSize.height(), hudInterpolator),
-                        new KeyValue(bottomHudStack.scaleXProperty(), targetScale, hudInterpolator),
-                        new KeyValue(bottomHudStack.scaleYProperty(), targetScale, hudInterpolator),
-                        new KeyValue(bottomHudStack.opacityProperty(), minimized ? 0.94 : 1.0, hudInterpolator),
-                        new KeyValue(bottomHudStack.translateYProperty(), minimized ? 10.0 : 0.0, hudInterpolator)
+                        targetValues.toArray(new KeyValue[0])
                 )
         );
         bottomHudStack.getProperties().put("hudMinimizeAnimation", animation);
@@ -1012,18 +1033,101 @@ public class GameSession {
     private record HudSize(double width, double height) {
     }
 
+    private static List<HudTitleRowAnimation> prepareBottomHudTitleRowAnimations(HBox hudRow, boolean minimized) {
+        List<HudTitleRowAnimation> animations = new ArrayList<>();
+        for (Region titleRow : findBottomHudTitleRows(hudRow)) {
+            double expandedHeight = measureExpandedTitleRowHeight(titleRow);
+            double currentHeight = titleRow.isManaged() && titleRow.getHeight() > 0
+                    ? titleRow.getHeight()
+                    : 0.0;
+            double startHeight = Math.ceil(currentHeight);
+            double targetHeight = minimized ? 0.0 : expandedHeight;
+            double startOpacity = titleRow.getOpacity();
+            double targetOpacity = minimized ? 0.0 : 1.0;
+
+            titleRow.setManaged(true);
+            setFixedTitleRowHeight(titleRow, startHeight);
+            titleRow.setOpacity(startOpacity);
+            animations.add(new HudTitleRowAnimation(titleRow, startHeight, targetHeight, startOpacity, targetOpacity));
+        }
+        return animations;
+    }
+
+    private static double measureExpandedTitleRowHeight(Region titleRow) {
+        double minHeight = titleRow.getMinHeight();
+        double prefHeight = titleRow.getPrefHeight();
+        double maxHeight = titleRow.getMaxHeight();
+        titleRow.setMinHeight(Region.USE_COMPUTED_SIZE);
+        titleRow.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        titleRow.setMaxHeight(Region.USE_COMPUTED_SIZE);
+        titleRow.applyCss();
+        double measuredHeight = Math.ceil(titleRow.prefHeight(-1));
+        titleRow.setMinHeight(minHeight);
+        titleRow.setPrefHeight(prefHeight);
+        titleRow.setMaxHeight(maxHeight);
+        return measuredHeight;
+    }
+
+    private static void setFixedTitleRowHeight(Region titleRow, double height) {
+        titleRow.setMinHeight(height);
+        titleRow.setPrefHeight(height);
+        titleRow.setMaxHeight(height);
+    }
+
+    private static List<Region> findBottomHudTitleRows(Node node) {
+        List<Region> titleRows = new ArrayList<>();
+        collectBottomHudTitleRows(node, titleRows);
+        return titleRows;
+    }
+
+    private static void collectBottomHudTitleRows(Node node, List<Region> titleRows) {
+        if (node instanceof Region region && node.getStyleClass().contains("hud-card-title-row")) {
+            titleRows.add(region);
+        }
+
+        if (node instanceof Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                collectBottomHudTitleRows(child, titleRows);
+            }
+        }
+    }
+
+    private record HudTitleRowAnimation(
+            Region titleRow,
+            double startHeight,
+            double targetHeight,
+            double startOpacity,
+            double targetOpacity
+    ) {
+    }
+
     private static void applyBottomHudMinimizedState(HBox hudRow, boolean minimized) {
+        applyBottomHudStyleState(hudRow, minimized);
+        applyBottomHudTitleRowState(hudRow, minimized);
+    }
+
+    private static void applyBottomHudStyleState(HBox hudRow, boolean minimized) {
         prepareBottomHudCompactLayout(hudRow, minimized);
         setHudCardState(hudRow, "hud-row-minimized", minimized);
+    }
+
+    private static void applyBottomHudTitleRowState(HBox hudRow, boolean minimized) {
+        for (Region titleRow : findBottomHudTitleRows(hudRow)) {
+            titleRow.setManaged(true);
+            titleRow.setOpacity(minimized ? 0.0 : 1.0);
+            if (minimized) {
+                setFixedTitleRowHeight(titleRow, 0.0);
+            } else {
+                titleRow.setMinHeight(Region.USE_COMPUTED_SIZE);
+                titleRow.setPrefHeight(Region.USE_COMPUTED_SIZE);
+                titleRow.setMaxHeight(Region.USE_COMPUTED_SIZE);
+            }
+        }
     }
 
     private static void prepareBottomHudCompactLayout(Node node, boolean minimized) {
         if (node instanceof Region region && region.getStyleClass().contains("hud-card")) {
             region.setMinWidth(minimized ? Region.USE_COMPUTED_SIZE : HUD_CARD_EXPANDED_MIN_WIDTH);
-        }
-
-        if (node.getStyleClass().contains("hud-card-title-row")) {
-            node.setManaged(!minimized);
         }
 
         if (node instanceof Parent parent) {
