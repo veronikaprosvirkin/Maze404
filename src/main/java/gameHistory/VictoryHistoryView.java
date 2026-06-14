@@ -182,7 +182,7 @@ public class VictoryHistoryView extends StackPane {
             row.getChildren().addAll(leftBox, spacer, timeLabel);
 
             if (isBest) {
-                Label recordBadge = new Label("* BEST");
+                Label recordBadge = new Label("★ BEST");
                 recordBadge.setStyle("-fx-background-color: " + accentColor + "; -fx-text-fill: " + bestBadgeTextColor + "; -fx-font-weight: bold; -fx-padding: 3 8 3 8; -fx-background-radius: 4; -fx-font-size: 11px;");
                 row.getChildren().add(1, recordBadge);
                 row.setStyle("-fx-border-color: " + accentColor + "; -fx-border-width: 1.5; -fx-border-radius: 8; -fx-background-radius: 8;");
