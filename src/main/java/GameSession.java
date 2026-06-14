@@ -15,6 +15,7 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -61,6 +62,7 @@ public class GameSession {
     private static final Duration HUD_AUTO_MINIMIZE_DELAY = Duration.seconds(3);
     private static final Duration HUD_MINIMIZE_ANIMATION_DURATION = Duration.millis(220);
     private static final Duration STEALTH_HINT_UPDATE_INTERVAL = Duration.millis(100);
+    private static final double HUD_CARD_EXPANDED_MIN_WIDTH = 96;
 
     private final StackPane root;
     private final Scene scene;
@@ -216,6 +218,7 @@ public class GameSession {
 
         hudRow.setPickOnBounds(false);
         hudRow.setMouseTransparent(false);
+        hudRow.setAlignment(Pos.CENTER);
         hudRow.setMaxWidth(Region.USE_PREF_SIZE);
         hudRow.setMaxHeight(Region.USE_PREF_SIZE);
 
@@ -760,7 +763,7 @@ public class GameSession {
         card.getStyleClass().addAll("hud-card", "hud-" + accentStyleClass);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(8, 12, 8, 12));
-        card.setMinWidth(96);
+        card.setMinWidth(HUD_CARD_EXPANDED_MIN_WIDTH);
         card.setMaxHeight(Region.USE_PREF_SIZE);
         return card;
     }
@@ -894,23 +897,68 @@ public class GameSession {
     }
 
     private static void setBottomHudMinimized(VBox bottomHudStack, HBox hudRow, boolean minimized) {
-        setHudCardState(hudRow, "hud-row-minimized", minimized);
-
         Object runningAnimation = bottomHudStack.getProperties().get("hudMinimizeAnimation");
         if (runningAnimation instanceof Timeline timeline) {
             timeline.stop();
         }
 
+        double startWidth = bottomHudStack.getWidth() > 0
+                ? bottomHudStack.getWidth()
+                : measureBottomHudWidth(bottomHudStack);
+
+        prepareBottomHudCompactLayout(hudRow, minimized);
+        setHudCardState(hudRow, "hud-row-minimized", minimized);
+        double targetWidth = measureBottomHudWidth(bottomHudStack);
+
+        bottomHudStack.setMinWidth(startWidth);
+        bottomHudStack.setPrefWidth(startWidth);
+        bottomHudStack.setMaxWidth(startWidth);
+
+        Interpolator smoothInterpolator = Interpolator.SPLINE(0.22, 0.0, 0.18, 1.0);
         Timeline animation = new Timeline(
                 new KeyFrame(
                         HUD_MINIMIZE_ANIMATION_DURATION,
-                        new KeyValue(bottomHudStack.scaleYProperty(), 1.0, Interpolator.SPLINE(0.22, 0.0, 0.18, 1.0)),
+                        new KeyValue(bottomHudStack.minWidthProperty(), targetWidth, smoothInterpolator),
+                        new KeyValue(bottomHudStack.prefWidthProperty(), targetWidth, smoothInterpolator),
+                        new KeyValue(bottomHudStack.maxWidthProperty(), targetWidth, smoothInterpolator),
+                        new KeyValue(bottomHudStack.scaleYProperty(), 1.0, smoothInterpolator),
                         new KeyValue(bottomHudStack.opacityProperty(), minimized ? 0.94 : 1.0, Interpolator.EASE_BOTH),
-                        new KeyValue(bottomHudStack.translateYProperty(), minimized ? 10.0 : 0.0, Interpolator.SPLINE(0.22, 0.0, 0.18, 1.0))
+                        new KeyValue(bottomHudStack.translateYProperty(), minimized ? 10.0 : 0.0, smoothInterpolator)
                 )
         );
         bottomHudStack.getProperties().put("hudMinimizeAnimation", animation);
+        animation.setOnFinished(event -> {
+            if (bottomHudStack.getProperties().get("hudMinimizeAnimation") == animation) {
+                bottomHudStack.setMinWidth(Region.USE_COMPUTED_SIZE);
+                bottomHudStack.setPrefWidth(Region.USE_COMPUTED_SIZE);
+                bottomHudStack.setMaxWidth(Region.USE_PREF_SIZE);
+            }
+        });
         animation.play();
+    }
+
+    private static double measureBottomHudWidth(VBox bottomHudStack) {
+        bottomHudStack.setMinWidth(Region.USE_COMPUTED_SIZE);
+        bottomHudStack.setPrefWidth(Region.USE_COMPUTED_SIZE);
+        bottomHudStack.setMaxWidth(Region.USE_PREF_SIZE);
+        bottomHudStack.applyCss();
+        return Math.ceil(bottomHudStack.prefWidth(-1));
+    }
+
+    private static void prepareBottomHudCompactLayout(Node node, boolean minimized) {
+        if (node instanceof Region region && region.getStyleClass().contains("hud-card")) {
+            region.setMinWidth(minimized ? Region.USE_COMPUTED_SIZE : HUD_CARD_EXPANDED_MIN_WIDTH);
+        }
+
+        if (node.getStyleClass().contains("hud-card-title-row")) {
+            node.setManaged(!minimized);
+        }
+
+        if (node instanceof Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                prepareBottomHudCompactLayout(child, minimized);
+            }
+        }
     }
 
     private static void setHudCardState(VBox card, String styleClass, boolean active) {
