@@ -133,6 +133,39 @@
     -fx-effect: dropshadow(gaussian, rgba(212, 168, 176, 0.16), 18, 0.15, 0, 5);
 }
 
+.hud-row-minimized .game-hud {
+    -fx-padding: 8 18 8 18;
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
+}
+
+.hud-row-minimized .hud-card {
+    -fx-padding: 5 12 5 12;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-spacing: 0;
+}
+
+.hud-row-minimized .hud-card-value {
+    -fx-font-size: 16px;
+}
+
+.hud-row-minimized .hud-card-icon {
+    -fx-font-size: 15px;
+}
+
+.hud-row-minimized .hud-card-title-row {
+    -fx-max-height: 0;
+    -fx-pref-height: 0;
+    -fx-min-height: 0;
+    -fx-opacity: 0;
+    -fx-padding: 0;
+}
+
+.hud-row-minimized .hud-card-value-row {
+    -fx-spacing: 6;
+}
+
 .pause-hotkey-badge {
     -fx-min-width: 34px;
     -fx-pref-width: 34px;

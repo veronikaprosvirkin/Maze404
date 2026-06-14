@@ -58,6 +58,8 @@ public class GameSession {
     private static final Duration RADAR_WARNING_START_DELAY = Duration.seconds(7);
     private static final Duration RADAR_BLINK_INTERVAL = Duration.seconds(0.35);
     private static final Duration HUD_DAMAGE_HIGHLIGHT_DURATION = Duration.seconds(1);
+    private static final Duration HUD_AUTO_MINIMIZE_DELAY = Duration.seconds(3);
+    private static final Duration HUD_MINIMIZE_ANIMATION_DURATION = Duration.millis(220);
     private static final Duration STEALTH_HINT_UPDATE_INTERVAL = Duration.millis(100);
 
     private final StackPane root;
@@ -225,6 +227,7 @@ public class GameSession {
         bottomHudStack.setMaxHeight(Region.USE_PREF_SIZE);
         StackPane.setAlignment(bottomHudStack, Pos.BOTTOM_CENTER);
         StackPane.setMargin(bottomHudStack, new Insets(0, 0, 24, 0));
+        installBottomHudAutoMinimize(bottomHudStack, hudRow);
 
         StackPane winLoseOverlay = new StackPane();
         winLoseOverlay.getStyleClass().add("victory-overlay");
@@ -742,6 +745,7 @@ public class GameSession {
         titleLabel.setMaxWidth(Double.MAX_VALUE);
 
         StackPane titleRow = new StackPane(titleLabel, hotkeyLabel);
+        titleRow.getStyleClass().add("hud-card-title-row");
         StackPane.setAlignment(titleLabel, Pos.CENTER_LEFT);
         StackPane.setAlignment(hotkeyLabel, Pos.CENTER_RIGHT);
         titleRow.setMaxWidth(Double.MAX_VALUE);
@@ -749,6 +753,7 @@ public class GameSession {
         iconNode.getStyleClass().add("hud-card-icon");
 
         HBox valueRow = new HBox(8, iconNode, valueLabel);
+        valueRow.getStyleClass().add("hud-card-value-row");
         valueRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox card = new VBox(5, titleRow, valueRow);
@@ -864,7 +869,61 @@ public class GameSession {
         setHudCardState(card, styleClass, !card.getStyleClass().contains(styleClass));
     }
 
+    private static void installBottomHudAutoMinimize(VBox bottomHudStack, HBox hudRow) {
+        PauseTransition autoMinimizeTimer = new PauseTransition(HUD_AUTO_MINIMIZE_DELAY);
+        boolean[] canMinimize = {false};
+
+        autoMinimizeTimer.setOnFinished(event -> {
+            canMinimize[0] = true;
+            setBottomHudMinimized(bottomHudStack, hudRow, true);
+        });
+
+        bottomHudStack.setOnMouseEntered(event -> {
+            if (canMinimize[0]) {
+                setBottomHudMinimized(bottomHudStack, hudRow, false);
+            }
+        });
+
+        bottomHudStack.setOnMouseExited(event -> {
+            if (canMinimize[0]) {
+                setBottomHudMinimized(bottomHudStack, hudRow, true);
+            }
+        });
+
+        autoMinimizeTimer.playFromStart();
+    }
+
+    private static void setBottomHudMinimized(VBox bottomHudStack, HBox hudRow, boolean minimized) {
+        setHudCardState(hudRow, "hud-row-minimized", minimized);
+
+        Object runningAnimation = bottomHudStack.getProperties().get("hudMinimizeAnimation");
+        if (runningAnimation instanceof Timeline timeline) {
+            timeline.stop();
+        }
+
+        Timeline animation = new Timeline(
+                new KeyFrame(
+                        HUD_MINIMIZE_ANIMATION_DURATION,
+                        new KeyValue(bottomHudStack.scaleYProperty(), 1.0, Interpolator.SPLINE(0.22, 0.0, 0.18, 1.0)),
+                        new KeyValue(bottomHudStack.opacityProperty(), minimized ? 0.94 : 1.0, Interpolator.EASE_BOTH),
+                        new KeyValue(bottomHudStack.translateYProperty(), minimized ? 10.0 : 0.0, Interpolator.SPLINE(0.22, 0.0, 0.18, 1.0))
+                )
+        );
+        bottomHudStack.getProperties().put("hudMinimizeAnimation", animation);
+        animation.play();
+    }
+
     private static void setHudCardState(VBox card, String styleClass, boolean active) {
+        if (active) {
+            if (!card.getStyleClass().contains(styleClass)) {
+                card.getStyleClass().add(styleClass);
+            }
+            return;
+        }
+        card.getStyleClass().remove(styleClass);
+    }
+
+    private static void setHudCardState(HBox card, String styleClass, boolean active) {
         if (active) {
             if (!card.getStyleClass().contains(styleClass)) {
                 card.getStyleClass().add(styleClass);
