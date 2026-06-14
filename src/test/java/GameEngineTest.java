@@ -116,11 +116,15 @@ class GameEngineTest {
         Grid grid = new Grid(3, 3);
         grid.setType(0, 2, CellType.TRAP);
         Player player = new Player(0, 1);
+
+        // ДОДАНО: Спочатку кладемо 1 заряд щита в інвентар гравця!
+        player.addShield(1);
+
         GameState state = new GameState(grid, player, List.of(), List.of(), 1);
         engine.loadLevel(state);
 
         engine.processAction(GameAction.SHIELD);          // активуємо щит
-        assertTrue(state.getPlayer().hasShield());
+        assertTrue(state.getPlayer().hasShield());        // ТЕПЕР ЦЕ БУДЕ TRUE!
 
         engine.processAction(GameAction.MOVE_RIGHT);      // наступаємо на TRAP
 
@@ -157,12 +161,16 @@ class GameEngineTest {
 
     @Test
     void levelCompletesOnExitStep() {
+        // 1. Явно вказуємо, що це ЛЕГКИЙ рівень, щоб вихід був дозволений без ключа
+        enums.Difficulty.current = enums.Difficulty.EASY;
+
         GameEngine engine = makeEngine();
         // Гравець у (2,1), EXIT у (2,2)
         Grid grid = new Grid(3, 3);
         grid.setType(2, 2, CellType.EXIT);
         Player player = new Player(2, 1);
-        // Рівень 1 — ключ не потрібен
+
+        // Рівень 1 — ключ не потрібен на Easy
         GameState state = new GameState(grid, player, List.of(), List.of(), 1);
         engine.loadLevel(state);
 
@@ -173,16 +181,21 @@ class GameEngineTest {
 
     @Test
     void exitBlockedOnLevel2WithoutKey() {
+        // 1. Явно вказуємо, що поточна складність гри - СЕРЕДНЯ (Medium),
+        // щоб обійти умову Difficulty.current == Difficulty.EASY
+        enums.Difficulty.current = enums.Difficulty.MEDIUM;
+
         GameEngine engine = makeEngine();
         Grid grid = new Grid(3, 3);
         grid.setType(2, 2, CellType.EXIT);
         Player player = new Player(2, 1);
-        // Рівень 2  потрібен ключ
+
+        // Рівень 2, ключа немає
         GameState state = new GameState(grid, player, List.of(), List.of(), 2);
         engine.loadLevel(state);
 
-        engine.processAction(GameAction.MOVE_RIGHT); // немає ключа
+        engine.processAction(GameAction.MOVE_RIGHT); // гравець робить крок на двері
 
-        assertFalse(state.isLevelComplete()); // вихід заблоковано
+        assertFalse(state.isLevelComplete()); // Тепер тест буде успішним, вихід заблоковано!
     }
 }
