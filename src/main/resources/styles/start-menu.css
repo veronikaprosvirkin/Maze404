@@ -469,3 +469,101 @@
     -fx-fill: -menu-text;
     -fx-font-size: 19px;
 }
+
+.history-records-shell {
+    -fx-padding: 22 24 22 30;
+    -fx-background-color:
+        linear-gradient(to bottom right, -menu-panel-bg, -menu-card-bg 62%, -menu-panel-bg);
+    -fx-background-radius: 30;
+    -fx-border-color: -menu-text-soft, -menu-border-soft;
+    -fx-border-width: 2, 4;
+    -fx-border-radius: 30, 26;
+    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 26, 0.16, 0, 0);
+}
+
+.history-records-list {
+    -fx-spacing: 12;
+}
+
+.history-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 4 0 0;
+}
+
+.history-scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.history-scroll-pane .scroll-bar:vertical,
+.history-scroll-pane .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-max-width: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
+}
+
+.history-slider-shell {
+    -fx-min-width: 56px;
+    -fx-pref-width: 56px;
+    -fx-max-width: 56px;
+    -fx-padding: 8 0 8 0;
+    -fx-alignment: center;
+}
+
+.history-slider-cap {
+    -fx-min-width: 30px;
+    -fx-pref-width: 30px;
+    -fx-max-width: 30px;
+    -fx-min-height: 16px;
+    -fx-pref-height: 16px;
+    -fx-max-height: 16px;
+    -fx-background-color:
+        linear-gradient(to bottom, -menu-text, -menu-accent-soft 60%, -menu-button-bg);
+    -fx-background-radius: 999;
+    -fx-border-color: -menu-text-soft;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 999;
+    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 14, 0.18, 0, 0);
+}
+
+.history-slider {
+    -fx-pref-width: 34px;
+    -fx-max-width: 34px;
+}
+
+.history-slider .track {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 999;
+    -fx-pref-width: 8px;
+}
+
+.history-slider .thumb {
+    -fx-background-color:
+        linear-gradient(to bottom, -menu-text, -menu-accent-soft 42%, -menu-button-bg);
+    -fx-background-insets: 0;
+    -fx-background-radius: 999;
+    -fx-border-color: -menu-text-soft, -menu-border;
+    -fx-border-width: 1.5, 3;
+    -fx-border-radius: 999, 999;
+    -fx-pref-width: 24px;
+    -fx-pref-height: 56px;
+    -fx-effect: dropshadow(gaussian, -menu-accent-soft, 18, 0.24, 0, 0);
+}
+
+.history-slider:disabled {
+    -fx-opacity: 0.45;
+}
+
+.history-record-card {
+    -fx-background-color:
+        linear-gradient(to bottom right, -menu-card-current-bg, -menu-card-bg 70%, -menu-panel-bg);
+    -fx-background-insets: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 10, 0.18, 0, 2);
+}
+
+.history-best-badge {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 8, 0.16, 0, 1);
+}

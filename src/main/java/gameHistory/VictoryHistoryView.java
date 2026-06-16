@@ -4,6 +4,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 
@@ -79,15 +80,17 @@ public class VictoryHistoryView extends StackPane {
         subtitleLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + subtitleColor + ";");
 
         VBox recordsContainer = new VBox(12);
+        recordsContainer.getStyleClass().add("history-records-list");
         recordsContainer.setAlignment(Pos.TOP_CENTER);
         recordsContainer.setPadding(new Insets(10, 0, 10, 0));
         recordsContainer.setFillWidth(true);
 
         ScrollPane scrollPane = new ScrollPane(recordsContainer);
+        scrollPane.getStyleClass().add("history-scroll-pane");
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setPannable(true);
-        scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
         scrollPane.setMinHeight(360);
         scrollPane.setPrefViewportHeight(420);
         scrollPane.setMaxWidth(Double.MAX_VALUE);
@@ -95,11 +98,47 @@ public class VictoryHistoryView extends StackPane {
                 recordsContainer.setPrefWidth(Math.max(0, newBounds.getWidth())));
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
+        Slider recordsSlider = new Slider(0, 100, 100);
+        recordsSlider.getStyleClass().add("history-slider");
+        recordsSlider.setOrientation(javafx.geometry.Orientation.VERTICAL);
+        recordsSlider.setMinHeight(360);
+        recordsSlider.setPrefHeight(420);
+        recordsSlider.setMaxHeight(Double.MAX_VALUE);
+        recordsSlider.setMajorTickUnit(25);
+        recordsSlider.setMinorTickCount(0);
+        recordsSlider.setSnapToTicks(false);
+
+        scrollPane.vvalueProperty().addListener((obs, oldValue, newValue) -> {
+            double sliderValue = 100 - (newValue.doubleValue() * 100);
+            if (Math.abs(recordsSlider.getValue() - sliderValue) > 0.001) {
+                recordsSlider.setValue(sliderValue);
+            }
+        });
+        recordsSlider.valueProperty().addListener((obs, oldValue, newValue) -> {
+            double scrollValue = 1 - (newValue.doubleValue() / 100.0);
+            if (Math.abs(scrollPane.getVvalue() - scrollValue) > 0.001) {
+                scrollPane.setVvalue(scrollValue);
+            }
+        });
+
+        StackPane sliderCap = new StackPane();
+        sliderCap.getStyleClass().add("history-slider-cap");
+
+        VBox sliderShell = new VBox(14, sliderCap, recordsSlider);
+        sliderShell.getStyleClass().add("history-slider-shell");
+        sliderShell.setAlignment(Pos.CENTER);
+        sliderShell.setFillWidth(false);
+
+        HBox recordsShell = new HBox(18, scrollPane, sliderShell);
+        recordsShell.getStyleClass().add("history-records-shell");
+        recordsShell.setAlignment(Pos.CENTER);
+        HBox.setHgrow(scrollPane, Priority.ALWAYS);
+
         Button backBtn = new Button("Back");
         backBtn.getStyleClass().addAll("hud-card", "pause-menu-button", "pause-menu-secondary");
         backBtn.setOnAction(e -> backToMenu.run());
 
-        mainLayout.getChildren().addAll(titleLabel, subtitleLabel, scrollPane, backBtn);
+        mainLayout.getChildren().addAll(titleLabel, subtitleLabel, recordsShell, backBtn);
         getChildren().add(mainLayout);
 
         List<VictoryRecord> allRecords = VictoryHistoryManager.loadRecords();
@@ -116,8 +155,11 @@ public class VictoryHistoryView extends StackPane {
             noData.setWrapText(true);
             noData.setMaxWidth(420);
             recordsContainer.getChildren().add(noData);
+            recordsSlider.setDisable(true);
             return;
         }
+
+        recordsSlider.setDisable(filtered.size() <= 3);
 
         long bestTime = filtered.get(0).getTimeSeconds();
 
@@ -125,7 +167,7 @@ public class VictoryHistoryView extends StackPane {
             boolean isBest = r.getTimeSeconds() == bestTime;
 
             HBox row = new HBox(20);
-            row.getStyleClass().add("game-hud");
+            row.getStyleClass().addAll("game-hud", "history-record-card");
             row.setPadding(new Insets(14, 24, 14, 24));
             row.setAlignment(Pos.CENTER_LEFT);
             row.setMaxWidth(640);
@@ -183,6 +225,7 @@ public class VictoryHistoryView extends StackPane {
 
             if (isBest) {
                 Label recordBadge = new Label("★ BEST");
+                recordBadge.getStyleClass().add("history-best-badge");
                 recordBadge.setStyle("-fx-background-color: " + accentColor + "; -fx-text-fill: " + bestBadgeTextColor + "; -fx-font-weight: bold; -fx-padding: 3 8 3 8; -fx-background-radius: 4; -fx-font-size: 11px;");
                 row.getChildren().add(1, recordBadge);
                 row.setStyle("-fx-border-color: " + accentColor + "; -fx-border-width: 1.5; -fx-border-radius: 8; -fx-background-radius: 8;");
